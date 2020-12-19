@@ -1,0 +1,125 @@
+# CI/CD pipeline. 
+
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  create_version:
+    name: Create a version number
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  
+
+    - name: Prepare version number
+      id: prepare_version_number
+      uses: anothrNick/github-tag-action@1.26.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true          
+        DRY_RUN: ${{ github.event_name != 'push' }}
+        DEFAULT_BUMP: patch
+        RELEASE_BRANCHES: main
+
+    - name: Capture version number
+      run: 'echo ${{ steps.prepare_version_number.outputs.new_tag }} >version.txt'
+
+    - name: Upload version number
+      uses: actions/upload-artifact@v2
+      with:
+        name: version
+        path: version.txt
+
+  build:
+    name: Build .NET executable
+    runs-on: ubuntu-latest
+    container: ghul/devcontainer:dotnet
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Show compiler version
+      run: /usr/bin/ghul
+                    
+    - name: Publish
+      run: dotnet publish
+
+    - name: Upload .NET executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: executable-dotnet
+        path: bin/Debug/net5.0/publish
+
+  test:
+    name: Test .NET executable under .NET Core
+    needs: build
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/dotnet/core/sdk:3.1
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download .NET executable
+      uses: actions/download-artifact@v2
+      with:
+        name: executable-dotnet
+        path: .
+
+    - name: Run
+      run: ./ghul-runtime
+      
+  create-draft-release:
+    name: Create draft release
+    if: ${{ github.event_name	== 'push' && false }}
+    needs: [test-dotnet]
+    runs-on: "ubuntu-latest"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download version number
+      uses: actions/download-artifact@v2
+      with:
+        name: version
+        path: .
+
+    - name: Set version number variable
+      id: version
+      run: echo "::set-output name=current::`cat version.txt`"
+
+    - name: Download .NET executable
+      uses: actions/download-artifact@v2
+      with:
+        name: executable-dotnet
+        path: .
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.current }}
+        release_name: ${{ steps.version.outputs.current }}
+        draft: true
+
+    - name: Upload .NET executable asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./hello-world.exe
+        asset_name: hello-world.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
+
