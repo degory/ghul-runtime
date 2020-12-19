@@ -1,0 +1,9 @@
+namespace Ghul.Runtime is
+    class GhulRuntimeMain is
+        entry() static is
+            @IL.entrypoint()
+
+            return;
+        si
+    si
+si

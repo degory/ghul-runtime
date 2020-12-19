@@ -1,0 +1,37 @@
+# CI/CD pipeline. 
+
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+env:
+  CI: true
+
+jobs:
+  build:
+    name: Build .NET executable
+    runs-on: ubuntu-latest
+    container: ghul/devcontainer:dotnet
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Show compiler version
+      run: /usr/bin/ghul
+
+    - name: Show SDKs
+      run: dotnet --list-sdks
+                    
+    - name: Publish
+      run: dotnet pack
+
+    - name: Upload .NET executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: executable-dotnet
+        path: nupkg
+

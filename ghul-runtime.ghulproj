@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+
+    <Title>ghūl runtime library</Title>
+    <PackageDescription>ghūl compiler runtime library</PackageDescription>
+    <PackageId>degory.ghul.runtime</PackageId>
+    <Authors>degory</Authors>
+    <Company>ghul.io</Company>
+    <Version>0.0.2</Version>
+
+    <PackageOutputPath>./nupkg</PackageOutputPath>  
+
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <Target Name="CreateManifestResourceNames" />
+
+  <Target Name="GhulAssembliesJson" AfterTargets="CoreCompile" DependsOnTargets="FindReferenceAssembliesForReferences">
+      <PropertyGroup>
+          <Assemblies>{"assemblies": [@(ReferencePathWithRefAssemblies -> '"%(fullpath)"', ',')]}</Assemblies>
+      </PropertyGroup>
+
+      <WriteLinesToFile
+          File=".assemblies.json"
+          Lines="$(Assemblies)"
+          Overwrite="true"
+          Encoding="Utf-8" />
+      <Message Importance="high" Text="updated $(OutputFile) with referenced assemblies" />
+
+  </Target>  
+
+  <Target Name="CoreCompile">
+    <ItemGroup>
+      <GhulSources Include="src/**/*.ghul" />
+    </ItemGroup>
+
+    <Exec Command="ghul --v3 @(GhulSources -> '%(fullpath)', '%20') -o $(IntermediateOutputPath)$(AssemblyName).dll @(ReferencePathWithRefAssemblies -> '--assembly %(fullpath)', '%20')" />
+
+    <Copy SourceFiles="$(ProjectDir)$(IntermediateOutputPath)$(AssemblyName).dll" DestinationFolder="$(ProjectDir)$(IntermediateOutputPath)ref" />
+  </Target>
+</Project>
