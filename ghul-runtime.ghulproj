@@ -5,7 +5,7 @@
 
     <Title>ghūl runtime library</Title>
     <PackageDescription>ghūl compiler runtime library</PackageDescription>
-    <PackageId>degory.ghul.runtime</PackageId>
+    <PackageId>ghul.runtime</PackageId>
     <Authors>degory</Authors>
     <Company>ghul.io</Company>
     <Version>0.0.1</Version>

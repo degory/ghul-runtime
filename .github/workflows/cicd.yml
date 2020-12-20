@@ -65,10 +65,15 @@ jobs:
         name: executable-dotnet
         path: nupkg
 
-    - name: Publish package
+    - name: Publish package to GitHub
       if: ${{ github.event_name == 'push' }}
       run: dotnet nuget push ./nupkg/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/degory/index.json --skip-duplicate --no-symbols true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Publish package to NuGet
+      if: ${{ github.event_name == 'push' }}
+      run: dotnet nuget push ./nupkg/*.nupkg -k ${NUGET_TOKEN} --skip-duplicate --no-symbols true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
