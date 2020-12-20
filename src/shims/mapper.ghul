@@ -6,7 +6,7 @@ namespace Shim is
     use Collections.Iterable;
     use Collections.Iterator;
 
-    class MAPPER[F,T]: object,Iterable[T] is
+    class MAPPER[F,T]: object, Iterable[T] is
         iterable: Iterable[F];
         mapper: (F) -> T;
 
@@ -21,9 +21,11 @@ namespace Shim is
         si
     si
 
-    class MAPPER_ITERATOR[F,T]: object,Iterator[T] is
+    class MAPPER_ITERATOR[F,T]: Iterable[T], Iterator[T] is
         _iterator: Iterator[F];
         _mapper: (F) -> T;
+
+        iterator: Iterator[T] => self;
 
         @IL.name.read("get_Current")
         current: T => _mapper(_iterator.current);
