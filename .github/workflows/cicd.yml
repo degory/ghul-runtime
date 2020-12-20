@@ -38,7 +38,7 @@ jobs:
     - name: Mangle version number
       id: mangle_version_number
       # NuGet is picky about the '.' in the pre-release suffix and the tag action doesn't expose a way to remove it:
-      run: echo "::set-output name=version::${VERSION/-beta./-beta/}\n"
+      run: echo "::set-output name=version::${VERSION/-beta\./-beta}\n"
       env:
         VERSION: ${{ steps.create_version_number.outputs.new_tag }}         
 
