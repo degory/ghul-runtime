@@ -8,7 +8,7 @@
     <PackageId>degory.ghul.runtime</PackageId>
     <Authors>degory</Authors>
     <Company>ghul.io</Company>
-    <Version>0.0.2</Version>
+    <Version>0.0.3-alpha</Version>
 
     <PackageOutputPath>./nupkg</PackageOutputPath>  
 
@@ -36,7 +36,7 @@
       <GhulSources Include="src/**/*.ghul" />
     </ItemGroup>
 
-    <Exec Command="ghul --v3 @(GhulSources -> '%(fullpath)', '%20') -o $(IntermediateOutputPath)$(AssemblyName).dll @(ReferencePathWithRefAssemblies -> '--assembly %(fullpath)', '%20')" />
+    <Exec Command="ghul --v3 --exclude-runtime-symbols @(GhulSources -> '%(fullpath)', '%20') -o $(IntermediateOutputPath)$(AssemblyName).dll @(ReferencePathWithRefAssemblies -> '--assembly %(fullpath)', '%20')" />
 
     <Copy SourceFiles="$(ProjectDir)$(IntermediateOutputPath)$(AssemblyName).dll" DestinationFolder="$(ProjectDir)$(IntermediateOutputPath)ref" />
   </Target>
