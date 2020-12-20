@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-20.04
     timeout-minutes: 1
     outputs:
-      number: ${{ steps.create_version_number.outputs.new_tag }}
+      number: ${{ steps.mangle_version_number.outputs.version }}
 
     steps:
     - uses: actions/checkout@v2
@@ -31,12 +31,16 @@ jobs:
         DRY_RUN: ${{ github.event_name == 'pull_request' }}
         DEFAULT_BUMP: patch
 
-    - name: Echo version number
-      run: 'echo ${{ steps.create_version_number.outputs.new_tag }}'
-
     - name: Fail if version number is not valid
       if: ${{ steps.create_version_number.outputs.new_tag == 'v0.0.0' || steps.create_version_number.outputs.new_tag == '' }}
       run: exit 1
+
+    - name: Mangle version number
+      id: mangle_version_number
+      # NuGet is picky about the '.' in the pre-release suffix and the tag action doesn't expose a way to remove it:
+      run: echo "::set-output name=version::${VERSION/-beta./-beta/})\n"
+      env:
+        VERSION: ${{ steps.create_version_number.outputs.new_tag }}         
 
   build:
     name: Build .NET executable
@@ -47,6 +51,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Install GitTools
+      uses: GitTools/actions@v0.9.7
                     
     - name: Pack
       run: dotnet pack -p:Version=${{ needs.version.outputs.number }}
