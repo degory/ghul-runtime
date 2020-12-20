@@ -26,8 +26,13 @@ jobs:
     - name: Show SDKs
       run: dotnet --list-sdks
                     
-    - name: Publish
+    - name: Pack
       run: dotnet pack
+
+    - name: Publish
+      run: dotnet nuget push ./nupkg/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/degory/index.json --skip-duplicate --no-symbols 
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload .NET executable
       uses: actions/upload-artifact@v2

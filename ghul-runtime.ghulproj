@@ -5,14 +5,15 @@
 
     <Title>ghūl runtime library</Title>
     <PackageDescription>ghūl compiler runtime library</PackageDescription>
-    <PackageId>degory.ghul.runtime</PackageId>
+    <PackageId>ghul.runtime</PackageId>
     <Authors>degory</Authors>
     <Company>ghul.io</Company>
-    <Version>0.0.2</Version>
+    <Version>0.0.4-alpha</Version>
 
     <PackageOutputPath>./nupkg</PackageOutputPath>  
 
     <DebugType>None</DebugType>
+    <RepositoryUrl>https://github.com/degory/ghul-runtime</RepositoryUrl>
   </PropertyGroup>
 
   <Target Name="CreateManifestResourceNames" />
