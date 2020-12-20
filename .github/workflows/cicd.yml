@@ -30,6 +30,7 @@ jobs:
         WITH_V: false
         DRY_RUN: ${{ github.event_name == 'pull_request' }}
         DEFAULT_BUMP: patch
+        RELEASE_BRANCHES: main,master
 
     - name: Fail if version number is not valid
       if: ${{ steps.create_version_number.outputs.new_tag == 'v0.0.0' || steps.create_version_number.outputs.new_tag == '' }}
