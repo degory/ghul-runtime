@@ -8,26 +8,26 @@
     <PackageId>degory.ghul.runtime</PackageId>
     <Authors>degory</Authors>
     <Company>ghul.io</Company>
-    <Version>0.0.3-alpha</Version>
+    <Version>0.0.1</Version>
 
     <PackageOutputPath>./nupkg</PackageOutputPath>  
-
+    <RepositoryUrl>https://github.com/degory/ghul-runtime</RepositoryUrl>
     <DebugType>None</DebugType>
   </PropertyGroup>
 
   <Target Name="CreateManifestResourceNames" />
 
   <Target Name="GhulAssembliesJson" AfterTargets="CoreCompile" DependsOnTargets="FindReferenceAssembliesForReferences">
-      <PropertyGroup>
-          <Assemblies>{"assemblies": [@(ReferencePathWithRefAssemblies -> '"%(fullpath)"', ',')]}</Assemblies>
-      </PropertyGroup>
+    <PropertyGroup>
+      <Assemblies>{"assemblies": [@(ReferencePathWithRefAssemblies -> '"%(fullpath)"', ',')]}</Assemblies>
+    </PropertyGroup>
 
-      <WriteLinesToFile
-          File=".assemblies.json"
-          Lines="$(Assemblies)"
-          Overwrite="true"
-          Encoding="Utf-8" />
-      <Message Importance="high" Text="updated $(OutputFile) with referenced assemblies" />
+    <WriteLinesToFile
+      File=".assemblies.json"
+      Lines="$(Assemblies)"
+      Overwrite="true"
+      Encoding="Utf-8" />
+    <Message Importance="high" Text="updated $(OutputFile) with referenced assemblies" />
 
   </Target>  
 
