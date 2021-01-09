@@ -8,7 +8,7 @@ namespace Shim is
 
         result: T is
             for e in iterable do
-                if !predicate? || predicate(e) then
+                if !predicate? \/ predicate(e) then
                     return e;
                 fi                                
             od
