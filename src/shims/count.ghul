@@ -9,7 +9,7 @@ namespace Shim is
             let count = 0;
 
             for e in iterable do
-                if !predicate? || predicate(e) then
+                if !predicate? \/ predicate(e) then
                     count = count + 1;                    
                 fi
             od

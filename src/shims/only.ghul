@@ -11,7 +11,7 @@ namespace Shim is
             while i.move_next() do
                 let e = i.current;
 
-                if !predicate? || predicate(e) then
+                if !predicate? \/ predicate(e) then
                     assert !i.move_next() else "ONLY: more than one element";
 
                     return e;
