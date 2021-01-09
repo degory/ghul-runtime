@@ -1,6 +1,4 @@
 {
-    "want_plaintext_hover": true,
-    "other_flags": "--exclude-runtime-symbols",
     "source": [
         "src"
     ]
