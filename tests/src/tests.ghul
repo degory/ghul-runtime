@@ -1,0 +1,14 @@
+namespace Tests is
+    use FluentAssertions.Collections.GenericCollectionAssertions`1;
+
+    class Main is
+        entry() static is
+            @IL.entrypoint()
+            
+            return;
+        si
+        
+        // ghūl doesn't have extension methods, so wrap this for easier consumption:
+        should[T](iterable: Collections.Iterable[T]) -> GenericCollectionAssertions`1[T] static => new GenericCollectionAssertions`1[T](iterable);
+    si
+si

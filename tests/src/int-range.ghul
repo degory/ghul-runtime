@@ -1,0 +1,93 @@
+namespace Tests is
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Main.should;
+
+    class INT_RANGE_Should is
+        @test()
+
+        init() is si
+
+        init__0_to_10__have_10_elements() is
+            @test()
+
+            let range = new Ghul.INT_RANGE(0, 10);
+
+            assert range | .count() == 10;
+        si        
+
+        init__0_to_10__have_consequtive_elements_0_to_9() is
+            @test()
+
+            let range = new Ghul.INT_RANGE(0, 10);
+
+            should(range).equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        si
+
+        init__10_to_0__have_0_elements() is
+            @test()
+
+            let range = new Ghul.INT_RANGE(10, 0);
+
+            assert range | .count() == 0;
+        si
+
+        dot_dot__0_to_10__constructs_range_0_to_10() is
+            @test()
+
+            let range = 0..10;
+
+            should(range).equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);            
+        si
+
+        dot_dot__minus_5_to_5__constructs_range_minus_5_to_5() is
+            @test()
+
+            let range = -5..5;
+
+            should(range).equal([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]);            
+        si
+
+        partially_enumerated_range__reset__starts_from_beginning_again() is
+            @test()
+
+            let range = 0..10;
+            
+            range | .take(5);
+
+            should(range).equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        si        
+
+        `0_to_10__from_property__is_0() is
+            @test()
+
+            let range = 0..10;
+
+            assert range.from == 0;
+        si
+
+        `0_to_10__to_property__is_10() is
+            @test()
+
+            let range = 0..10;
+
+            assert range.to == 10;
+        si
+
+        `0_to_10__move_next__returns_true() is
+            @test()
+
+            let range = 0..10;
+
+            assert range.move_next();
+        si
+
+        `10_to_0__move_next__returns_false() is
+            @test()
+
+            let range = 10..0;
+
+            assert !range.move_next();
+        si
+    si
+si
