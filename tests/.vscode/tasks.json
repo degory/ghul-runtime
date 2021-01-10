@@ -12,7 +12,7 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "group": "build",
+            "group": "test",
             "problemMatcher": ["$msCompile"]
         }
     ]
