@@ -21,7 +21,7 @@ namespace Collections is
         si
 
         reset() is
-            _index = _list.count - 1;
+            _index = _list.count;
         si        
     si    
 si
