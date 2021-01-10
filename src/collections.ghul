@@ -3,15 +3,13 @@ namespace Collections is
         _list: LIST[T];
         _index: int;
 
-        @IL.name.read("get_Current")
         current: T => _list[_index];
 
         init(list: LIST[T]) is
             _list = list;
-            _index = list.count;
+            reset();
         si
 
-        @IL.name("MoveNext")
         move_next() -> bool is
             let result = _index > 0;
 
@@ -21,5 +19,9 @@ namespace Collections is
 
             return result;
         si
+
+        reset() is
+            _index = _list.count - 1;
+        si        
     si    
 si

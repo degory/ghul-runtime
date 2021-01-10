@@ -6,47 +6,58 @@ namespace Ghul is
         to: T;
     si
 
-    struct INT_RANGE: Range[int], Iterable[int], Iterator[int] is
-        @IL.name.read("GetEnumerator")
+    trait Resettable is
+        @IL.name("Reset")
+        reset();
+    si
+    
+    struct INT_RANGE: Range[int], Iterable[int], Iterator[int], Resettable is
         iterator: Iterator[int] => self;
 
-        @IL.name.read("get_Current")
-        current: int;
-
-        from: int => current + 1;
+        from: int;
         to: int;
+
+        current: int;
  
         init(from: int, to: int) is
-            current = from - 1;
+            self.from = from;
             self.to = to;
+
+            current = from - 1;
         si
 
-        @IL.name("MoveNext")
         move_next() -> bool is
             current = current + 1;
             return current < to;
-        si        
+        si
+        
+        reset() is
+            current = from - 1;
+        si
     si
 
-    struct INT_RANGE_INCLUSIVE: Range[int], Iterable[int], Iterator[int] is
-        @IL.name.read("GetEnumerator")
+    struct INT_RANGE_INCLUSIVE: Range[int], Iterable[int], Iterator[int], Resettable is
         iterator: Iterator[int] => self;
 
-        from: int => current + 1;
+        from: int;
         to: int;
 
-        @IL.name.read("get_Current")
         current: int;
 
         init(from: int, to: int) is
-            current = from - 1;
+            self.from = from;
             self.to = to;
+
+            current = from - 1;
         si
 
-        @IL.name("MoveNext")
         move_next() -> bool is
             current = current + 1;
             return current <= to;
+        si        
+
+        reset() is
+            current = from - 1;
         si        
     si
 si
