@@ -34,6 +34,22 @@ namespace Ghul is
         reset() is
             current = from - 1;
         si
+
+        to_string() -> string is
+            let result = new System.Text.StringBuilder();
+            result
+                .append(from)
+                .append("..")
+                .append(to);
+
+            if current != from -1 then
+                result
+                    .append(" @ ")
+                    .append(current);
+            fi
+            
+            return result.to_string();
+        si
     si
 
     struct INT_RANGE_INCLUSIVE: Range[int], Iterable[int], Iterator[int], Resettable is
@@ -58,6 +74,22 @@ namespace Ghul is
 
         reset() is
             current = from - 1;
-        si        
+        si
+        
+        to_string() -> string is
+            let result = new System.Text.StringBuilder();
+            result
+                .append(from)
+                .append("::")
+                .append(to);
+
+            if current != from -1 then
+                result
+                    .append(" @ ")
+                    .append(current);
+            fi
+            
+            return result.to_string();
+        si
     si
 si

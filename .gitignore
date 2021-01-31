@@ -5,6 +5,9 @@
 obj/
 bin/
 
+.build.rsp
+output.txt
+
 tests/TestResults/
 
 **/*.runtimeconfig.json
@@ -15,4 +18,3 @@ tests/TestResults/
 **/*.vsix
 .assemblies.json
 nupkg/**/*
-.build.rsp
