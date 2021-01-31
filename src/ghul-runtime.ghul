@@ -1,9 +1,7 @@
-namespace Ghul.Runtime is
+namespace Ghul is
     @IL.name("$EntryPoint")
     class EntryPoint is
         entry() static is
-            @IL.entrypoint()
-
             return;
         si
     si

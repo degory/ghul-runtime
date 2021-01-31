@@ -1,8 +1,6 @@
 namespace Tests is
     use Microsoft.VisualStudio.TestTools.UnitTesting;
 
-    use Main.should;
-
     class INT_RANGE_Should is
         @test()
 
@@ -13,7 +11,7 @@ namespace Tests is
 
             let range = new Ghul.INT_RANGE(0, 10);
 
-            assert range | .count() == 10;
+            Assert.are_equal(range | .count(), 10);
         si        
 
         INT_RANGE__init__given_0_to_10__constructs_range_with_10_elements_consecutive_elements_0_through_9() is
@@ -21,7 +19,7 @@ namespace Tests is
 
             let range = new Ghul.INT_RANGE(0, 10);
 
-            should(range).equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         si
 
         INT_RANGE__init__given_10_to_0__constructs_range_with_0_elements() is
@@ -29,7 +27,7 @@ namespace Tests is
 
             let range = new Ghul.INT_RANGE(10, 0);
 
-            assert range | .count() == 0;
+            Assert.are_equal(range | .count(), 0);
         si
 
         INT_RANGE__init__given_50_to_50__constructs_range_with_0_elements() is
@@ -37,7 +35,7 @@ namespace Tests is
 
             let range = new Ghul.INT_RANGE(50, 50);
 
-            assert range | .count() == 0;
+            Assert.are_equal(range | .count(), 0);
         si
 
         INT_RANGE__dot_dot__given_0_to_10__constructs_range_with_consecutive_elements_0_through_9() is
@@ -45,7 +43,7 @@ namespace Tests is
 
             let range = 0..10;
 
-            should(range).equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);            
+            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);            
         si
 
         INT_RANGE__dot_dot__minus_5_to_5__constructs_range_with_consecutive_elements_minus_5_through_4() is
@@ -53,7 +51,7 @@ namespace Tests is
 
             let range = -5..5;
 
-            should(range).equal([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]);            
+            assert_equal(range, [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]);            
         si
 
         INT_RANGE__reset__given_partially_enumerated_range__starts_from_beginning_again() is
@@ -63,7 +61,7 @@ namespace Tests is
             
             range | .take(5);
 
-            should(range).equal([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         si
 
         INT_RANGE__from__given_0_to_10__is_0() is
@@ -71,7 +69,7 @@ namespace Tests is
 
             let range = 0..10;
 
-            assert range.from == 0;
+            Assert.are_equal(range.from, 0);
         si
 
         INT_RANGE__to__given_0_to_10__is_10() is
@@ -79,7 +77,7 @@ namespace Tests is
 
             let range = 0..10;
 
-            assert range.to == 10;
+            Assert.are_equal(range.to, 10);
         si
 
         INT_RANGE__move_next__given_0_to_10__returns_true() is
@@ -87,7 +85,7 @@ namespace Tests is
 
             let range = 0..10;
 
-            assert range.move_next();
+            Assert.is_true(range.move_next());
         si
 
         INT_RANGE__move_next__given_10_to_0__returns_true() is
@@ -95,7 +93,48 @@ namespace Tests is
 
             let range = 10..0;
 
-            assert !range.move_next();
+            Assert.is_false(range.move_next());
         si
+
+        INT_RANGE__to_string__given_new_0_to_10__returns_0_dot_dot_10() is
+            @test()
+
+            let range = 0..10;
+
+            Assert.are_equal("0..10", range.to_string());
+        si
+
+        INT_RANGE__to_string__given_reset_0_to_10__returns_0_dot_dot_10() is
+            @test()
+
+            let range = 0..10;
+
+            range.reset();
+
+            Assert.are_equal("0..10", range.to_string());
+        si
+
+        INT_RANGE__to_string__given_0_to_10_then_move_next_returns_0_dot_dot_10_at_0() is
+            @test()
+
+            let range = 0..10;
+
+            range.move_next();
+
+            Assert.are_equal("0..10 @ 0", range.to_string());
+        si
+
+        INT_RANGE__to_string__given_0_to_10_then_3_move_next_returns_0_dot_dot_10_at_2() is
+            @test()
+
+            let range = 0..10;
+
+            range.move_next();
+            range.move_next();
+            range.move_next();
+
+            Assert.are_equal("0..10 @ 2", range.to_string());
+        si        
+
     si
 si
