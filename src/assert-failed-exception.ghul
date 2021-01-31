@@ -1,0 +1,7 @@
+namespace Ghul is
+    class AssertFailedException: System.Exception is
+        init(message: string) is
+            super.init(message);
+        si        
+    si
+si

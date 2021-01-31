@@ -1,14 +1,21 @@
 namespace Tests is
-    use FluentAssertions.Collections.GenericCollectionAssertions`1;
+    use Collections;
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
 
-    class Main is
-        entry() static is
-            @IL.entrypoint()
-            
-            return;
-        si
-        
-        // ghūl doesn't have extension methods, so wrap this for easier consumption:
-        should[T](iterable: Collections.Iterable[T]) -> GenericCollectionAssertions`1[T] static => new GenericCollectionAssertions`1[T](iterable);
+    entry() is
+    si
+
+    assert_equal[T](a: Collections.Iterable[T], b: Collections.Iterable[T]) is
+        CollectionAssert.are_equal(new Collections.LIST[T](a), new Collections.LIST[T](b));            
+    si
+
+    collect[T](iterator: LIST_REVERSE_ITERATOR[T]) -> Iterable[T] is
+        let result = new LIST[T]();
+
+        while iterator.move_next() do
+            result.add(iterator.current);
+        od
+
+        return result;
     si
 si
