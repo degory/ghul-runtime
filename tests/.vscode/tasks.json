@@ -13,7 +13,7 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "group": "test",
-            "problemMatcher": ["$msCompile"]
+            "problemMatcher": ["$ghūl", "$msCompile"]
         }
     ]
 }

@@ -3,22 +3,28 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
 
-    <Title>ghūl runtime library</Title>
-    <PackageDescription>ghūl compiler runtime library</PackageDescription>
-    <RepositoryUrl>https://github.com/degory/ghul-runtime</RepositoryUrl>
     <PackageId>ghul.runtime</PackageId>
+    <Title>ghūl runtime library</Title>
     <Authors>degory</Authors>
-    <Company>ghul.io</Company>
-    <Version>0.0.11-alpha.1</Version>
-    <PackageOutputPath>./nupkg</PackageOutputPath>  
-
+    <Version>0.0.11-alpha.2</Version>
+    <Description>ghūl compiler runtime library</Description>
+    <PackageDescription>ghūl compiler runtime library</PackageDescription>
+    <PackageTags>ghul;ghūl;runtime</PackageTags>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageProjectUrl>https://github.com/degory/ghul-runtime</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/degory/ghul-runtime.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>main</RepositoryBranch>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>    
   </PropertyGroup>
 
   <ItemGroup>
-    <GhulSources Include="src/**/*.ghul" />
-    <PackageReference Include="ghul.targets" Version="0.0.3" GeneratePathProperty="true" />
-  </ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>  
+    <None Include="LICENSE*" Pack="true" PackagePath="\" />
 
-  <Import Project="$(Pkgghul_targets)/content/build/ghul.targets.props" />
-  <Import Project="$(Pkgghul_targets)/content/build/ghul.targets.targets" />
+    <GhulSources Include="src/**/*.ghul" />
+    <PackageReference Include="ghul.targets" Version="0.0.8" />
+  </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@
             "presentation": {
                 "reveal": "silent"
             },
-            "problemMatcher": ["$msCompile"]
+            "problemMatcher": ["$ghūl","$msCompile"]
         },
         {
             "label": "pack",
@@ -31,7 +31,7 @@
             "presentation": {
                 "reveal": "silent"
             },
-            "problemMatcher": ["$msCompile"]
+            "problemMatcher": ["$ghūl","$msCompile"]
         },
 
         {
@@ -42,7 +42,7 @@
                 "test", "tests/tests.ghulproj"
             ],
             "group": "test",
-            "problemMatcher": ["$msCompile"]            
+            "problemMatcher": ["$ghūl","$msCompile"]            
         }
     ]
 }
