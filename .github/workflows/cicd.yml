@@ -71,7 +71,7 @@ jobs:
         NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
 
   create_release:
-    needs: [version, publish-package]
+    needs: [version, build]
     name: Create release
     runs-on: ubuntu-20.04
 
