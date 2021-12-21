@@ -6,7 +6,7 @@
     <PackageId>ghul.runtime</PackageId>
     <Title>ghūl runtime library</Title>
     <Authors>degory</Authors>
-    <Version>0.0.11-alpha.2</Version>
+    <Version>1.0.0-alpha.1</Version>
     <Description>ghūl compiler runtime library</Description>
     <PackageDescription>ghūl compiler runtime library</PackageDescription>
     <PackageTags>ghul;ghūl;runtime</PackageTags>
@@ -25,6 +25,6 @@
     <None Include="LICENSE*" Pack="true" PackagePath="\" />
 
     <GhulSources Include="src/**/*.ghul" />
-    <PackageReference Include="ghul.targets" Version="0.0.8" />
+    <PackageReference Include="ghul.targets" Version="1.0.0" />
   </ItemGroup>
 </Project>
