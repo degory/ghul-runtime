@@ -44,7 +44,7 @@ jobs:
   build:
     name: Build and publish NuGet package
     runs-on: ubuntu-latest
-    container: ghul/devcontainer:dotnet
+    container: ghcr.io/degory/ghul/devcontainer:dotnet
     timeout-minutes: 10
     needs: [version]
 
