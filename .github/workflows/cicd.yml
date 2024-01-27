@@ -24,25 +24,32 @@ jobs:
     outputs:
       tag: ${{ steps.create_version.outputs.tag }}
       package: ${{ steps.create_version.outputs.package }}
+      
+    permissions:
+      contents: 'write'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'    
 
     - name: Create version
       id: create_version
-      uses: degory/create-version@v0.0.1
+      uses: degory/create-version@v0.0.2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        PRERELEASE: ${{ github.event_name == 'pull_request' }}
 
   build:
     name: Build and publish NuGet package
     runs-on: ubuntu-latest
-    container: ghul/devcontainer:dotnet
+    container: ghcr.io/degory/ghul/devcontainer:dotnet
     timeout-minutes: 10
     needs: [version]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Restore local .NET tools
       run: dotnet tool restore
@@ -54,7 +61,7 @@ jobs:
       run: dotnet pack -p:Version=${{ needs.version.outputs.package }}
 
     - name: Upload package artefact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: package
         path: nupkg
@@ -80,10 +87,10 @@ jobs:
     if: ${{ github.event_name == 'push' }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Download package
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: package
         path: nupkg
