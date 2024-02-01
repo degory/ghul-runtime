@@ -6,7 +6,17 @@ namespace Tests is
     si
 
     assert_equal[T](a: Collections.Iterable[T], b: Collections.Iterable[T]) is
-        CollectionAssert.are_equal(new Collections.LIST[T](a), new Collections.LIST[T](b));            
+        // FIXME: can no-longer construct LIST[T] from an Iterable[T]
+        // not sure if this is a change from .NET 6 to .NET 8 or if it's
+        // a compiler bug:
+
+        let la: Collections.LIST[T] = new Collections.LIST[T]();
+        let lb: Collections.LIST[T] = new Collections.LIST[T]();
+
+        la.add_range(a);
+        lb.add_range(b);
+
+        CollectionAssert.are_equal(la, lb);            
     si
 
     collect[T](iterator: LIST_REVERSE_ITERATOR[T]) -> Iterable[T] is
