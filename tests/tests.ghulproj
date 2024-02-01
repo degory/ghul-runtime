@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,8 +9,8 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
 
-    <PackageReference Include="ghul.targets" Version="0.0.8" />
-    <PackageReference Include="ghul.pipes" Version="0.0.17" />
+    <PackageReference Include="ghul.targets" Version="1.2.1" />
+    <PackageReference Include="ghul.pipes" Version="1.0.0" />
 
     <ProjectReference Include="../ghul-runtime.ghulproj" />
 
