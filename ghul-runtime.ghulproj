@@ -11,10 +11,10 @@
     <PackageDescription>ghūl compiler runtime library</PackageDescription>
     <PackageTags>ghul;ghūl;runtime</PackageTags>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <PackageProjectUrl>https://github.com/degory/ghul-runtime</PackageProjectUrl>
+    <PackageProjectUrl>https://ghul.dev</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/degory/ghul-runtime.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/degory/ghul-runtime</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryBranch>main</RepositoryBranch>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
