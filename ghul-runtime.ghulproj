@@ -31,6 +31,6 @@
     <None Include="./images/ghul-logo-icon.png" Pack="true" PackagePath=""/>
 
     <GhulSources Include="src/**/*.ghul" />
-    <PackageReference Include="ghul.targets" Version="1.2.1" />
+    <PackageReference Include="ghul.targets" Version="1.2.4" />
   </ItemGroup>
 </Project>
