@@ -1,0 +1,15 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class FunctionComparer[T]: IComparer`1[T] is
+        _comparer: (T, T) -> int;
+
+        init(comparer: (T, T) -> int) is
+            _comparer = comparer;
+        si
+
+        compare(x: T, y: T) -> int is
+            return _comparer(x, y);
+        si
+    si    
+si

@@ -1,0 +1,15 @@
+namespace Ghul is
+    struct MAYBE[T] is 
+        has_value: bool;
+        value: T;
+
+        init() is
+            has_value = false;
+        si
+
+        init(value: T) is
+            has_value = true;
+            self.value = value;
+        si
+    si
+si

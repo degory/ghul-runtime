@@ -19,6 +19,8 @@
     <RepositoryBranch>main</RepositoryBranch>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
     <PackageIcon>ghul-logo-icon.png</PackageIcon>
     <PackageIconUrl>ghul-logo-icon.png</PackageIconUrl>
 
@@ -31,6 +33,7 @@
     <None Include="./images/ghul-logo-icon.png" Pack="true" PackagePath=""/>
 
     <GhulSources Include="src/**/*.ghul" />
-    <PackageReference Include="ghul.targets" Version="1.2.1" />
+
+    <PackageReference Include="ghul.targets" />
   </ItemGroup>
 </Project>

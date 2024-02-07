@@ -1,0 +1,20 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class SkipPipe[T]: FilterPipeBase[T] is
+        _skip_count: int;
+        
+        init(enumerator: Iterator[T], skip_count: int) is
+            super.init(enumerator);
+            _skip_count = skip_count;
+        si
+
+        have_moved() is
+            _skip_count = _skip_count - 1;
+        si
+
+        should_continue() -> bool => true;
+        
+        should_include() -> bool => _skip_count < 0;
+    si
+si

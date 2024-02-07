@@ -1,0 +1,19 @@
+<Project>
+  <ItemGroup>
+    <!-- ghūl MSBuild targets -->
+    <PackageVersion Include="ghul.targets" Version="1.2.4" />
+
+    <!-- ghūl language runtime -->
+    <PackageVersion Include="ghul.runtime" Version="1.1.4" />
+
+    <!-- unit test dependencies -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="Moq" Version="4.20.70" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="3.2.0" />
+    <PackageVersion Include="MSTest.TestFramework" Version="3.2.0" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
+    <PackageVersion Include="NSubstitute" Version="5.1.0" />
+    <PackageVersion Include="coverlet.collector" Version="3.1.0" />
+
+  </ItemGroup>
+</Project>
