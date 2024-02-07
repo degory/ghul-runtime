@@ -1,0 +1,15 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class FilterPipe[T]: FilterPipeBase[T] is
+        _predicate: T -> bool;
+
+        init(iterator: Iterator[T], predicate: T -> bool) is
+            super.init(iterator);
+
+            _predicate = predicate;
+        si
+
+        should_include() -> bool => _predicate(current);
+    si
+si

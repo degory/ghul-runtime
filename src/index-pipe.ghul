@@ -1,0 +1,36 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class IndexPipe[T]: Pipe[INDEXED_VALUE[T]] is
+        _index: int;
+        _iterator: Iterator[T];
+
+        current: INDEXED_VALUE[T] =>
+            new INDEXED_VALUE[T](_index, _iterator.current);
+
+        init(enumerator: Iterator[T], index: int) is
+            _iterator = enumerator;
+            _index = index - 1;
+        si
+
+        move_next() -> bool is
+            if _iterator.move_next() then
+                _index = _index + 1;
+                return true;
+            fi
+
+            reset();
+
+            return false;
+        si
+
+        reset() is
+            _index = -1;
+            _iterator.reset();
+        si
+
+        dispose() is
+            _iterator.dispose();
+        si
+    si
+si
