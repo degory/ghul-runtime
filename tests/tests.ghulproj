@@ -1,17 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <TargetFramework>net8.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <GhulCompiler>dotnet ghul-compiler</GhulCompiler>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.2.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.2.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="coverlet.collector" />
 
-    <PackageReference Include="ghul.targets" Version="1.2.1" />
-    <PackageReference Include="ghul.pipes" Version="1.0.0" />
+    <PackageReference Include="ghul.targets" />
+    <PackageReference Include="NSubstitute" />
 
+    <!-- <PackageReference Include="coverlet.msbuild">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference> -->
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../ghul-runtime.ghulproj" />
 
     <GhulSources Include="src/**/*.ghul" />

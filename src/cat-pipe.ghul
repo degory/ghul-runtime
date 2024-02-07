@@ -1,0 +1,54 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class CatPipe[T]: Pipe[T] is
+        _left: Iterator[T];
+        _right: Iterator[T];
+
+        _take_from_left: bool;
+
+        current: T is
+            if _take_from_left then
+                return _left.current;
+            else
+                return _right.current;
+            fi
+        si
+
+        init(left: Iterator[T], right: Iterator[T]) is
+            _left = left;
+            _right = right;
+            _take_from_left = true;
+        si
+
+        move_next() -> bool is
+            if _take_from_left then
+                _take_from_left = _left.move_next();
+
+                if _take_from_left then
+                    return true;
+                fi
+
+                _left.reset();
+            fi
+
+            let result = _right.move_next();
+
+            if result then
+                return true;
+            fi
+
+            _take_from_left = true;
+            _right.reset();
+
+            return false;
+        si
+
+        reset() is
+            _left.reset();
+            _right.reset();
+
+            _take_from_left = true;
+        si
+    si
+si

@@ -22,6 +22,9 @@ namespace Collections is
 
         reset() is
             _index = _list.count;
-        si        
+        si
+        
+        dispose() is
+        si
     si    
 si

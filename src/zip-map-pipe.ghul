@@ -1,0 +1,40 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class ZipMapPipe[T1,T2,TOut]: Pipe[TOut] is
+        _iterator_1: Iterator[T1];
+        _iterator_2: Iterator[T2];
+        _mapper: (T1, T2) -> TOut;
+
+        _current: TOut;
+
+        current: TOut => _current;
+
+        init(iterator_1: Iterator[T1], iterator_2: Iterator[T2], mapper: (T1, T2) -> TOut) is
+            _iterator_1 = iterator_1;
+            _iterator_2 = iterator_2;
+            _mapper = mapper;
+        si
+
+        move_next() -> bool is
+            if _iterator_1.move_next() /\ _iterator_2.move_next() then
+                _current = _mapper(_iterator_1.current, _iterator_2.current);
+                return true;
+            fi
+
+            reset();
+
+            return false;
+        si
+
+        reset() is
+            _iterator_1.reset();
+            _iterator_2.reset();
+        si
+
+        dispose() is
+            _iterator_1.dispose();
+            _iterator_2.dispose();
+        si
+    si
+si

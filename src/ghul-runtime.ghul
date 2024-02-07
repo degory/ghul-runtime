@@ -1,8 +1,0 @@
-namespace Ghul is
-    @IL.name("$EntryPoint")
-    class EntryPoint is
-        entry() static is
-            return;
-        si
-    si
-si

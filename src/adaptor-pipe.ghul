@@ -1,0 +1,27 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class AdaptorPipe[T]: Pipe[T] is
+        _iterator: Iterator[T];
+
+        init(iterable: Iterable[T]) is
+            super.init(iterable);
+
+            _iterator = iterable.iterator;
+        si
+
+        current: T => _iterator.current;
+
+        move_next() -> bool is
+            let result = _iterator.move_next();
+
+            if !result then
+                _iterator.reset();
+            fi
+
+            return result;
+        si
+
+        reset() => _iterator.reset();
+    si
+si
