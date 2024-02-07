@@ -19,6 +19,18 @@
         fi
     si
 
+    class Factory is
+        from[T](source: Iterable[T]) -> Pipe[T] static is
+            if !source? then
+                return null;
+            elif isa Pipe[T](source) then
+                return cast Pipe[T](source);
+            else
+                return new AdaptorPipe[T](source);
+            fi    
+        si
+    si
+
     class Pipe[T]: Iterable[T], Iterator[T] is
         _source: Iterable[T] protected;
 
