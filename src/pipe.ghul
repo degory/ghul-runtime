@@ -15,7 +15,7 @@
         elif isa Pipe[T](source) then
             return cast Pipe[T](source);
         else
-            return new AdaptorPipe[T](source);
+            return new ADAPTOR_PIPE[T](source);
         fi
     si
 
@@ -26,7 +26,7 @@
             elif isa Pipe[T](source) then
                 return cast Pipe[T](source);
             else
-                return new AdaptorPipe[T](source);
+                return new ADAPTOR_PIPE[T](source);
             fi    
         si
     si
@@ -48,36 +48,42 @@
             elif isa Pipe[T](source) then
                 return cast Pipe[T](source);
             else
-                return new AdaptorPipe[T](source);
+                return new ADAPTOR_PIPE[T](source);
             fi
         si
 
         filter(predicate: (T) -> bool) -> Pipe[T] =>
             new FilterPipe[T](iterator, predicate);
 
-        map[U](mapper: (T) -> U) -> Pipe[U] =>
-            new MapPipe[T,U](iterator, mapper);
+        // FIXME: can't use => here due to compiler bug
+        map[U](mapper: (T) -> U) -> Pipe[U] is
+            return new MAP_PIPE[T,U](iterator, mapper);
+        si
 
         skip(count: int) -> Pipe[T] =>
-            new SkipPipe[T](iterator, count);
+            new SKIP_PIPE[T](iterator, count);
 
         take(count: int) -> Pipe[T] =>
-            new TakePipe[T](iterator, count);
+            new TAKE_PIPE[T](iterator, count);
 
         cat(right: Iterable[T]) -> Pipe[T] =>
-            new CatPipe[T](iterator, right.iterator);
+            new CAT_PIPE[T](iterator, right.iterator);
 
         index() -> Pipe[INDEXED_VALUE[T]] =>
-            new IndexPipe[T](iterator, 0);
+            new INDEX_PIPE[T](iterator, 0);
 
         index(index: int) -> Pipe[INDEXED_VALUE[T]] =>
-            new IndexPipe[T](iterator, index);
+            new INDEX_PIPE[T](iterator, index);
 
-        zip[U](other: Iterable[U]) -> Pipe[(T,U)] =>
-            new ZipPipe[T,U](iterator, other.iterator);
+        // FIXME: can't use => here due to compiler bug
+        zip[U](other: Iterable[U]) -> Pipe[(T,U)] is
+            return new ZIP_PIPE[T,U](iterator, other.iterator);
+        si
 
-        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut) -> Pipe[TOut] =>
-            new ZipMapPipe[T,U,TOut](iterator, other.iterator, mapper);
+        // FIXME: can't use => here due to compiler bug
+        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut) -> Pipe[TOut] is
+            return new ZIP_MAP_PIPE[T,U,TOut](iterator, other.iterator, mapper);
+        si
 
         reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning) -> TRunning is
             let running = seed;
@@ -200,7 +206,7 @@
         si
 
         sort(compare: (T, T) -> int) -> Pipe[T] =>
-            sort(new FunctionComparer[T](compare));
+            sort(new FUNCTION_COMPARER[T](compare));
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder is
             let seen_any = false;

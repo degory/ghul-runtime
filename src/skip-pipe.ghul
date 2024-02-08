@@ -1,7 +1,7 @@
 namespace Ghul.Pipes is
     use Collections;
 
-    class SkipPipe[T]: FilterPipeBase[T] is
+    class SKIP_PIPE[T]: FilterPipeBase[T] is
         _skip_count: int;
         
         init(enumerator: Iterator[T], skip_count: int) is

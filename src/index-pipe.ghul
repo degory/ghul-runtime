@@ -1,7 +1,7 @@
 namespace Ghul.Pipes is
     use Collections;
 
-    class IndexPipe[T]: Pipe[INDEXED_VALUE[T]] is
+    class INDEX_PIPE[T]: Pipe[INDEXED_VALUE[T]] is
         _index: int;
         _iterator: Iterator[T];
 

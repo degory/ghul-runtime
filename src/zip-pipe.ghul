@@ -1,7 +1,7 @@
 namespace Ghul.Pipes is
     use Collections;
 
-    class ZipPipe[T1,T2]: Pipe[(T1,T2)] is
+    class ZIP_PIPE[T1,T2]: Pipe[(T1,T2)] is
         _iterator_1: Iterator[T1];
         _iterator_2: Iterator[T2];
 

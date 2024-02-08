@@ -1,7 +1,7 @@
 namespace Ghul.Pipes is
     use Collections;
 
-    class CatPipe[T]: Pipe[T] is
+    class CAT_PIPE[T]: Pipe[T] is
         _left: Iterator[T];
         _right: Iterator[T];
 

@@ -6,7 +6,6 @@
     <PackageId>ghul.runtime</PackageId>
     <Title>ghūl runtime library</Title>
     <Authors>degory</Authors>
-    <Version>1.1.0-alpha.1</Version>
     <Description>ghūl compiler runtime library</Description>
     <PackageDescription>ghūl compiler runtime library</PackageDescription>
     <PackageTags>ghul;ghūl;runtime</PackageTags>
