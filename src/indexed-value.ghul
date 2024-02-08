@@ -1,0 +1,15 @@
+namespace Ghul.Pipes is
+    struct INDEXED_VALUE[T] is
+        index: int;
+        value: T;
+
+        init(index: int, value: T) is
+            self.index = index;
+            self.value = value;
+        si
+
+        to_string() -> string is
+            return string.format("({0},{1})", [index, value]);
+        si
+    si
+si
