@@ -1,0 +1,256 @@
+﻿namespace Ghul.Pipes is
+    use System.InvalidOperationException;
+    use System.NotImplementedException;
+
+    use System.Text.StringBuilder;
+
+    use Collections;
+
+    // FIXME: should dispose of all enumerators - ideally somehow check if they really need disposing
+    // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
+    // of the enumerators we want to use actually have any non-managed state that needs to be disposed
+    pipe[T](source: Iterable[T]) -> Pipe[T] is
+        if !source? then
+            return null;
+        elif isa Pipe[T](source) then
+            return cast Pipe[T](source);
+        else
+            return new ADAPTOR_PIPE[T](source);
+        fi
+    si
+
+    class Factory is
+        from[T](source: Iterable[T]) -> Pipe[T] static is
+            if !source? then
+                return null;
+            elif isa Pipe[T](source) then
+                return cast Pipe[T](source);
+            else
+                return new ADAPTOR_PIPE[T](source);
+            fi    
+        si
+    si
+
+    class Pipe[T]: Iterable[T], Iterator[T] is
+        _source: Iterable[T] protected;
+
+        iterator: Iterator[T] => self;
+
+        init(source: Iterable[T]) is
+            assert source?;
+
+            _source = source;
+        si
+
+        from(source: Iterable[T]) -> Pipe[T] static is
+            if !source? then
+                return null;
+            elif isa Pipe[T](source) then
+                return cast Pipe[T](source);
+            else
+                return new ADAPTOR_PIPE[T](source);
+            fi
+        si
+
+        filter(predicate: (T) -> bool) -> Pipe[T] =>
+            new FilterPipe[T](iterator, predicate);
+
+        // FIXME: can't use => here due to compiler bug
+        map[U](mapper: (T) -> U) -> Pipe[U] is
+            return new MAP_PIPE[T,U](iterator, mapper);
+        si
+
+        skip(count: int) -> Pipe[T] =>
+            new SKIP_PIPE[T](iterator, count);
+
+        take(count: int) -> Pipe[T] =>
+            new TAKE_PIPE[T](iterator, count);
+
+        cat(right: Iterable[T]) -> Pipe[T] =>
+            new CAT_PIPE[T](iterator, right.iterator);
+
+        index() -> Pipe[INDEXED_VALUE[T]] =>
+            new INDEX_PIPE[T](iterator, 0);
+
+        index(index: int) -> Pipe[INDEXED_VALUE[T]] =>
+            new INDEX_PIPE[T](iterator, index);
+
+        // FIXME: can't use => here due to compiler bug
+        zip[U](other: Iterable[U]) -> Pipe[(T,U)] is
+            return new ZIP_PIPE[T,U](iterator, other.iterator);
+        si
+
+        // FIXME: can't use => here due to compiler bug
+        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut) -> Pipe[TOut] is
+            return new ZIP_MAP_PIPE[T,U,TOut](iterator, other.iterator, mapper);
+        si
+
+        reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning) -> TRunning is
+            let running = seed;
+
+            for element in self do
+                running = accumulator(running, element);
+            od
+
+            return running;
+        si
+
+        reduce[TRunning,TOut](seed: TRunning, accumulator: (TRunning,T) -> TRunning, mapper: (TRunning) -> TOut) -> TOut is
+            let running = seed;
+
+            for element in self do
+                running = accumulator(running, element);
+            od
+
+            return mapper(running);
+        si
+
+        collect() -> List[T] =>
+            collect_list();
+
+        collect_array() -> T[] =>
+            collect_list().to_array();
+
+        collect_list() -> LIST[T] is
+            let result = new LIST[T]();
+
+            for element in self do
+                result.add(element);
+            od
+
+            return result;
+        si
+
+        count() -> int is
+            if isa MutableBag[T](_source) then
+                return cast MutableBag[T](_source).count;
+            fi
+
+            let result = 0;
+
+            while move_next() do
+                result = result + 1;
+            od
+
+            return result;
+        si
+
+        find(predicate: (T) -> bool) -> MAYBE[T] is
+            while move_next() do
+                let element = current;
+
+                if predicate(element) then
+                    return new MAYBE[T](element);
+                fi
+            od
+
+            // return default Maybe[T]
+        si
+
+        first() -> MAYBE[T] is
+            if move_next() then
+                return new MAYBE[T](current);
+            fi
+
+            // return default Maybe[T]
+        si
+
+        only() -> T is
+            if move_next() then
+                let result = current;
+
+                if move_next() then
+                    throw new InvalidOperationException("multiple elements found");
+                fi
+
+                reset();
+
+                return result;
+            else
+                throw new InvalidOperationException("no element found");
+            fi
+        si
+
+        has(predicate: (T) -> bool) -> bool is
+            while move_next() do
+                let element = current;
+
+                if predicate(element) then
+                    return true;
+                fi
+            od
+
+            reset();
+
+            return false;
+        si
+
+        sort() -> Pipe[T] is
+            let list = collect_list();
+
+            list.sort();
+
+            reset();
+
+            return pipe`[T](list);
+        si
+
+        sort(comparer: IComparer`1[T]) -> Pipe[T] is
+            let list = collect_list();
+
+            list.sort(comparer);
+
+            reset();
+
+            return pipe`[T](list);
+        si
+
+        sort(compare: (T, T) -> int) -> Pipe[T] =>
+            sort(new FUNCTION_COMPARER[T](compare));
+
+        append_to(into: StringBuilder, separator: string) -> StringBuilder is
+            let seen_any = false;
+
+            while move_next() do
+                if seen_any then
+                    into.append(separator);
+                fi
+
+                into.append(current);
+
+                seen_any = true;
+            od
+            
+            reset();
+
+            return into;
+        si
+
+        append_to(into: StringBuilder) -> StringBuilder =>
+            append_to(into, ", ");
+
+        to_string(separator: string) -> string is
+            var result = new StringBuilder();
+
+            append_to(result, separator);
+
+            return result.to_string();
+        si
+
+        to_string() -> string =>
+            to_string(", ");
+
+        move_next() -> bool;
+
+        current: T is
+            throw new NotImplementedException();
+        si
+
+        reset() is
+            throw new NotImplementedException();
+        si
+
+        dispose() is
+        si
+    si
+si
