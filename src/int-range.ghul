@@ -50,6 +50,9 @@ namespace Ghul is
             
             return result.to_string();
         si
+
+        dispose() is 
+        si
     si
 
     struct INT_RANGE_INCLUSIVE: Range[int], Iterable[int], Iterator[int], Resettable is
@@ -90,6 +93,9 @@ namespace Ghul is
             fi
             
             return result.to_string();
+        si
+
+        dispose() is
         si
     si
 si

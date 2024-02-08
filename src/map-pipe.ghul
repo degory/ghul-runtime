@@ -1,0 +1,33 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
+        current: TTo;
+
+        _iterator: Iterator[TFrom];
+
+        _mapper: (TFrom) -> TTo;
+
+        init(enumerator: Iterator[TFrom], mapper: (TFrom) -> TTo) is
+            _iterator = enumerator;
+            _mapper = mapper;
+        si
+
+        move_next() -> bool is
+            if _iterator.move_next() then
+                current = _mapper(_iterator.current);
+                return true;
+            fi
+
+            _iterator.reset();
+
+            // TODO: should we set current to default value?
+
+            return false;
+        si
+
+        reset() is
+            _iterator.reset();
+        si
+    si
+si
