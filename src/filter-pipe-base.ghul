@@ -1,0 +1,52 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class FilterPipeBase[T]: Pipe[T] is
+        _iterator: Iterator[T];
+
+        current: T => _iterator.current;
+        
+        init(iterator: Iterator[T]) is
+            _iterator = iterator;
+        si
+
+        move_next() -> bool is
+            while _iterator.move_next() do
+                have_moved();
+
+                if !should_continue() then
+                    break;
+                fi
+
+                if should_include() then
+                    return true;
+                fi
+            od
+
+            _iterator.reset();
+
+            return false;  
+        si
+
+        have_moved() is si
+
+        should_continue() -> bool => true;
+
+        should_include() -> bool;
+
+        count() -> int is
+            let result = 0;
+
+            while move_next() do
+                result = result + 1;
+            od
+
+            reset();
+
+            return result;
+        si
+
+        reset() => _iterator.reset();
+        // dispose() => _iterator.dispose();
+    si
+si
