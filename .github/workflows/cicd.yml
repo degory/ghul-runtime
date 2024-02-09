@@ -116,7 +116,7 @@ jobs:
     # for pull requests, only publish the beta package
     name: Publish beta NuGet package
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull' && github.actor != 'dependabot[bot]' }}
+    if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     container:
       image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
 
