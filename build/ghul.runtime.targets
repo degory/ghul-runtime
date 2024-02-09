@@ -1,0 +1,104 @@
+<Project>
+  <Target Name="CreateManifestResourceNames" />
+
+  <Target Name="GenerateAssembliesJson" DependsOnTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <QuotedAssemblies Include="@(ReferencePathWithRefAssemblies)">
+        <Path>"$([MSBuild]::ValueOrDefault('%(FullPath)', '').Replace('\', '\\'))"</Path>
+      </QuotedAssemblies>
+    </ItemGroup>
+    <PropertyGroup>
+      <Assemblies>{"assemblies": [@(QuotedAssemblies -> '%(Path)', ',')]}</Assemblies>
+    </PropertyGroup>
+
+    <WriteLinesToFile File=".assemblies.json" Lines="$(Assemblies)" Overwrite="true" Encoding="Utf-8" />
+    <Message Importance="Low" Text="Updated .assemblies.json with referenced assemblies" />
+  </Target>  
+
+  <Target Name="CoreCompile">
+    <ItemGroup>
+      <!-- runtime.win-x64.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.linux-x64.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_linux-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime-linux_x64_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.linux-arm64.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_linux-arm64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_linux-arm64_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.linux-arm.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_linux-arm_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_linux-arm_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.win-x86.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_win-x86_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-x86_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.win-arm64.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_win-arm64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-arm64_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.linux-arm.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_win-arm_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-arm_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.osx-x64.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_osx-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_osx-x64_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <!-- runtime.osx-arm64.Microsoft.NETCore.ILAsm -->
+      <ILAsmPackages Include="$(Pkgruntime_osx-arm64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_osx-arm64_Microsoft_NETCore_ILAsm)'!=''" />
+
+      <AssemblyInfo Include="System.Reflection.AssemblyInformationalVersionAttribute" Condition="'$(Version)'!=''">
+        <Parameter>$(Version)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyCompanyAttribute" Condition="'$(Company)' != ''">
+        <Parameter>$(Company)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyConfigurationAttribute" Condition="'$(Configuration)' != ''">
+        <Parameter>$(Configuration)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyCopyrightAttribute" Condition="'$(Copyright)' != ''">
+        <Parameter>$(Copyright)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyDescriptionAttribute" Condition="'$(Description)' != ''">
+        <Parameter>$(Description)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyFileVersionAttribute" Condition="'$(FileVersion)' != ''">
+        <Parameter>$(FileVersion)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyInformationalVersionAttribute" Condition="'$(InformationalVersion)' != ''">
+        <Parameter>$(InformationalVersion)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyProductAttribute" Condition="'$(Product)' != ''">
+        <Parameter>$(Product)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyTitleAttribute" Condition="'$(AssemblyTitle)' != ''">
+        <Parameter>$(AssemblyTitle)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyVersionAttribute" Condition="'$(AssemblyVersion)' != ''">
+        <Parameter>$(AssemblyVersion)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(RepositoryUrl)' != ''" >
+        <Parameter>$(RepositoryUrl)</Parameter>
+        <!-- TODO: common target supports multiple parameters here -->
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Resources.NeutralResourcesLanguageAttribute" Condition="'$(NeutralLanguage)' != ''">
+        <Parameter>$(NeutralLanguage)</Parameter>
+      </AssemblyInfo>
+      <AssemblyInfo Include="System.Reflection.AssemblyCompanyAttribute" Condition="'$(Company)' != ''">
+        <Parameter>$(Company)</Parameter>
+      </AssemblyInfo>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <ILAsmPackagesParameter Condition="'@(ILAsmPackages)'!=''">--ilasm-packages "@(ILAsmPackages)"</ILAsmPackagesParameter>
+      <VersionParameter Condition="'$(Version)'!=''">--version "$(Version)"</VersionParameter>
+      <GhulCompiler Condition="'$(GhulCompiler)'==''">dotnet ghul-compiler</GhulCompiler>
+      <CommandLine>$(VersionParameter) $(ILAsmPackagesParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
+    </PropertyGroup>
+    
+    <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
+
+    <WriteLinesToFile File=".build.rsp" Lines="$(CommandLine)" Overwrite="true" Encoding="Utf-8" />
+    <Exec Command="$(GhulCompiler) @.build.rsp" />
+    <Delete Files=".build.rsp" />
+    <Copy SourceFiles="$(ProjectDir)$(IntermediateOutputPath)$(AssemblyName).dll" DestinationFolder="$(ProjectDir)$(IntermediateOutputPath)ref" />   
+    <Copy SourceFiles="$(ProjectDir)$(IntermediateOutputPath)$(AssemblyName).dll" DestinationFolder="$(ProjectDir)$(IntermediateOutputPath)refint" />   
+  </Target>
+</Project>
