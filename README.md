@@ -8,4 +8,9 @@
 [![License](https://img.shields.io/github/license/degory/ghul-runtime)](https://github.com/degory/ghul-runtime/blob/main/LICENSE)
 [![ghūl](https://img.shields.io/badge/gh%C5%ABl-100%25!-information)](https://ghul.dev)
 
-Provides internal types required by all [ghūl](https://ghul.dev) applications
+This package provides: 
+- internal types required by all [ghūl](https://ghul.dev) applications
+- support for the ghūl pipe operator and fluent methods on pipes, such as `filter`, `map` and `reduce`
+- MSBuild targets needed to build ghūl projects
+
+
