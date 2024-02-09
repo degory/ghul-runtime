@@ -1,5 +1,3 @@
-# CI/CD pipeline. 
-
 name: CICD
 
 on:
@@ -10,6 +8,7 @@ on:
         required: true
 
   pull_request:
+
   push:
     branches:
       - "main"
@@ -19,8 +18,8 @@ env:
 jobs:
   version:
     name: Create a version number
-    runs-on: ubuntu-20.04
-    timeout-minutes: 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
     outputs:
       tag: ${{ steps.create_version.outputs.tag }}
       package: ${{ steps.create_version.outputs.package }}
@@ -42,9 +41,11 @@ jobs:
         PRERELEASE: ${{ github.event_name == 'pull_request' }}
 
   build:
-    name: Build and publish NuGet package
+    name: Build package
     runs-on: ubuntu-latest
-    container: ghcr.io/degory/ghul/devcontainer:dotnet
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+
     timeout-minutes: 10
     needs: [version]
 
@@ -66,6 +67,97 @@ jobs:
         name: package
         path: nupkg
 
+  integration-tests:
+    name: Test package
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+
+    timeout-minutes: 10
+    needs: [version,build]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: package
+        path: nupkg
+
+    - name: Restore local .NET tools
+      run: dotnet tool restore
+
+    - name: Set version
+      run: dotnet setversion ${{ needs.version.outputs.package }} Directory.Build.props
+
+    - name: Build test project
+      run: dotnet build
+      working-directory: integration-tests
+
+    - name: Run test project
+      id: run
+      run: |
+        STDOUT=$(dotnet run)
+        echo "::set-output name=stdout::${STDOUT}"
+      working-directory: tests
+
+    - name: Check test output
+      run: |
+        if [ "${STDOUT}" != "Hello ghūl world!" ] ; then
+          exit 1
+        fi
+      working-directory: integration-tests
+      env:
+        STDOUT: ${{ steps.run.outputs.stdout }}
+
+  publish-beta-package:
+    # for pull requests, only publish the beta package
+    name: Publish beta NuGet package
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull' && github.actor != 'dependabot[bot]' }}
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+
+    timeout-minutes: 10
+    needs: [version,build,integration-tests]
+
+    steps:
+    # not convinced we actually need to checkout the code here
+    - uses: actions/checkout@v3
+
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: package
+        path: nupkg
+
+    - name: Publish package to GitHub
+      run: dotnet nuget push ./nupkg/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/degory/index.json --skip-duplicate --no-symbols
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release-package:
+    # For pushes, publish the release package to both GitHub and NuGet
+    # Don't need to check the branch here, as push only happens on main
+    name: Publish NuGet package
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+
+    timeout-minutes: 10
+    needs: [version,build,integration-tests]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download package
+      uses: actions/download-artifact@v4
+      with:
+        name: package
+        path: nupkg
+
     - name: Publish package to GitHub
       if: ${{ github.actor != 'dependabot[bot]' }}
       run: dotnet nuget push ./nupkg/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/degory/index.json --skip-duplicate --no-symbols
@@ -78,10 +170,10 @@ jobs:
       env:
         NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
 
-  create_release:
-    needs: [version, build]
+  create-release:
+    needs: [version, build, integration-tests, publish-release-package]
     name: Create release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     timeout-minutes: 5
     if: ${{ github.event_name == 'push' }}
