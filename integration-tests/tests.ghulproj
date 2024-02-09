@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+
+    <GhulOptions>--define ghūl</GhulOptions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <GhulSources Include="**/*.ghul" />
+    <PackageReference Include="ghul.runtime" Version="$(Version)" />
+
+    <!-- should be passed on command line -->
+    <GhulOptions Include="--define world" />
+    <GhulOptions Include="--define hello" />
+  </ItemGroup>
+</Project>

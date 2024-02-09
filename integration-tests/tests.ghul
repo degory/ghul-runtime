@@ -1,0 +1,20 @@
+
+strings: Collections.LIST[string];
+
+entry() is
+    strings = new Collections.LIST[string]();
+
+    @IF.hello()
+    strings.add("Hello");
+
+    @IF.broken()
+    strings.add("broken");
+
+    @IF.ghul()
+    strings.add("ghūl");
+
+    @IF.world()
+    strings.add("world!");
+
+    IO.Std.out.write_line(string.join(' ', strings));
+si
