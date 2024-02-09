@@ -1,4 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="build\ghul.runtime.props" />
+
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -33,6 +35,13 @@
 
     <GhulSources Include="src/**/*.ghul" />
 
-    <PackageReference Include="ghul.targets" />
+    <Content Include="build\ghul.runtime.targets" PackagePath="\build">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="build\ghul.runtime.props" PackagePath="\build">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+
+  <Import Project="build\ghul.runtime.targets" />
 </Project>
