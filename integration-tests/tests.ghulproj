@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
 
-    <GhulOptions>--define ghul</GhulOptions>
+    <GhulOptions>--define ghūl</GhulOptions>
   </PropertyGroup>
 
   <ItemGroup>
