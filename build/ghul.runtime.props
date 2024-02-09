@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <DebugType>None</DebugType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+</Project>
