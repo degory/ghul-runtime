@@ -98,18 +98,19 @@ jobs:
     - name: Run test project
       id: run
       run: |
-        STDOUT=$(dotnet run)
+        STDOUT=$(dotnet run | tr -d '\n\r')
         echo "::set-output name=stdout::${STDOUT}"
-      working-directory: tests
+      working-directory: integration-tests
 
+    - name: Show test output
+      run: echo "\"${{ steps.run.outputs.stdout }}\""
+    
     - name: Check test output
       run: |
-        if [ "${STDOUT}" != "Hello ghūl world!" ] ; then
+        if [ "${{ steps.run.outputs.stdout }}" != "Hello ghūl world!" ] ; then
           exit 1
         fi
       working-directory: integration-tests
-      env:
-        STDOUT: ${{ steps.run.outputs.stdout }}
 
   publish-beta-package:
     # for pull requests, only publish the beta package
