@@ -72,6 +72,21 @@ namespace Tests is
             assert_are_equal([iv(-3, "3"), iv(-2, "4"), iv(-1, "1"), iv(0, "5"), iv(1, "2"), iv(2, "3"), iv(3, "1"), iv(4, "4"), iv(5, "5")], result);
         si
 
+        Index_Reset_StartsAgainFromInitialIndex() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe`[string]
+                    .from(["3", "4", "1", "5", "2", "3", "1", "4", "5"])
+                    .index(-5);
+
+            assert_are_equal([iv(-5, "3"), iv(-4, "4"), iv(-3, "1"), iv(-2, "5")], pipe.take(4));
+
+            pipe.reset();
+
+            assert_are_equal([iv(-5, "3"), iv(-4, "4"), iv(-3, "1"), iv(-2, "5"), iv(-1, "2"), iv(0, "3"), iv(1, "1"), iv(2, "4"), iv(3, "5")], pipe);
+        si
+
         IndexedValue_ToString_ReturnsIndexAndValueInParentheses() is
             @test()
 
