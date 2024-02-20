@@ -171,6 +171,7 @@
             fi
         si
 
+        // deprecated
         has(predicate: (T) -> bool) -> bool is
             while move_next() do
                 let element = current;
@@ -183,6 +184,30 @@
             reset();
 
             return false;
+        si
+
+        any(predicate: (T) -> bool) -> bool is
+            while move_next() do
+                let element = current;
+
+                if predicate(element) then
+                    return true;
+                fi
+            od
+
+            return false;
+        si
+
+        all(predicate: (T) -> bool) -> bool is
+            while move_next() do
+                let element = current;
+
+                if !predicate(element) then
+                    return false;
+                fi
+            od
+
+            return true;
         si
 
         sort() -> Pipe[T] is
