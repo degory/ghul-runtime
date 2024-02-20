@@ -123,6 +123,90 @@ namespace Tests is
             Assert.is_true(pipe.has(i => i > 4));
         si
 
+        //
+
+        Pipe_AnyNoElements_ReturnsFalse() is
+            @test()
+
+            let pipe = Pipe`[int].from(empty`[int]());
+
+            Assert.is_false(pipe.any(i => i == 4));
+        si
+
+        Pipe_AnySomeElementsButNoneMatch_ReturnsFalse() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_false(pipe.has(i => i == 99));
+        si
+
+        Pipe_AnySomeElementsOneMatches_ReturnsTrue() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_true(pipe.has(i => i == 4));
+        si
+
+        Pipe_AnySomeElementsMultipleMatches_ReturnsTrue() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_true(pipe.has(i => i > 4));
+        si
+
+        //
+
+        Pipe_AllSomeElementsButNotAllMatch_ReturnsFalse() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_false(pipe.all(i => i > 4));
+        si
+
+        Pipe_AllSomeElementsAllMatch_ReturnsTrue() is
+            @test()
+
+            let pipe = Pipe`[int].from([5, 6, 7, 8, 9]);
+
+            Assert.is_true(pipe.all(i => i > 4));
+        si
+
+        Pipe_AllNoElements_ReturnsTrue() is
+            @test()
+
+            let pipe = Pipe`[int].from(empty`[int]());
+
+            Assert.is_true(pipe.all(i => i > 4));
+        si
+
+        Pipe_AllSomeElementsNoneMatch_ReturnsFalse() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_false(pipe.all(i => i > 99));
+        si
+        
+        Pipe_FirstThreeElementsMatchButRestDoNot_ReturnsFalse() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_false(pipe.all(i => i < 4));
+        si
+
+        Pipe_ElementsInTheMiddleMatchButNotTheFirstOrLast_ReturnsFalse() is
+            @test()
+
+            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Assert.is_false(pipe.all(i => i > 2 /\ i < 8));
+        si
+
         Pipe_SkipThenFilter_ReturnsFilteredTailSequence() is
             @test()
 
