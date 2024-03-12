@@ -90,9 +90,9 @@ namespace Tests is
         IndexedValue_ToString_ReturnsIndexAndValueInParentheses() is
             @test()
 
-            let indexedValue = iv(1234, "ABCD");
+            let indexed_value = iv(1234, "ABCD");
 
-            Assert.are_equal("(1234,ABCD)", indexedValue.to_string());
+            Assert.are_equal("(1234,ABCD)", indexed_value.to_string());
         si        
     si
 si

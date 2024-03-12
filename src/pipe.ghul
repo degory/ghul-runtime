@@ -1,4 +1,4 @@
-﻿namespace Ghul.Pipes is
+namespace Ghul.Pipes is
     use System.InvalidOperationException;
     use System.NotImplementedException;
 
@@ -254,8 +254,8 @@
         append_to(into: StringBuilder) -> StringBuilder =>
             append_to(into, ", ");
 
-        to_string(separator: string) -> string is
-            var result = new StringBuilder();
+        join(separator: string) -> string is
+            let result = new StringBuilder();
 
             append_to(result, separator);
 
@@ -263,7 +263,11 @@
         si
 
         to_string() -> string =>
-            to_string(", ");
+            join(", ");
+
+        // deprecated
+        to_string(separator: string) -> string =>
+            join(separator);
 
         move_next() -> bool;
 

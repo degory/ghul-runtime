@@ -8,7 +8,7 @@ tests/TestResults/
 nupkg/
 
 **/*.runtimeconfig.json
-**/*.il
+**/out.il
 **/*.dll
 **/*.exe
 **/*.exe.mdb
