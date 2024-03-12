@@ -1,0 +1,68 @@
+namespace Tests is
+
+    use Collections;
+    use NSubstitute;
+
+    use NSubstitute.SubstituteExtensions.returns;
+    use NSubstitute.SubstituteExtensions.received;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+
+    class MaybeShould is
+        @test()
+            init() is
+        si
+
+        Maybe_NotInt_HasNoValue() is
+            @test()
+
+            let maybe = new MAYBE[int]();
+
+            Assert.is_false(maybe.has_value);
+        si
+
+        Maybe_Int_HasExpectedValue() is
+            @test()
+
+            let maybe = new MAYBE[int](42);
+
+            Assert.is_true(maybe.has_value);
+            Assert.are_equal(42, maybe.value);
+        si
+        
+        Maybe_NotInt_HasExpectedStringRepresentation() is
+            @test()
+
+            let maybe = new MAYBE[int]();
+
+            Assert.are_equal("none", maybe.to_string());
+        si
+
+        Maybe_Int_HasExpectedStringRepresentation() is
+            @test()
+
+            let maybe = new MAYBE[int](42);
+
+            Assert.are_equal("42", maybe.to_string());
+        si
+        
+        Maybe_NotString_HasNoValue() is
+            @test()
+
+            let maybe = new MAYBE[string]();
+
+            Assert.is_false(maybe.has_value);
+        si
+        
+        Maybe_String_HasExpectedValue() is
+            @test()
+
+            let maybe = new MAYBE[string]("Hello, World!");
+
+            Assert.is_true(maybe.has_value);
+            Assert.are_equal("Hello, World!", maybe.value);
+        si
+    si
+si
