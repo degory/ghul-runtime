@@ -1,0 +1,65 @@
+namespace Tests is
+    use Collections;
+    use NSubstitute;
+
+    use NSubstitute.SubstituteExtensions.returns;
+    use NSubstitute.SubstituteExtensions.received;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+        
+    class Attributes_public_read_only_should is
+        @test()
+   
+        init() is
+        si
+
+        // can't really do much with these yet, but assert that
+        // they exist, can be constructed and are actually
+        // attributes:
+
+        public_read_only__can_be_constructed() is
+            @test()
+
+            let attribute = new Attributes.public_read_only();
+
+            assert attribute? else "attribute is null";
+        si
+
+        public_read_only__is_an_attribute() is
+            @test()
+
+            let attribute = new Attributes.public_read_only();
+
+            assert isa System.Attribute(attribute);
+        si
+    si
+
+    class Attributes_ghul_source is
+        @test()
+   
+        init() is
+        si
+
+        // can't really do much with these yet, but assert that
+        // they exist, can be constructed and are actually
+        // attributes:
+
+        ghul_source__can_be_constructed() is
+            @test()
+
+            let attribute = new Attributes.ghul_source();
+
+            assert attribute? else "attribute is null";
+        si
+
+        ghul_source__is_an_attribute() is
+            @test()
+
+            let attribute = new Attributes.ghul_source();
+
+            assert isa System.Attribute(attribute);
+        si
+    si
+si

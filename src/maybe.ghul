@@ -1,15 +1,24 @@
 namespace Ghul is
     struct MAYBE[T] is 
-        has_value: bool;
-        value: T;
+        `0: bool;
+        `1: T;
+
+        has_value: bool => `0;
+        value: T => `1;
 
         init() is
-            has_value = false;
         si
 
         init(value: T) is
-            has_value = true;
-            self.value = value;
+            `0 = true;
+            `1 = value;
         si
+
+        to_string() -> string =>
+            if has_value then
+                "{value}";
+            else
+                "none";
+            fi;
     si
 si
