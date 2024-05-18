@@ -12,7 +12,7 @@ namespace Tests is
 
     use Ghul.Pipes;
 
-    class PipeShould is
+    class OptionPipeShould is
         @test()
 
         init() is
@@ -21,7 +21,7 @@ namespace Tests is
         Pipe_SkipThenFirst_ReturnsCorrectElement() is
             @test()
 
-            let pipe = Pipe`[int].from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            let pipe =  Factory.from`[OPTION[int]]([some(1), some(2), some(3), some(4), 5, 6, 7, 8, 9, 10]);
 
             Assert.are_equal(new OPTION[int](6), pipe.skip(5).first());
         si
@@ -510,19 +510,6 @@ namespace Tests is
 
             Assert.are_equal("XX2-1-4-3-6-5YY2_1_4_3_6_5", result.to_string());
         si
-    si
-
-    class THING is
-        key: int;
-
-        init(key: int) is
-            self.key = key;
-        si
-    si
-
-    class ReverseIntComparer: IComparer`1[int] is
-        init() is si
-        compare(x: int, y: int) -> int => y - x;
     si
 si
 

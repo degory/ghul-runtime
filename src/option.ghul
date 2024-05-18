@@ -1,0 +1,44 @@
+namespace Ghul is
+    trait HasValue is
+        has_value: bool;
+    si
+    
+    trait Option[T]: HasValue is
+        value: T;
+    si
+    
+    struct OPTION[T]: Option[T] is 
+        // provide `0 and `1 to make MAYBE[T] destructurable
+        // via let (has_value, value) = maybe
+        `0: bool;
+        `1: T;
+
+        has_value: bool => `0;
+        value: T => `1;
+
+        init() is
+            // no value
+        si
+
+        init(value: T) is
+            // with value
+            `0 = true;
+            `1 = value;
+        si
+
+        to_string() -> string =>
+            if has_value then
+                "{value}";
+            else
+                "none";
+            fi;
+    si
+
+    some[T](value: T) -> OPTION[T] is
+        new OPTION[T](value);
+    si
+
+    none[T]() -> OPTION[T] is
+        new OPTION[T]();
+    si    
+si

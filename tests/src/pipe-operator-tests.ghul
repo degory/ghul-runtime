@@ -28,7 +28,7 @@ namespace Tests is
                     .skip(5)
                     .first();
 
-            Assert.are_equal(new MAYBE[int](6), result);
+            Assert.are_equal(new OPTION[int](6), result);
         si
 
         Pipe_TakeThenFirst_ReturnsFirstElement() is
@@ -39,7 +39,7 @@ namespace Tests is
                     .take(5)
                     .first();
 
-            Assert.are_equal(new MAYBE[int](1), result);
+            Assert.are_equal(new OPTION[int](1), result);
         si
 
         Pipe_FirstEmptySequence_ReturnsMaybeNot() is
@@ -49,7 +49,7 @@ namespace Tests is
                 empty`[int]() |
                     .first();
 
-            Assert.are_equal(new MAYBE[int](), result);
+            Assert.are_equal(new OPTION[int](), result);
         si
 
         Pipe_FindEmptySequence_ReturnsMaybeNot() is
@@ -59,7 +59,7 @@ namespace Tests is
                 empty`[int]() | 
                     .find(i => i > 10);
 
-            Assert.are_equal(new MAYBE[int](), result);
+            Assert.are_equal(new OPTION[int](), result);
         si
 
         Pipe_FindNonEmptySequenceButNoMatch_ReturnsMaybeNot() is
@@ -69,7 +69,7 @@ namespace Tests is
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .find(i => i == 10);
 
-            Assert.are_equal(new MAYBE[int](), result);
+            Assert.are_equal(new OPTION[int](), result);
         si
 
         Pipe_FindSingleMatchingElement_ReturnsThatElement() is
@@ -79,7 +79,7 @@ namespace Tests is
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .find(i => i == 4);
 
-            Assert.are_equal(new MAYBE[int](4), result);
+            Assert.are_equal(new OPTION[int](4), result);
         si
 
         Pipe_FindMultipleMatchingElement_ReturnsFirstMatchingElement() is
@@ -91,7 +91,7 @@ namespace Tests is
                 array |
                     .find(t => t.key == 3);
 
-            Assert.are_equal(new MAYBE[THING](array[2]), result);
+            Assert.are_equal(new OPTION[THING](array[2]), result);
         si
 
         Pipe_HasNoElements_ReturnsFalse() is

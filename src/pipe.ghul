@@ -29,6 +29,16 @@ namespace Ghul.Pipes is
                 return new ADAPTOR_PIPE[T](source);
             fi    
         si
+
+        from[T](source: Iterable[OPTION[T]]) -> Pipe[OPTION[T]] static is
+            if !source? then
+                return null;
+            elif isa Pipe[OPTION[T]](source) then
+                return cast Pipe[OPTION[T]](source);
+            else
+                return new OPTION_PIPE[T](source);
+            fi
+        si
     si
 
     class Pipe[T]: Iterable[T], Iterator[T] is
@@ -135,21 +145,21 @@ namespace Ghul.Pipes is
             return result;
         si
 
-        find(predicate: (T) -> bool) -> MAYBE[T] is
+        find(predicate: (T) -> bool) -> OPTION[T] is
             while move_next() do
                 let element = current;
 
                 if predicate(element) then
-                    return new MAYBE[T](element);
+                    return new OPTION[T](element);
                 fi
             od
 
             // return default Maybe[T]
         si
 
-        first() -> MAYBE[T] is
+        first() -> OPTION[T] is
             if move_next() then
-                return new MAYBE[T](current);
+                return new OPTION[T](current);
             fi
 
             // return default Maybe[T]

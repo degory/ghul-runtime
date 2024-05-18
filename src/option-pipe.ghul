@@ -1,0 +1,65 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class OPTION_PIPE[T]: Pipe[OPTION[T]] is
+        _iterator: Iterator[OPTION[T]];
+
+        init(iterable: Iterable[OPTION[T]]) is
+            super.init(iterable);
+
+            _iterator = iterable.iterator;
+        si
+
+        current: OPTION[T] => _iterator.current;
+
+        move_next() -> bool is
+            let result = _iterator.move_next();
+
+            if !result then
+                _iterator.reset();
+            fi
+
+            return result;
+        si
+
+        reset() => _iterator.reset();
+
+        map[U](mapper: (T) -> U) -> Pipe[OPTION[U]] => new OPTION_MAP_PIPE[T,U](_iterator, mapper);
+    si
+
+    class OPTION_MAP_PIPE[TFrom,TTo]: Pipe[OPTION[TTo]] is
+        current: OPTION[TTo];
+
+        _iterator: Iterator[OPTION[TFrom]];
+
+        _mapper: (TFrom) -> TTo;
+
+        init(enumerator: Iterator[OPTION[TFrom]], mapper: (TFrom) -> TTo) is
+            _iterator = enumerator;
+            _mapper = mapper;
+        si
+
+        move_next() -> bool is
+            if _iterator.move_next() then
+                if _iterator.current? then
+                    current = new OPTION[TTo](_mapper(_iterator.current.value));
+                else
+                    current = new OPTION[TTo]();
+                fi
+
+                return true;
+            fi
+
+            _iterator.reset();
+
+            // TODO: should we set current to default value?
+
+            return false;
+        si
+
+        reset() is
+            _iterator.reset();
+        si
+    si
+
+si

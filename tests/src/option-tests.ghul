@@ -18,7 +18,7 @@ namespace Tests is
         Maybe_NotInt_HasNoValue() is
             @test()
 
-            let maybe = new MAYBE[int]();
+            let maybe = new OPTION[int]();
 
             Assert.is_false(maybe.has_value);
         si
@@ -26,7 +26,7 @@ namespace Tests is
         Maybe_Int_HasExpectedValue() is
             @test()
 
-            let maybe = new MAYBE[int](42);
+            let maybe = new OPTION[int](42);
 
             Assert.is_true(maybe.has_value);
             Assert.are_equal(42, maybe.value);
@@ -35,7 +35,7 @@ namespace Tests is
         Maybe_NotInt_HasExpectedStringRepresentation() is
             @test()
 
-            let maybe = new MAYBE[int]();
+            let maybe = new OPTION[int]();
 
             Assert.are_equal("none", maybe.to_string());
         si
@@ -43,7 +43,7 @@ namespace Tests is
         Maybe_Int_HasExpectedStringRepresentation() is
             @test()
 
-            let maybe = new MAYBE[int](42);
+            let maybe = new OPTION[int](42);
 
             Assert.are_equal("42", maybe.to_string());
         si
@@ -51,7 +51,7 @@ namespace Tests is
         Maybe_NotString_HasNoValue() is
             @test()
 
-            let maybe = new MAYBE[string]();
+            let maybe = new OPTION[string]();
 
             Assert.is_false(maybe.has_value);
         si
@@ -59,7 +59,7 @@ namespace Tests is
         Maybe_String_HasExpectedValue() is
             @test()
 
-            let maybe = new MAYBE[string]("Hello, World!");
+            let maybe = new OPTION[string]("Hello, World!");
 
             Assert.is_true(maybe.has_value);
             Assert.are_equal("Hello, World!", maybe.value);
