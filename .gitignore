@@ -1,7 +1,7 @@
 obj/
 bin/
 
-.build.rsp
+.*.rsp
 output.txt
 
 tests/TestResults/

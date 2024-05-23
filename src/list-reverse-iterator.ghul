@@ -1,11 +1,11 @@
 namespace Collections is
-    class LIST_REVERSE_ITERATOR[T]: object, Iterator[T] is
-        _list: LIST[T];
+    class LIST_REVERSE_ITERATOR[T]: Iterator[T] is
+        _list: List[T];
         _index: int;
 
         current: T => _list[_index];
 
-        init(list: LIST[T]) is
+        init(list: List[T]) is
             _list = list;
             reset();
         si
@@ -26,5 +26,15 @@ namespace Collections is
         
         dispose() is
         si
-    si    
+    si
+
+    class LIST_REVERSE_ITERABLE[T]: Iterable[T] is
+        _list: List[T];
+
+        iterator: Iterator[T] => LIST_REVERSE_ITERATOR(_list);
+
+        init(list: List[T]) is            
+            _list = list;
+        si
+    si
 si

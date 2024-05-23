@@ -15,7 +15,7 @@ namespace Ghul.Pipes is
         elif isa Pipe[T](source) then
             return cast Pipe[T](source);
         else
-            return new ADAPTOR_PIPE[T](source);
+            return ADAPTOR_PIPE[T](source);
         fi
     si
 
@@ -26,7 +26,7 @@ namespace Ghul.Pipes is
             elif isa Pipe[T](source) then
                 return cast Pipe[T](source);
             else
-                return new ADAPTOR_PIPE[T](source);
+                return ADAPTOR_PIPE[T](source);
             fi    
         si
     si
@@ -48,42 +48,38 @@ namespace Ghul.Pipes is
             elif isa Pipe[T](source) then
                 return cast Pipe[T](source);
             else
-                return new ADAPTOR_PIPE[T](source);
+                return ADAPTOR_PIPE[T](source);
             fi
         si
 
         filter(predicate: (T) -> bool) -> Pipe[T] =>
-            new FilterPipe[T](iterator, predicate);
+            FilterPipe[T](iterator, predicate);
 
-        // FIXME: can't use => here due to compiler bug
-        map[U](mapper: (T) -> U) -> Pipe[U] is
-            return new MAP_PIPE[T,U](iterator, mapper);
-        si
+        map[U](mapper: (T) -> U) -> Pipe[U] =>
+            MAP_PIPE[T,U](iterator, mapper);
 
         skip(count: int) -> Pipe[T] =>
-            new SKIP_PIPE[T](iterator, count);
+            SKIP_PIPE[T](iterator, count);
 
         take(count: int) -> Pipe[T] =>
-            new TAKE_PIPE[T](iterator, count);
+            TAKE_PIPE[T](iterator, count);
 
         cat(right: Iterable[T]) -> Pipe[T] =>
-            new CAT_PIPE[T](iterator, right.iterator);
+            CAT_PIPE[T](iterator, right.iterator);
 
         index() -> Pipe[INDEXED_VALUE[T]] =>
-            new INDEX_PIPE[T](iterator, 0);
+            INDEX_PIPE[T](iterator, 0);
 
         index(index: int) -> Pipe[INDEXED_VALUE[T]] =>
-            new INDEX_PIPE[T](iterator, index);
+            INDEX_PIPE[T](iterator, index);
 
         // FIXME: can't use => here due to compiler bug
-        zip[U](other: Iterable[U]) -> Pipe[(T,U)] is
-            return new ZIP_PIPE[T,U](iterator, other.iterator);
-        si
+        zip[U](other: Iterable[U]) -> Pipe[(T,U)] =>
+            ZIP_PIPE[T,U](iterator, other.iterator);
 
         // FIXME: can't use => here due to compiler bug
-        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut) -> Pipe[TOut] is
-            return new ZIP_MAP_PIPE[T,U,TOut](iterator, other.iterator, mapper);
-        si
+        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut) -> Pipe[TOut] =>
+            ZIP_MAP_PIPE[T,U,TOut](iterator, other.iterator, mapper);
 
         reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning) -> TRunning is
             let running = seed;
@@ -112,7 +108,7 @@ namespace Ghul.Pipes is
             collect_list().to_array();
 
         collect_list() -> LIST[T] is
-            let result = new LIST[T]();
+            let result = LIST[T]();
 
             for element in self do
                 result.add(element);
@@ -140,34 +136,78 @@ namespace Ghul.Pipes is
                 let element = current;
 
                 if predicate(element) then
-                    return new MAYBE[T](element);
+                    return MAYBE(element);
                 fi
             od
 
-            // return default Maybe[T]
+            return MAYBE[T]();
         si
 
-        first() -> MAYBE[T] is
+        find_map[U](mapper: (T) -> MAYBE[U]) -> MAYBE[U] is
+            while move_next() do
+                let element = current;
+                let maybe_result = mapper(element);
+    
+                if maybe_result? then
+                    return maybe_result;
+                fi
+            od
+    
+            return MAYBE[U]();
+        si        
+
+        find_or_throw(predicate: T -> bool) -> T is
+            while move_next() do
+                let element = current;
+
+                if predicate(element) then
+                    return element;
+                fi
+            od
+
+            throw InvalidOperationException("no matching element found");
+        si
+        
+        first() -> MAYBE[T] =>
             if move_next() then
-                return new MAYBE[T](current);
+                MAYBE(current)
+            else
+                MAYBE[T]()
+            fi;
+
+        first_map[U](mapper: (T) -> MAYBE[U]) -> MAYBE[U] is
+            if move_next() then
+                let element = current;
+                let maybe_result = mapper(element);
+    
+                if maybe_result? then
+                    return maybe_result
+                fi
             fi
 
-            // return default Maybe[T]
+            MAYBE[U]();
         si
 
+        first_or_throw() -> T =>
+            if move_next() then
+                current
+            else
+                throw InvalidOperationException("no element found")
+            fi;
+    
         only() -> T is
             if move_next() then
                 let result = current;
 
                 if move_next() then
-                    throw new InvalidOperationException("multiple elements found");
+                    throw InvalidOperationException("multiple elements found");
                 fi
 
                 reset();
 
                 return result;
             else
-                throw new InvalidOperationException("no element found");
+                throw InvalidOperationException("no element found");
             fi
         si
 
@@ -217,7 +257,7 @@ namespace Ghul.Pipes is
 
             reset();
 
-            return pipe`[T](list);
+            return pipe(list);
         si
 
         sort(comparer: IComparer`1[T]) -> Pipe[T] is
@@ -227,11 +267,11 @@ namespace Ghul.Pipes is
 
             reset();
 
-            return pipe`[T](list);
+            return pipe(list);
         si
 
         sort(compare: (T, T) -> int) -> Pipe[T] =>
-            sort(new FUNCTION_COMPARER[T](compare));
+            sort(FUNCTION_COMPARER[T](compare));
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder is
             let seen_any = false;
@@ -254,13 +294,13 @@ namespace Ghul.Pipes is
         append_to(into: StringBuilder) -> StringBuilder =>
             append_to(into, ", ");
 
-        join(separator: string) -> string is
-            let result = new StringBuilder();
+        join(separator: string) -> string =>
+            let result = StringBuilder() in
+            append_to(result, separator)
+                .to_string();
 
-            append_to(result, separator);
-
-            return result.to_string();
-        si
+        join() -> string =>
+            join(", ");
 
         to_string() -> string =>
             join(", ");
@@ -272,11 +312,11 @@ namespace Ghul.Pipes is
         move_next() -> bool;
 
         current: T is
-            throw new NotImplementedException();
+            throw NotImplementedException();
         si
 
         reset() is
-            throw new NotImplementedException();
+            throw NotImplementedException();
         si
 
         dispose() is

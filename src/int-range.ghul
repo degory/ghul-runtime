@@ -35,21 +35,23 @@ namespace Ghul is
             current = from - 1;
         si
 
-        to_string() -> string is
-            let result = new System.Text.StringBuilder();
-            result
-                .append(from)
-                .append("..")
-                .append(to);
+        to_string() -> string =>
+            (
+                let result =
+                    System.Text.StringBuilder()
+                        .append(from)
+                        .append("..")
+                        .append(to)
 
-            if current != from -1 then
-                result
-                    .append(" @ ")
-                    .append(current);
-            fi
-            
-            return result.to_string();
-        si
+                in
+                    if current != from -1 then
+                        result
+                            .append(" @ ")
+                            .append(current)
+                    else
+                        result
+                    fi
+            ).to_string();
 
         dispose() is 
         si
@@ -79,21 +81,22 @@ namespace Ghul is
             current = from - 1;
         si
         
-        to_string() -> string is
-            let result = new System.Text.StringBuilder();
-            result
-                .append(from)
-                .append("::")
-                .append(to);
-
-            if current != from -1 then
-                result
-                    .append(" @ ")
-                    .append(current);
-            fi
-            
-            return result.to_string();
-        si
+        to_string() -> string =>
+            (
+                let result = 
+                    System.Text.StringBuilder()
+                        .append(from)
+                        .append("::")
+                        .append(to)
+                in    
+                    if current != from -1 then
+                        result
+                            .append(" @ ")
+                            .append(current);
+                    else
+                        result
+                    fi
+            ).to_string();
 
         dispose() is
         si
