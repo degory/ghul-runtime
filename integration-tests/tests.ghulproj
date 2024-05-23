@@ -3,15 +3,19 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
 
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
     <GhulOptions>--define ghul</GhulOptions>
   </PropertyGroup>
 
   <ItemGroup>
     <GhulSources Include="**/*.ghul" />
-    <PackageReference Include="ghul.runtime" Version="$(Version)" />
+    <PackageReference Include="ghul.runtime" />
 
     <!-- should be passed on command line -->
     <GhulOptions Include="--define world" />
     <GhulOptions Include="--define hello" />
   </ItemGroup>
+
+  <Import Project="../build/ghul.runtime.targets" />
 </Project>

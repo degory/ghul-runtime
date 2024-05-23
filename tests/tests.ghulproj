@@ -15,7 +15,6 @@
     <PackageReference Include="MSTest.TestFramework" />
     <PackageReference Include="coverlet.collector" />
 
-    <PackageReference Include="ghul.targets" />
     <PackageReference Include="NSubstitute" />
 
     <PackageReference Include="coverlet.msbuild">
@@ -27,6 +26,8 @@
   <ItemGroup>
     <ProjectReference Include="../ghul-runtime.ghulproj" />
 
-    <GhulSources Include="src/**/*.ghul" />
+    <GhulSources Include="**/*.ghul" />
   </ItemGroup>
+
+  <Import Project="../build/ghul.runtime.targets" />
 </Project>
