@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="ghul.runtime" Version="$(Version)" />
+  </ItemGroup>
+</Project>

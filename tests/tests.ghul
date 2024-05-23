@@ -19,7 +19,7 @@ namespace Tests is
         CollectionAssert.are_equal(la, lb);            
     si
 
-    collect[T](iterator: LIST_REVERSE_ITERATOR[T]) -> Iterable[T] is
+    collect[T](iterator: Iterator[T]) -> Iterable[T] is
         let result = new LIST[T]();
 
         while iterator.move_next() do
