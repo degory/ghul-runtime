@@ -4,6 +4,7 @@ namespace Tests is
     use Collections.Iterable;
     use Collections.LIST;
     use Collections.LIST_REVERSE_ITERATOR;
+    use Collections.LIST_REVERSE_ITERABLE;
 
     class LIST_REVERSE_ITERATOR_Should is
         @test()
@@ -42,4 +43,26 @@ namespace Tests is
             assert_equal(collect(iterator), [2, 6, 3, 11, 8, 7, 6, 3, 2, 1]);
         si
     si
+
+    class LIST_REVERSE_ITERABLE_Should is
+        @test()
+
+        init() is si
+
+        LIST_REVERSE_ITERABLE__iterator__given_empty_list__returns_empty_iterator() is
+            @test()
+
+            let iterable = new LIST_REVERSE_ITERABLE[int](new Collections.LIST[int]());
+
+            assert_equal(empty[int](), iterable);
+        si
+
+        LIST_REVERSE_ITERABLE__iterator__given_non_empty_list__returns_iterator_over_that_list() is
+            @test()
+
+            let iterable = new LIST_REVERSE_ITERABLE[int]([1, 2, 3, 4, 5]);
+
+            assert_equal([5, 4, 3, 2, 1], iterable);
+        si
+    si    
 si
