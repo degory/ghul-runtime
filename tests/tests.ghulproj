@@ -26,7 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="../ghul-runtime.ghulproj" />
 
-    <GhulSources Include="src/**/*.ghul" />
+    <GhulSources Include="**/*.ghul" />
   </ItemGroup>
 
   <Import Project="../build/ghul.runtime.targets" />
