@@ -1,0 +1,136 @@
+namespace Tests is
+
+    use Collections;
+    use NSubstitute;
+
+    use NSubstitute.SubstituteExtensions.returns;
+    use NSubstitute.SubstituteExtensions.received;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+
+    class FlatMapPipeShould is
+        @test()
+
+        init() is
+        si
+
+        FlatMap_EmptyArray_ReturnsEmptySequence() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe`[int]
+                    .from(empty`[int]());
+
+            let result = 
+                pipe
+                    .flat_map(i => i.to_string());
+
+            assert_are_equal(empty`[char](), result);
+        si
+
+        FlatMap_IntsToStrings_ReturnsExpectedSequence() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe`[int]
+                    .from([3, 4, 1, 5, 2, 3, 1, 4, 5]);
+
+            let result = 
+                pipe
+                    .flat_map(i => i.to_string());
+
+            assert_are_equal(['3', '4', '1', '5', '2', '3', '1', '4', '5'], result);
+        si
+
+        FlatMap_ArraysIdentity_ReturnsConcatArrays() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe[int[]]
+                    .from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+
+            let result =
+                pipe
+                    .flat_map(a => a);
+
+            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result);
+        si
+
+        FlatMap_ResetBeforeIteration_HasNoEffect() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe[int[]]
+                    .from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+
+            let result =
+                pipe
+                    .flat_map(a => a);
+
+            result.reset();
+
+            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result);
+        si
+
+        FlatMap_ResetAfterIncompleteIteration_StartsAgainFromBeginning() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe[int[]]
+                    .from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+
+            let result =
+                pipe
+                    .flat_map(a => a);
+
+            result.move_next();
+            result.move_next();
+            result.move_next();
+            result.move_next();
+
+            result.reset();
+
+            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result);
+        si
+
+        FlatMap_CompleteIteration_ResetsPipe() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe[int[]]
+                    .from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+
+            let result =
+                pipe
+                    .flat_map(a => a);
+
+            // count consumes the whole pipe and then resets it:
+            let count = result.count();
+
+            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result);
+        si
+
+
+        FlatMap_ResetAfterIteration_HasNoEffect() is
+            @test()
+
+            let pipe = 
+                Ghul.Pipes.Pipe[int[]]
+                    .from([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+
+            let result =
+                pipe
+                    .flat_map(a => a);
+
+            // count consumes the whole pipe and then resets it:
+            let count = result.count();
+
+            // this reset is a no-op:
+            result.reset();
+
+            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result);
+        si
+    si
+si

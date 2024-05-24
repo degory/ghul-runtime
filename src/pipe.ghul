@@ -58,6 +58,9 @@ namespace Ghul.Pipes is
         map[U](mapper: (T) -> U) -> Pipe[U] =>
             MAP_PIPE[T,U](iterator, mapper);
 
+        flat_map[U](mapper: (T) -> Iterable[U]) -> Pipe[U] =>
+            FLAT_MAP_PIPE[T,U](iterator, mapper);
+
         skip(count: int) -> Pipe[T] =>
             SKIP_PIPE[T](iterator, count);
 
@@ -167,6 +170,19 @@ namespace Ghul.Pipes is
 
             throw InvalidOperationException("no matching element found");
         si
+
+        find_map_or_throw[U](mapper: (T) -> MAYBE[U]) -> U is
+            while move_next() do
+                let element = current;
+                let maybe_result = mapper(element);
+    
+                if maybe_result? then
+                    return maybe_result!;
+                fi
+            od
+    
+            throw InvalidOperationException("no matching element found");
+        si        
         
         first() -> MAYBE[T] =>
             if move_next() then
@@ -185,7 +201,7 @@ namespace Ghul.Pipes is
                 fi
             fi
 
-            MAYBE[U]();
+            return MAYBE[U]();
         si
 
         first_or_throw() -> T =>
@@ -194,7 +210,20 @@ namespace Ghul.Pipes is
             else
                 throw InvalidOperationException("no element found")
             fi;
+
+        first_map_or_throw[U](mapper: (T) -> MAYBE[U]) -> U is
+            if move_next() then
+                let element = current;
+                let maybe_result = mapper(element);
     
+                if maybe_result? then
+                    return maybe_result!
+                fi
+            fi
+            
+            throw InvalidOperationException("no matching element found");
+        si
+        
         only() -> T is
             if move_next() then
                 let result = current;
@@ -250,6 +279,16 @@ namespace Ghul.Pipes is
             return true;
         si
 
+        for_each(action: T -> void) is
+            while move_next() do
+                action(current);
+            od
+        si
+        
+        reverse() -> Pipe[T] =>
+            let list = collect_list() in
+            LIST_REVERSE_PIPE(list);
+        
         sort() -> Pipe[T] is
             let list = collect_list();
 
