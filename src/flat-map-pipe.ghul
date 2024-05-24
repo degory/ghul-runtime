@@ -1,0 +1,42 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class FLAT_MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
+        current: TTo;
+
+        _iterator: Iterator[TFrom];
+        _flat_iterator: Iterator[TTo];
+
+        _mapper: (TFrom) -> Iterable[TTo];
+
+        init(iterator: Iterator[TFrom], mapper: (TFrom) -> Iterable[TTo]) is
+            _iterator = iterator;
+            _mapper = mapper;
+        si
+
+        move_next() -> bool is
+            do
+                if _flat_iterator? /\ _flat_iterator.move_next() then
+                    current = _flat_iterator.current;
+                    
+                    return true;
+                fi
+
+                if !_iterator.move_next() then
+                    reset();
+
+                    return false;
+                fi
+                    
+                let flat_iterable = _mapper(_iterator.current);
+    
+                _flat_iterator = flat_iterable.iterator;
+            od
+        si
+
+        reset() is
+            _iterator.reset();
+            _flat_iterator = null;
+        si
+    si
+si

@@ -1,0 +1,34 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class LIST_REVERSE_PIPE[T]: Pipe[T] is
+        _list: List[T];
+        _index: int;
+
+        current: T => _list[_index];
+
+        init(list: List[T]) is
+            super.init(list);
+
+            _list = list;
+            reset();
+        si
+
+        move_next() -> bool is
+            let result = _index > 0;
+
+            if result then
+                _index = _index - 1;
+            fi
+
+            return result;
+        si
+
+        reset() is
+            _index = _list.count;
+        si
+        
+        dispose() is
+        si
+    si
+si
