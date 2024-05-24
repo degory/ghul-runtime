@@ -1,0 +1,14 @@
+namespace Ghul is
+    class BOX[T] is 
+        value: T public;
+
+        init() is
+        si
+
+        init(value: T) is
+            self.value = value;
+        si
+
+        to_string() -> string => "{value}";
+    si
+si

@@ -503,6 +503,54 @@ namespace Tests is
             Assert.are_equal("total: " + (1 + 2 + 3 + 4 + 5 + 6), result);
         si
 
+        Reverse_EmptySequence_GivesEmptyResult() is
+            @test()
+
+            let pipe = Pipe.from(empty[int]());
+
+            let result = pipe.reverse();
+
+            assert_are_equal(empty[int](), result);
+        si
+        
+        Reverse_NonEmptySequence_GivesExpectedResult() is
+            @test()
+
+            let pipe = Pipe.from([1, 2, 3, 4, 5, 6]);
+
+            let result = pipe.reverse();
+
+            assert_are_equal([6, 5, 4, 3, 2, 1], result);
+        si
+
+        ForEach_EmptySequence_DoesNotCallAction() is
+            @test()
+            
+            let pipe = Pipe.from(empty[int]());
+
+            let action_was_called = BOX(false);
+            
+            pipe.for_each(element is
+                action_was_called.value = true;
+            si);
+
+            Assert.is_false(action_was_called.value);
+        si
+
+        ForEach_NonEmptySequence_CallsActionOnceInOrderForEveryElement() is
+            @test()
+
+            let pipe = Pipe.from([1, 2, 3, 4, 5, 6]);
+
+            let result = LIST[int]();
+
+            pipe.for_each(element is
+                result.add(element)
+            si);
+
+            assert_are_equal([1, 2, 3, 4, 5, 6], Pipe.from(result));
+        si
+
         Sort_NoComparer_SortsInDefaultOrder() is
             @test()
 
