@@ -5,10 +5,12 @@ namespace Ghul.Pipes is
         _list: List[T];
         _index: int;
 
+        iterator: Iterator[T] => self;
+
         current: T => _list[_index];
 
         init(list: List[T]) is
-            super.init(list);
+            assert list?;
 
             _list = list;
             reset();
@@ -27,7 +29,11 @@ namespace Ghul.Pipes is
         reset() is
             _index = _list.count;
         si
-        
+
+        count() -> int => _list.count;
+
+        to_string() -> string => join(", ");
+
         dispose() is
         si
     si

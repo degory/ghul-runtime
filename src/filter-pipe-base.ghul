@@ -4,6 +4,8 @@ namespace Ghul.Pipes is
     class FilterPipeBase[T]: Pipe[T] is
         _iterator: Iterator[T];
 
+        iterator: Iterator[T] => self;
+
         current: T => _iterator.current;
         
         init(iterator: Iterator[T]) is
@@ -48,5 +50,10 @@ namespace Ghul.Pipes is
 
         reset() => _iterator.reset();
         // dispose() => _iterator.dispose();
+
+        to_string() -> string => join(", ");
+
+        dispose() is
+        si
     si
 si
