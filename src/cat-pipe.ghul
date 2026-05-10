@@ -7,6 +7,8 @@ namespace Ghul.Pipes is
 
         _take_from_left: bool;
 
+        iterator: Iterator[T] => self;
+
         current: T is
             if _take_from_left then
                 return _left.current;
@@ -49,6 +51,11 @@ namespace Ghul.Pipes is
             _right.reset();
 
             _take_from_left = true;
+        si
+
+        to_string() -> string => join(", ");
+
+        dispose() is
         si
     si
 si

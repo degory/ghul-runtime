@@ -6,6 +6,8 @@ namespace Ghul.Pipes is
         _index: int;
         _iterator: Iterator[T];
 
+        iterator: Iterator[INDEXED_VALUE[T]] => self;
+
         current: INDEXED_VALUE[T] =>
             INDEXED_VALUE(_index, _iterator.current);
 
@@ -34,5 +36,7 @@ namespace Ghul.Pipes is
         dispose() is
             _iterator.dispose();
         si
+
+        to_string() -> string => join(", ");
     si
 si

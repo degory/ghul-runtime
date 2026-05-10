@@ -32,7 +32,7 @@ namespace Tests is
         Pipe_FromArray_ReturnsInstanceOfADAPTOR_PIPE() is
             @test()
 
-            let pipe = Ghul.Pipes.Pipe`[int].from([1, 2, 3, 4, 5]);
+            let pipe = Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5]);
 
             Assert.is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int]);
         si

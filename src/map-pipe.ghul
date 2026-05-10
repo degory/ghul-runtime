@@ -2,6 +2,8 @@ namespace Ghul.Pipes is
     use Collections;
 
     class MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
+        iterator: Iterator[TTo] => self;
+
         current: TTo;
 
         _iterator: Iterator[TFrom];
@@ -28,6 +30,11 @@ namespace Ghul.Pipes is
 
         reset() is
             _iterator.reset();
+        si
+
+        to_string() -> string => join(", ");
+
+        dispose() is
         si
     si
 si
