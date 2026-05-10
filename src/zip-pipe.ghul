@@ -7,6 +7,8 @@ namespace Ghul.Pipes is
 
         _current: (T1,T2);
 
+        iterator: Iterator[(T1,T2)] => self;
+
         current: (T1,T2) => _current;
 
         init(enumerator1: Iterator[T1], enumerator2: Iterator[T2]) is
@@ -33,5 +35,7 @@ namespace Ghul.Pipes is
             _iterator_1.dispose();
             _iterator_2.dispose();
         si
-    si    
+
+        to_string() -> string => join(", ");
+    si
 si
