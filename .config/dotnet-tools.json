@@ -9,10 +9,11 @@
       ]
     },
     "ghul.compiler": {
-      "version": "0.8.47",
+      "version": "0.8.115",
       "commands": [
         "ghul-compiler"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }
