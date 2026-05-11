@@ -2,5 +2,6 @@
   <PropertyGroup>
     <DebugType>None</DebugType>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
 </Project>
