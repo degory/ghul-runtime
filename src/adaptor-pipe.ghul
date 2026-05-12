@@ -38,8 +38,7 @@ namespace Ghul.Pipes is
                 return cast MutableBag[T](_source).count;
             fi
 
-            let result = 0;
-
+            let result mut = 0;
             while move_next() do
                 result = result + 1;
             od
