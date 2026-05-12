@@ -67,8 +67,7 @@ namespace Ghul.Pipes is
             ZIP_MAP_PIPE[T,U,TOut](iterator, other.iterator, mapper);
 
         reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning) -> TRunning is
-            let running = seed;
-
+            let running mut = seed;
             for element in self do
                 running = accumulator(running, element);
             od
@@ -77,8 +76,7 @@ namespace Ghul.Pipes is
         si
 
         reduce[TRunning,TOut](seed: TRunning, accumulator: (TRunning,T) -> TRunning, mapper: (TRunning) -> TOut) -> TOut is
-            let running = seed;
-
+            let running mut = seed;
             for element in self do
                 running = accumulator(running, element);
             od
@@ -103,8 +101,7 @@ namespace Ghul.Pipes is
         si
 
         count() -> int is
-            let result = 0;
-
+            let result mut = 0;
             while move_next() do
                 result = result + 1;
             od
@@ -291,8 +288,7 @@ namespace Ghul.Pipes is
             sort(FUNCTION_COMPARER[T](compare));
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder is
-            let seen_any = false;
-
+            let seen_any mut = false;
             while move_next() do
                 if seen_any then
                     into.append(separator);
