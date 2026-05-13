@@ -1,6 +1,0 @@
-namespace Ghul.Pipes is
-    union STREAM[T] is
-        DONE;
-        YIELD(value: T, rest: () -> STREAM[T]);
-    si
-si

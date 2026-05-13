@@ -1,0 +1,76 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    // Drives a state-stepping `advance` function through the `Pipe[T]`
+    // surface. Each `move_next` calls `advance(_state)`; the result is
+    // either an empty `MAYBE` (sequence done) or `MAYBE((value,
+    // next_state))` — the yielded element and the state to feed into
+    // the next call. `reset()` reinstates the initial state so
+    // re-iterating combinators (`has`, `sort`, `only`, `append_to`, …)
+    // work against a generator-backed pipe.
+    //
+    // State type `S` is fully explicit and decoupled from element
+    // type `T`. The user's step function is a pure
+    // `S -> MAYBE[(T, S)]` — no recursion, no closure-per-step
+    // allocation; the mutable cursor lives inside this class.
+    class GENERATOR_PIPE[T, S]: Pipe[T] is
+        _initial: S;
+        _state:   S;
+        _advance: S -> MAYBE[(T, S)];
+        _done:    bool;
+
+        current: T;
+
+        iterator: Iterator[T] => self;
+
+        init(initial: S, advance: S -> MAYBE[(T, S)]) is
+            assert advance?;
+
+            _initial = initial;
+            _state   = initial;
+            _advance = advance;
+        si
+
+        move_next() -> bool is
+            if _done then
+                return false;
+            fi
+
+            let step = _advance(_state);
+
+            if !step? then
+                _done = true;
+                return false;
+            fi
+
+            let (value, next_state) = step!;
+
+            current = value;
+            _state  = next_state;
+
+            return true;
+        si
+
+        reset() is
+            _state = _initial;
+            _done  = false;
+        si
+
+        to_string() -> string => join(", ");
+
+        dispose() is
+        si
+    si
+
+    // Build a `Pipe[T]` from an initial state and a pure step
+    // function `S -> MAYBE[(T, S)]`. The step returns an empty MAYBE
+    // to terminate, or `MAYBE((value, next_state))` to yield a value
+    // and advance.
+    generator[T, S](initial: S, advance: S -> MAYBE[(T, S)]) -> Pipe[T] is
+        if !advance? then
+            return null;
+        fi
+
+        return GENERATOR_PIPE[T, S](initial, advance);
+    si
+si
