@@ -1,0 +1,24 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on the .NET class
+    // generated for a ghūl `union` type. Lets the reflection layer
+    // distinguish a union from an ordinary class when consuming it
+    // from another assembly. Compiler-emitted; not user-facing —
+    // user code never spells this name.
+    class UNION_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+
+    // Marker attribute emitted by the compiler on the .NET class
+    // generated for each variant of a ghūl `union`. The variant's
+    // .NET `Namespace` is the union's full name (the IL form
+    // ghūl emits today); without this marker the reflection layer
+    // would register that as an actual namespace and clash with
+    // the union class itself.
+    class VARIANT_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
