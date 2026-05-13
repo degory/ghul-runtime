@@ -1,0 +1,134 @@
+namespace Tests is
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+
+    class GENERATOR_PIPEShould is
+        @test()
+
+        init() is
+        si
+
+        MoveNext_TerminatingGenerator_VisitsAllValuesThenReturnsFalse() is
+            @test()
+
+            let g = GENERATOR_PIPE[int, int](
+                3,
+                (s: int) =>
+                    if s == 0 then MAYBE[(int, int)]() else MAYBE((s, s - 1)) fi
+            );
+
+            Assert.is_true(g.move_next());
+            Assert.are_equal(3, g.current);
+            Assert.is_true(g.move_next());
+            Assert.are_equal(2, g.current);
+            Assert.is_true(g.move_next());
+            Assert.are_equal(1, g.current);
+            Assert.is_false(g.move_next());
+            Assert.is_false(g.move_next());
+        si
+
+        MoveNext_EmptyGenerator_ReturnsFalseImmediately() is
+            @test()
+
+            let g = GENERATOR_PIPE[int, int](
+                0,
+                (s: int) =>
+                    if s == 0 then MAYBE[(int, int)]() else MAYBE((s, s - 1)) fi
+            );
+
+            Assert.is_false(g.move_next());
+        si
+
+        Reset_AfterFullEnumeration_ReinstallsInitialState() is
+            @test()
+
+            let g = GENERATOR_PIPE[int, int](
+                2,
+                (s: int) =>
+                    if s == 0 then MAYBE[(int, int)]() else MAYBE((s, s - 1)) fi
+            );
+
+            Assert.is_true(g.move_next());
+            Assert.is_true(g.move_next());
+            Assert.is_false(g.move_next());
+
+            g.reset();
+
+            Assert.is_true(g.move_next());
+            Assert.are_equal(2, g.current);
+            Assert.is_true(g.move_next());
+            Assert.are_equal(1, g.current);
+            Assert.is_false(g.move_next());
+        si
+
+        Filter_ComposesOverGenerator() is
+            @test()
+
+            let evens =
+                GENERATOR_PIPE[int, int](0, (s: int) => MAYBE((s, s + 1)))
+                    .filter(x => x % 2 == 0)
+                    .take(3);
+
+            let actual = LIST[int]();
+            actual.add_range(evens);
+
+            let expected = LIST[int]([0, 2, 4]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+
+        Take_TerminatesInfiniteGenerator() is
+            @test()
+
+            let firsts =
+                GENERATOR_PIPE[int, int](10, (s: int) => MAYBE((s, s + 1)))
+                    .take(4);
+
+            let actual = LIST[int]();
+            actual.add_range(firsts);
+
+            let expected = LIST[int]([10, 11, 12, 13]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+    si
+
+    class GeneratorFactoryShould is
+        @test()
+
+        init() is
+        si
+
+        Generator_BuildsPipeFromStateStepper() is
+            @test()
+
+            let p = generator`[int, int](7, (s: int) => MAYBE((s, s + 1)));
+
+            Assert.is_instance_of_type(p, typeof GENERATOR_PIPE[int, int]);
+        si
+
+        Generator_DriveSequence() is
+            @test()
+
+            let p = generator`[int, int](1, (s: int) => MAYBE((s, s + 1))) | .take(5);
+
+            let actual = LIST[int]();
+            actual.add_range(p);
+
+            let expected = LIST[int]([1, 2, 3, 4, 5]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+
+        Generator_NullAdvance_ReturnsNull() is
+            @test()
+
+            let p = generator`[int, int](0, null);
+
+            Assert.is_null(p);
+        si
+    si
+si
