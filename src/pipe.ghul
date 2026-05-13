@@ -10,20 +10,10 @@ namespace Ghul.Pipes is
     // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
     // of the enumerators we want to use actually have any non-managed state that needs to be disposed
 
-    // Lift a producer to `Pipe[T]`. Three overloads, chosen so no
-    // one input type satisfies more than one of them:
-    //   - `Iterable[T]`        wrap in `ADAPTOR_PIPE`; an `isa Pipe[T]`
-    //                          check pass-throughs an existing Pipe.
-    //   - `() -> STREAM[T]`    wrap in `STREAM_PIPE`.
-    //   - `STREAM[T]`          wrap in `STREAM_PIPE` with a
-    //                          parameterless thunk producing the step.
-    //
-    // A raw `Iterator[T]` doesn't satisfy any of these — wrap it
-    // explicitly with `ITERATOR_PIPE(iter)`. An earlier draft added
-    // explicit `pipe(Pipe[T])` and `pipe(Iterator[T])` overloads
-    // alongside `pipe(Iterable[T])`; that made `pipe(some_pipe)`
-    // ambiguous because `Pipe[T]` extends both `Iterable[T]` and
-    // `Iterator[T]` and the resolver scored all three equally.
+    // Lift an `Iterable[T]` (any producer with a `.iterator` —
+    // includes any existing `Pipe[T]`, which is short-circuited via
+    // an `isa` check) to `Pipe[T]`. For state-stepping producers,
+    // use `generator(initial, advance)` (see `generator-pipe.ghul`).
 
     pipe[T](source: Iterable[T]) -> Pipe[T] is
         if !source? then
@@ -33,22 +23,6 @@ namespace Ghul.Pipes is
         else
             return ADAPTOR_PIPE[T](source);
         fi
-    si
-
-    pipe[T](step: () -> STREAM[T]) -> Pipe[T] is
-        if !step? then
-            return null;
-        fi
-
-        return STREAM_PIPE[T](step);
-    si
-
-    pipe[T](step: STREAM[T]) -> Pipe[T] is
-        if !step? then
-            return null;
-        fi
-
-        return STREAM_PIPE[T](() => step);
     si
 
     class Factory is
