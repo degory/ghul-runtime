@@ -9,6 +9,28 @@ namespace Ghul.Pipes is
     // FIXME: should dispose of all enumerators - ideally somehow check if they really need disposing
     // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
     // of the enumerators we want to use actually have any non-managed state that needs to be disposed
+
+    // Lift any of five common producer shapes to `Pipe[T]`. The most
+    // specific overload wins at the call site:
+    //   - `Pipe[T]`           pass-through (no wrapping).
+    //   - `Iterator[T]`       wrap in `ITERATOR_PIPE`.
+    //   - `Iterable[T]`       wrap in `ADAPTOR_PIPE` (the historic case).
+    //   - `() -> STREAM[T]`  wrap in `STREAM_PIPE`.
+    //   - `STREAM[T]` wrap in `STREAM_PIPE` with a
+    //                         parameterless thunk producing the step.
+
+    pipe[T](source: Pipe[T]) -> Pipe[T] => source;
+
+    pipe[T](source: Iterator[T]) -> Pipe[T] is
+        if !source? then
+            return null;
+        elif isa Pipe[T](source) then
+            return cast Pipe[T](source);
+        else
+            return ITERATOR_PIPE[T](source);
+        fi
+    si
+
     pipe[T](source: Iterable[T]) -> Pipe[T] is
         if !source? then
             return null;
@@ -17,6 +39,22 @@ namespace Ghul.Pipes is
         else
             return ADAPTOR_PIPE[T](source);
         fi
+    si
+
+    pipe[T](step: () -> STREAM[T]) -> Pipe[T] is
+        if !step? then
+            return null;
+        fi
+
+        return STREAM_PIPE[T](step);
+    si
+
+    pipe[T](step: STREAM[T]) -> Pipe[T] is
+        if !step? then
+            return null;
+        fi
+
+        return STREAM_PIPE[T](() => step);
     si
 
     class Factory is
