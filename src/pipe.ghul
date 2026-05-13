@@ -10,26 +10,20 @@ namespace Ghul.Pipes is
     // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
     // of the enumerators we want to use actually have any non-managed state that needs to be disposed
 
-    // Lift any of five common producer shapes to `Pipe[T]`. The most
-    // specific overload wins at the call site:
-    //   - `Pipe[T]`           pass-through (no wrapping).
-    //   - `Iterator[T]`       wrap in `ITERATOR_PIPE`.
-    //   - `Iterable[T]`       wrap in `ADAPTOR_PIPE` (the historic case).
-    //   - `() -> STREAM[T]`  wrap in `STREAM_PIPE`.
-    //   - `STREAM[T]` wrap in `STREAM_PIPE` with a
-    //                         parameterless thunk producing the step.
-
-    pipe[T](source: Pipe[T]) -> Pipe[T] => source;
-
-    pipe[T](source: Iterator[T]) -> Pipe[T] is
-        if !source? then
-            return null;
-        elif isa Pipe[T](source) then
-            return cast Pipe[T](source);
-        else
-            return ITERATOR_PIPE[T](source);
-        fi
-    si
+    // Lift a producer to `Pipe[T]`. Three overloads, chosen so no
+    // one input type satisfies more than one of them:
+    //   - `Iterable[T]`        wrap in `ADAPTOR_PIPE`; an `isa Pipe[T]`
+    //                          check pass-throughs an existing Pipe.
+    //   - `() -> STREAM[T]`    wrap in `STREAM_PIPE`.
+    //   - `STREAM[T]`          wrap in `STREAM_PIPE` with a
+    //                          parameterless thunk producing the step.
+    //
+    // A raw `Iterator[T]` doesn't satisfy any of these — wrap it
+    // explicitly with `ITERATOR_PIPE(iter)`. An earlier draft added
+    // explicit `pipe(Pipe[T])` and `pipe(Iterator[T])` overloads
+    // alongside `pipe(Iterable[T])`; that made `pipe(some_pipe)`
+    // ambiguous because `Pipe[T]` extends both `Iterable[T]` and
+    // `Iterator[T]` and the resolver scored all three equally.
 
     pipe[T](source: Iterable[T]) -> Pipe[T] is
         if !source? then
