@@ -1,0 +1,163 @@
+namespace Tests is
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+    use STREAM.DONE;
+    use STREAM.YIELD;
+
+    class STREAM_PIPEShould is
+        @test()
+
+        init() is
+        si
+
+        MoveNext_TerminatingStream_VisitsAllValuesThenReturnsFalse() is
+            @test()
+
+            let p = STREAM_PIPE[int, int](
+                3,
+                (s: int) =>
+                    if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
+            );
+
+            Assert.is_true(p.move_next());
+            Assert.are_equal(3, p.current);
+            Assert.is_true(p.move_next());
+            Assert.are_equal(2, p.current);
+            Assert.is_true(p.move_next());
+            Assert.are_equal(1, p.current);
+            Assert.is_false(p.move_next());
+            Assert.is_false(p.move_next());
+        si
+
+        MoveNext_EmptyStream_ReturnsFalseImmediately() is
+            @test()
+
+            let p = STREAM_PIPE[int, int](
+                0,
+                (s: int) =>
+                    if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
+            );
+
+            Assert.is_false(p.move_next());
+        si
+
+        Reset_AfterFullEnumeration_ReinstallsInitialState() is
+            @test()
+
+            let p = STREAM_PIPE[int, int](
+                2,
+                (s: int) =>
+                    if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
+            );
+
+            Assert.is_true(p.move_next());
+            Assert.is_true(p.move_next());
+            Assert.is_false(p.move_next());
+
+            p.reset();
+
+            Assert.is_true(p.move_next());
+            Assert.are_equal(2, p.current);
+            Assert.is_true(p.move_next());
+            Assert.are_equal(1, p.current);
+            Assert.is_false(p.move_next());
+        si
+
+        Filter_ComposesOverStream() is
+            @test()
+
+            let evens =
+                STREAM_PIPE[int, int](0, (s: int) => YIELD(s, s + 1))
+                    .filter(x => x % 2 == 0)
+                    .take(3);
+
+            let actual = LIST[int]();
+            actual.add_range(evens);
+
+            let expected = LIST[int]([0, 2, 4]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+
+        Take_TerminatesInfiniteStream() is
+            @test()
+
+            let firsts =
+                STREAM_PIPE[int, int](10, (s: int) => YIELD(s, s + 1))
+                    .take(4);
+
+            let actual = LIST[int]();
+            actual.add_range(firsts);
+
+            let expected = LIST[int]([10, 11, 12, 13]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+
+        DifferentStateAndOutputTypes_IntStateStringOutput() is
+            @test()
+
+            // State is an `int` counter; output is a `string` label.
+            // State and output are genuinely distinct types — the
+            // user never sees the state from a `Pipe[string]`
+            // consumer's view.
+
+            let labels =
+                STREAM_PIPE[string, int](
+                    3,
+                    (i: int) =>
+                        if i == 0 then
+                            DONE[string, int]()
+                        else
+                            YIELD("step {i}", i - 1)
+                        fi
+                );
+
+            let actual = LIST[string]();
+            actual.add_range(labels);
+
+            let expected = LIST[string](["step 3", "step 2", "step 1"]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+    si
+
+    class StreamFactoryShould is
+        @test()
+
+        init() is
+        si
+
+        Stream_BuildsPipeFromStateStepper() is
+            @test()
+
+            let p = stream`[int, int](7, (s: int) => YIELD(s, s + 1));
+
+            Assert.is_instance_of_type(p, typeof STREAM_PIPE[int, int]);
+        si
+
+        Stream_DriveSequence() is
+            @test()
+
+            let p = stream`[int, int](1, (s: int) => YIELD(s, s + 1)) | .take(5);
+
+            let actual = LIST[int]();
+            actual.add_range(p);
+
+            let expected = LIST[int]([1, 2, 3, 4, 5]);
+
+            CollectionAssert.are_equal(expected, actual);
+        si
+
+        Stream_NullAdvance_ReturnsNull() is
+            @test()
+
+            let p = stream`[int, int](0, null);
+
+            Assert.is_null(p);
+        si
+    si
+si
