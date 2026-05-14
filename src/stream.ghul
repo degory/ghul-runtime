@@ -1,0 +1,87 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    // One step of a state-stepping stream.
+    //
+    //   DONE                       — sequence is over.
+    //   YIELD(value: T, state: S)  — yielded element, plus the state to
+    //                                feed into the next step.
+    //
+    // `T` is the output element type; `S` is the user-chosen state type.
+    // State and output are decoupled: state can be any shape (tuple,
+    // index cursor, accumulator) and is never seen by callers of a
+    // `stream`-produced `Pipe[T]`.
+    union STREAM[T, S] is
+        DONE;
+        YIELD(value: T, state: S);
+    si
+
+    // Drives a state-stepping `advance` function through the `Pipe[T]`
+    // surface. Each `move_next` calls `advance(_state)`; the result is
+    // either `DONE` (sequence over) or `YIELD(value, next_state)` —
+    // the yielded element and the state to feed into the next call.
+    // `reset()` reinstates the initial state so re-iterating
+    // combinators (`has`, `sort`, `only`, `append_to`, …) work against
+    // a stream-backed pipe.
+    //
+    // The mutable state cursor lives on the class; the user's
+    // `advance` is a pure `S -> STREAM[T, S]` — no recursion, no
+    // closure-per-step allocation.
+    class STREAM_PIPE[T, S]: Pipe[T] is
+        _initial: S;
+        _state:   S;
+        _advance: S -> STREAM[T, S];
+        _done:    bool;
+
+        current: T;
+
+        iterator: Iterator[T] => self;
+
+        init(initial: S, advance: S -> STREAM[T, S]) is
+            assert advance?;
+
+            _initial = initial;
+            _state   = initial;
+            _advance = advance;
+        si
+
+        move_next() -> bool is
+            if _done then
+                return false;
+            fi
+
+            let step = _advance(_state);
+
+            if step.is_done then
+                _done = true;
+                return false;
+            else
+                current = step.value;
+                _state  = step.state;
+                return true;
+            fi
+        si
+
+        reset() is
+            _state = _initial;
+            _done  = false;
+        si
+
+        to_string() -> string => join(", ");
+
+        dispose() is
+        si
+    si
+
+    // Build a `Pipe[T]` from an initial state and a pure step function
+    // `S -> STREAM[T, S]`. The step returns `DONE` to terminate, or
+    // `YIELD(value, next_state)` (which the `||` infix produces) to
+    // yield a value and advance.
+    stream[T, S](initial: S, advance: S -> STREAM[T, S]) -> Pipe[T] is
+        if !advance? then
+            return null;
+        fi
+
+        return STREAM_PIPE[T, S](initial, advance);
+    si
+si
