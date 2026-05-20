@@ -28,7 +28,7 @@ jobs:
       contents: read
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: '0'
 
@@ -75,7 +75,7 @@ jobs:
     needs: [version]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Restore local .NET tools
       run: dotnet tool restore
@@ -87,7 +87,7 @@ jobs:
       run: dotnet pack -p:Version=${{ needs.version.outputs.package }}
 
     - name: Upload package artefact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: package
         path: nupkg
@@ -102,10 +102,10 @@ jobs:
     needs: [version,build]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: package
         path: nupkg
@@ -140,10 +140,10 @@ jobs:
 
     steps:
     # not convinced we actually need to checkout the code here
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: package
         path: nupkg
@@ -166,10 +166,10 @@ jobs:
     needs: [version,build,integration-tests]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: package
         path: nupkg
@@ -198,12 +198,12 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: '0'
 
     - name: Download package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: package
         path: nupkg
