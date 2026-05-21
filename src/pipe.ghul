@@ -280,7 +280,7 @@ namespace Ghul.Pipes is
             return pipe(list);
         si
 
-        sort(comparer: IComparer`1[T]) -> Pipe[T] is
+        sort(comparer: IComparer[T]) -> Pipe[T] is
             let list = collect_list();
 
             list.sort(comparer);
