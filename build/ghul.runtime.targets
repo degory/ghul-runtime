@@ -1,4 +1,8 @@
 <Project>
+  <PropertyGroup>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+  </PropertyGroup>
+
   <Target Name="CreateManifestResourceNames" />
 
   <Target Name="GenerateAssembliesJson" DependsOnTargets="FindReferenceAssembliesForReferences">
