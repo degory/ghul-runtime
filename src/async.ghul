@@ -1,0 +1,46 @@
+namespace Ghul.Async is
+    use Tasks = System.Threading.Tasks;
+
+    // Lift a plain value into a completed `Task[T]`. Equivalent to
+    // `System.Threading.Tasks.Task.from_result(value)` — provided here
+    // so async-flavoured code reads consistently against the
+    // `Ghul.Async` surface.
+    from_result[T](value: T) -> Tasks.Task[T] =>
+        Tasks.Task.from_result(value);
+
+    // Synchronous wait. Blocks the calling thread until `task` completes
+    // and returns its result; propagates any exception via
+    // `AggregateException`. **Use only at top-level entry points** —
+    // calling this inside an async chain defeats the purpose and risks
+    // deadlocks on .NET single-threaded synchronisation contexts.
+    run[T](task: Tasks.Task[T]) -> T =>
+        task.result;
+
+    // A Task that completes after `milliseconds`. Convenience over
+    // `System.Threading.Tasks.Task.delay`.
+    delay(milliseconds: int) -> Tasks.Task =>
+        Tasks.Task.delay(milliseconds);
+
+    // Wait for all tasks to complete; return their results as a
+    // single `Task[T[]]`. Wraps
+    // `System.Threading.Tasks.Task.when_all(...)`.
+    parallel[T](tasks: Collections.List[Tasks.Task[T]]) -> Tasks.Task[T[]] =>
+        Tasks.Task.when_all(tasks);
+
+    // Wait for the first task to complete; return its `Task[T]`.
+    // Wraps `System.Threading.Tasks.Task.when_any(...)`.
+    first[T](tasks: Collections.List[Tasks.Task[T]]) -> Tasks.Task[Tasks.Task[T]] =>
+        Tasks.Task.when_any(tasks);
+
+    // NOTE: `and_then[T, U]` (monadic bind) and `map[T, U]` are
+    // intentionally *not* provided as generic helpers in v1. ghūl's
+    // overload resolver can't disambiguate `Task.continue_with`
+    // (inherited from non-generic Task) versus `Task[T].continue_with`
+    // when the call appears inside a generic helper — both candidates
+    // match by ghūl's reckoning (.NET function-input contravariance
+    // should rule out the inherited overload, but the resolver
+    // doesn't apply that rule). The `let await` sugar dodges the issue
+    // by emitting inline `task.continue_with(...)` calls with concrete
+    // (post-inference) lambda types, where the more specific overload
+    // wins cleanly. Add bind/map here once the resolver fix lands.
+si

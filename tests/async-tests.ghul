@@ -1,0 +1,85 @@
+namespace Tests is
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Tasks = System.Threading.Tasks;
+
+    class AsyncShould is
+        @test()
+            init() is
+        si
+
+        FromResult_LiftsValueIntoCompletedTask() is
+            @test()
+
+            let task = Ghul.Async.from_result(42);
+
+            Assert.is_true(task.is_completed);
+            Assert.are_equal(42, task.result);
+        si
+
+        Run_BlocksAndReturnsValue() is
+            @test()
+
+            let value = Ghul.Async.run(Ghul.Async.from_result("hello"));
+
+            Assert.are_equal("hello", value);
+        si
+
+        Run_OnTaskFromRun_WaitsThenReturns() is
+            @test()
+
+            let task = Tasks.Task.run(
+                () -> int is
+                    return 99;
+                si
+            );
+
+            let value = Ghul.Async.run(task);
+
+            Assert.are_equal(99, value);
+        si
+
+        Delay_ReturnsTaskThatCompletesAfterInterval() is
+            @test()
+
+            let task = Ghul.Async.delay(10);
+
+            task.wait();
+
+            Assert.is_true(task.is_completed);
+        si
+
+        Parallel_WaitsForAllTasksAndReturnsResults() is
+            @test()
+
+            let tasks: Collections.List[Tasks.Task[int]] = [
+                Ghul.Async.from_result(10),
+                Ghul.Async.from_result(20),
+                Ghul.Async.from_result(30)
+            ];
+
+            let results = Ghul.Async.run(Ghul.Async.parallel(tasks));
+
+            Assert.are_equal(10, results[0]);
+            Assert.are_equal(20, results[1]);
+            Assert.are_equal(30, results[2]);
+        si
+
+        First_ReturnsAnyCompletedTaskFromTheSet() is
+            @test()
+
+            // All three are already completed, so `when_any` may pick any
+            // of them — assert only that the returned inner task has a
+            // value from the original set.
+            let tasks: Collections.List[Tasks.Task[int]] = [
+                Ghul.Async.from_result(7),
+                Ghul.Async.from_result(8),
+                Ghul.Async.from_result(9)
+            ];
+
+            let inner = Ghul.Async.run(Ghul.Async.first(tasks));
+            let value = inner.result;
+
+            Assert.is_true(value == 7 \/ value == 8 \/ value == 9);
+        si
+    si
+si
