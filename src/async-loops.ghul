@@ -42,13 +42,13 @@ namespace Ghul.Async is
         si
     si
 
-    // Driver for `_for_each_async`. Holds the iterator + body + a
+    // Driver for `_for_async`. Holds the iterator + body + a
     // TaskCompletionSource that the caller awaits; pumps iterations
     // synchronously when bodies complete inline, schedules a
     // continuation when they yield. The on-complete callback is
     // pre-allocated once at construction so per-yield closure
     // allocation is bounded to whatever .NET adds internally.
-    class _FOR_EACH_DRIVER[T_elem, T_ret] is
+    class _FOR_DRIVER[T_elem, T_ret] is
         _iter: Collections.Iterator[T_elem];
         _body: T_elem -> Tasks.TASK[_LOOP_RESULT[T_ret]];
         _tcs: Tasks.TaskCompletionSource[_LOOP_RESULT[T_ret]];
@@ -104,24 +104,27 @@ namespace Ghul.Async is
         si
     si
 
-    // Driver for `_while_async`. Same shape as _FOR_EACH_DRIVER but
-    // evaluates a condition lambda before each iteration. Condition
-    // is `() -> Tasks.TASK[bool]` so it can itself be async.
+    // Driver for `_while_async`. Same shape as _FOR_DRIVER but
+    // evaluates a synchronous condition lambda before each iteration.
+    //
+    // Condition is `() -> bool` (not `() -> Tasks.TASK[bool]`) because
+    // ghūl's source-level `while` requires a bool condition expression.
+    // A user wanting "async check before iteration" expresses it as a
+    // let-await inside the body, updating a flag captured by the
+    // condition lambda — not by writing an async condition function.
     class _WHILE_DRIVER[T_ret] is
-        _condition: () -> Tasks.TASK[bool];
+        _condition: () -> bool;
         _body: () -> Tasks.TASK[_LOOP_RESULT[T_ret]];
         _tcs: Tasks.TaskCompletionSource[_LOOP_RESULT[T_ret]];
-        _on_condition_complete: (Tasks.TASK[bool]) -> void;
         _on_body_complete: (Tasks.TASK[_LOOP_RESULT[T_ret]]) -> void;
 
         init(
-            condition: () -> Tasks.TASK[bool],
+            condition: () -> bool,
             body: () -> Tasks.TASK[_LOOP_RESULT[T_ret]]
         ) is
             _condition = condition;
             _body = body;
             _tcs = Tasks.TaskCompletionSource[_LOOP_RESULT[T_ret]]();
-            _on_condition_complete = t => on_condition_complete(t);
             _on_body_complete = t => on_body_complete(t);
         si
 
@@ -132,13 +135,7 @@ namespace Ghul.Async is
 
         pump() is
             try
-                while true do
-                    let cond_task = _condition();
-                    if !cond_task.is_completed then
-                        cond_task.continue_with(_on_condition_complete);
-                        return;
-                    fi
-                    if handle_condition(cond_task) then return; fi
+                while _condition() do
                     let body_task = _body();
                     if !body_task.is_completed then
                         body_task.continue_with(_on_body_complete);
@@ -146,37 +143,15 @@ namespace Ghul.Async is
                     fi
                     if handle_body(body_task) then return; fi
                 od
+                _tcs.set_result(_LOOP_RESULT[T_ret]());
             catch ex: System.Exception
                 _tcs.set_exception(ex);
             yrt
         si
 
-        on_condition_complete(t: Tasks.TASK[bool]) is
-            if handle_condition(t) then return; fi
-            let body_task = _body();
-            if !body_task.is_completed then
-                body_task.continue_with(_on_body_complete);
-                return;
-            fi
-            if handle_body(body_task) then return; fi
-            pump();
-        si
-
         on_body_complete(t: Tasks.TASK[_LOOP_RESULT[T_ret]]) is
             if handle_body(t) then return; fi
             pump();
-        si
-
-        handle_condition(t: Tasks.TASK[bool]) -> bool is
-            if t.is_faulted then
-                _tcs.set_exception(t.exception);
-                return true;
-            fi
-            if !t.result then
-                _tcs.set_result(_LOOP_RESULT[T_ret]());
-                return true;
-            fi
-            return false;
         si
 
         handle_body(t: Tasks.TASK[_LOOP_RESULT[T_ret]]) -> bool is
@@ -197,17 +172,17 @@ namespace Ghul.Async is
     // a body returns _LOOP_RESULT.RETURN/BREAK, or a body's task
     // faults. Used as the desugar target for `for x in xs do <body
     // with let-await> od` inside async-classified functions.
-    _for_each_async[T_elem, T_ret](
+    _for_async[T_elem, T_ret](
         iter: Collections.Iterator[T_elem],
         body: T_elem -> Tasks.TASK[_LOOP_RESULT[T_ret]]
     ) -> Tasks.TASK[_LOOP_RESULT[T_ret]] =>
-        _FOR_EACH_DRIVER[T_elem, T_ret](iter, body).start();
+        _FOR_DRIVER[T_elem, T_ret](iter, body).start();
 
-    // Public entry: drives `body` while `condition` produces true.
+    // Public entry: drives `body` while `condition` returns true.
     // Used as the desugar target for `while cond do <body with let-
     // await> od` inside async-classified functions.
     _while_async[T_ret](
-        condition: () -> Tasks.TASK[bool],
+        condition: () -> bool,
         body: () -> Tasks.TASK[_LOOP_RESULT[T_ret]]
     ) -> Tasks.TASK[_LOOP_RESULT[T_ret]] =>
         _WHILE_DRIVER[T_ret](condition, body).start();

@@ -42,7 +42,7 @@ namespace Tests is
         si
     si
 
-    class ForEachAsyncShould is
+    class ForAsyncShould is
         @test()
         init() is
         si
@@ -54,7 +54,7 @@ namespace Tests is
             let xs: Collections.List[int] = [10, 20, 30];
 
             let task =
-                _for_each_async[int, int](
+                _for_async[int, int](
                     xs.iterator,
                     x is
                         counter = counter + 1;
@@ -74,7 +74,7 @@ namespace Tests is
             let xs: Collections.List[int] = [10, 20, 30];
 
             let task =
-                _for_each_async[int, int](
+                _for_async[int, int](
                     xs.iterator,
                     x is
                         counter = counter + 1;
@@ -88,7 +88,6 @@ namespace Tests is
             let r = task.result;
             Assert.are_equal(_LOOP_RESULT_TYPE.RETURN, r.type);
             Assert.are_equal(2000, r.value);
-            // counter==2: ran x=10 (CONTINUE), x=20 (RETURN). x=30 skipped.
             Assert.are_equal(2, counter);
         si
 
@@ -98,7 +97,7 @@ namespace Tests is
             let xs: Collections.List[int] = [1, 2, 3];
 
             let task =
-                _for_each_async[int, int](
+                _for_async[int, int](
                     xs.iterator,
                     x is
                         if x == 2 then
@@ -108,14 +107,11 @@ namespace Tests is
                     si
                 );
 
-            // .result throws AggregateException wrapping the body's exception
             try
                 let _ = task.result;
                 Assert.fail("expected exception");
             catch ae: System.AggregateException
                 Assert.is_true(ae.inner_exception != null);
-                // exact message text varies by .NET version; just check
-                // the inner exception type chain reaches the original
             yrt
         si
     si
@@ -138,7 +134,7 @@ namespace Tests is
 
             let task =
                 _while_async[int](
-                    () -> Tasks.TASK[bool] => Tasks.TASK.from_result(counter.count < 3),
+                    () -> bool => counter.count < 3,
                     () -> Tasks.TASK[_LOOP_RESULT[int]] is
                         counter.bump();
                         return Tasks.TASK.from_result(_LOOP_RESULT[int]());
@@ -157,7 +153,7 @@ namespace Tests is
 
             let task =
                 _while_async[int](
-                    () -> Tasks.TASK[bool] => Tasks.TASK.from_result(false),
+                    () -> bool => false,
                     () -> Tasks.TASK[_LOOP_RESULT[int]] is
                         body_calls.bump();
                         return Tasks.TASK.from_result(_LOOP_RESULT[int]());
