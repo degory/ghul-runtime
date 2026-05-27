@@ -195,7 +195,7 @@ namespace Tests is
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .skip(5)
-                    .filter(i => (i ∩ 1) == 0);
+                    .filter(i => (i & 1) == 0);
 
             assert_are_equal([6, 8, 10], result);
         si
@@ -205,7 +205,7 @@ namespace Tests is
 
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
-                    .filter(i => (i ∩ 1) == 0)
+                    .filter(i => (i & 1) == 0)
                     .skip(1);
 
             assert_are_equal([4, 6, 8, 10], result);
@@ -239,7 +239,7 @@ namespace Tests is
             let result =
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .take(5)
-                    .filter(i => (i ∩ 1) == 0);
+                    .filter(i => (i & 1) == 0);
 
             assert_are_equal([2, 4], result);
         si
@@ -249,7 +249,7 @@ namespace Tests is
 
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
-                    .filter(i => (i ∩ 1) == 0)
+                    .filter(i => (i & 1) == 0)
                     .take(3);
 
             assert_are_equal([2, 4, 6], result);
@@ -261,7 +261,7 @@ namespace Tests is
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .index()
-                    .filter(i => (i.value ∩ 1) == 1);
+                    .filter(i => (i.value & 1) == 1);
 
             assert_are_equal([iv(0,1), iv(2,3), iv(4,5), iv(6,7), iv(8,9)], result);
         si
@@ -349,7 +349,7 @@ namespace Tests is
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .filter(i => i > 3 /\ i < 9)
-                    .filter(i => (i ∩ 1) == 0);
+                    .filter(i => (i & 1) == 0);
 
             assert_are_equal([4, 6, 8], result);
         si
