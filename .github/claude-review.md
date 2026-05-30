@@ -83,7 +83,7 @@ PR description becomes the squash-commit message and the changelog entry. It shi
 - **Plain language.** No marketing tone, no defensive prose, no self-justification.
 - **Brevity.** A focused fix is often a single bullet.
 - **No `## Summary` / `## Test plan` / `## Testing` headings.** The PR description IS the summary.
-- **No external links, no references to documents not in this repo.**
+- **No private or ephemeral references.** Memory files, hoisted `docs/claude/`, internal workplans, Claude/codex task URLs, Slack threads — none of it should appear. Public sibling-repo references (`degory/ghul-vsce#NN`, etc.) are fine when they convey a real cross-repo dependency.
 - **No internal labels** ("Phase 2 of…", "predecessor branch", "stage 1", "option B").
 - **No local test results** ("all tests pass locally", etc.). CI is the proof.
 - **No `Co-authored-by:` trailer in the body.** Squash-merge appends a deduped block automatically.
