@@ -61,7 +61,7 @@ namespace Tests is
 
             let pipe = Pipes.Factory.from(empty[string]());
 
-            let caught_expected = false;
+            let caught_expected mut = false;
 
             try
                 pipe.first_or_throw();
@@ -156,7 +156,7 @@ namespace Tests is
 
             let pipe = Pipes.Factory.from`[int](empty`[int]());
 
-            let caught_expected = false;
+            let caught_expected mut = false;
 
             try
                 pipe.find_or_throw(i => i > 10);
@@ -172,7 +172,7 @@ namespace Tests is
 
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-            let caught_expected = false;
+            let caught_expected mut = false;
 
             try
                 pipe.find_or_throw(i => i == 10);
