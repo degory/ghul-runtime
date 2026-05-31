@@ -42,6 +42,7 @@ Flag:
 - Missing tests where a behavioural change wants one. `tests/` holds unit-style tests; the `integration-tests/` project at repo root is a smoke test against a freshly-packed runtime.
 - Source comment hygiene violations (see below).
 - PR description violations (see below).
+- Wrong `VERSION` bump — see "Versioning" below. Both directions: a breaking API change going out under the default patch, and a `VERSION` raise that the change doesn't merit.
 
 Don't flag:
 
@@ -97,8 +98,26 @@ Body is `-`-bullets under one or more of:
 
 At least one section; any can be omitted.
 
+## Versioning
+
+`Ghul.Runtime` is in v3.x. Strict semver throughout (the runtime didn't have the compiler's v2.0.0 accident). Bump table:
+
+- **Major (X.0.0).** Removed/renamed public API, changed signatures, behaviour change in documented APIs. Anything a `Ghul.Runtime`-consuming package would notice break.
+- **Minor (X.Y.0).** New public APIs, new types, new overloads. Additive only.
+- **Patch (X.Y.Z).** Bug fixes aligning behaviour with the documented/intended spec. IL/codegen improvements with no observable semantic change. Internal refactors, tests, docs, CI.
+
+Mechanism: default is patch. A non-patch release is cut by **raising the `VERSION` file** in the PR (code-owned via `.github/CODEOWNERS` — requires the code owner's approval). `#minor`/`#major` markers in the PR body are no-ops; don't add them. A `workflow_dispatch` `version` input overrides outright (emergencies only).
+
+Flag when:
+
+- The PR removes/renames a public member, changes a signature, or changes documented behaviour without raising `VERSION` to a major.
+- The PR adds new public APIs without raising `VERSION` to a minor.
+- The PR raises `VERSION` but the change doesn't merit the bump.
+
+(Canonical reference: `docs/claude/versioning.md` in the workspace — referenced for context only; not present in this repo.)
+
 ## Posting mechanics — reminder
 
 - Inline: `mcp__github_inline_comment__create_inline_comment` with `confirmed: true`.
-- Verdict (exactly one, always): `gh pr review <N> --approve|--request-changes|--comment --body "..."`.
+- Verdict (exactly one, always): `gh pr review <N> --approve|--request-changes --body "..."`. Approve only when you've raised nothing the author should act on; otherwise request changes.
 - Chat output is invisible. If you didn't post it to GitHub, it didn't happen.
