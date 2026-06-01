@@ -153,21 +153,6 @@ jobs:
           --model claude-opus-4-8
           --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr review:*),Read,Glob,Grep"
 
-  retry_review:
-    name: Retry hung review
-    needs: code_review
-    if: ${{ always() && needs.code_review.result == 'failure' && github.run_attempt < fromJSON(vars.CLAUDE_REVIEW_MAX_ATTEMPTS || '3') }}
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    permissions:
-      actions: write
-    steps:
-    - env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        echo "Code review failed on attempt ${{ github.run_attempt }} — queueing rerun of failed jobs"
-        gh run rerun ${{ github.run_id }} --failed || echo "::warning::rerun-failed-jobs call did not succeed; the workflow may need to complete first"
-
   publish-beta-package:
     # for pull requests, only publish the beta package
     name: Publish beta NuGet package
