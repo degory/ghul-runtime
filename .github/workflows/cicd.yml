@@ -14,6 +14,10 @@ on:
       - "main"
 env:
   CI: true
+  # Lets the still-net8.0 published `ghul.compiler` bootstrap tool start
+  # on the .NET 10 runtime present in the `sdk:10.0-jammy` container.
+  # Drop this once the next published compiler is itself net10.0-hosted.
+  DOTNET_ROLL_FORWARD: LatestMajor
 
 jobs:
   version:
@@ -49,7 +53,7 @@ jobs:
     name: Build package
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version]
@@ -76,7 +80,7 @@ jobs:
     name: Test package
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version,build]
@@ -160,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version,build,integration-tests]
@@ -187,7 +191,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version,build,integration-tests]
