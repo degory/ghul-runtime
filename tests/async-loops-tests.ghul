@@ -58,7 +58,7 @@ namespace Tests is
                     xs.iterator,
                     x is
                         counter = counter + 1;
-                        return Tasks.TASK.from_result(_LOOP_RESULT[int]());
+                        return _LOOP_RESULT[int]();
                     si
                 );
 
@@ -79,9 +79,9 @@ namespace Tests is
                     x is
                         counter = counter + 1;
                         if x == 20 then
-                            return Tasks.TASK.from_result(_LOOP_RESULT[int](_LOOP_RESULT_TYPE.RETURN, x * 100));
+                            return _LOOP_RESULT[int](_LOOP_RESULT_TYPE.RETURN, x * 100);
                         fi
-                        return Tasks.TASK.from_result(_LOOP_RESULT[int]());
+                        return _LOOP_RESULT[int]();
                     si
                 );
 
@@ -103,7 +103,7 @@ namespace Tests is
                         if x == 2 then
                             throw System.InvalidOperationException("boom on x=2");
                         fi
-                        return Tasks.TASK.from_result(_LOOP_RESULT[int]());
+                        return _LOOP_RESULT[int]();
                     si
                 );
 
@@ -135,9 +135,9 @@ namespace Tests is
             let task =
                 _while_async[int](
                     () -> bool => counter.count < 3,
-                    () -> Tasks.TASK[_LOOP_RESULT[int]] is
+                    () is
                         counter.bump();
-                        return Tasks.TASK.from_result(_LOOP_RESULT[int]());
+                        return _LOOP_RESULT[int]();
                     si
                 );
 
@@ -154,9 +154,9 @@ namespace Tests is
             let task =
                 _while_async[int](
                     () -> bool => false,
-                    () -> Tasks.TASK[_LOOP_RESULT[int]] is
+                    () is
                         body_calls.bump();
-                        return Tasks.TASK.from_result(_LOOP_RESULT[int]());
+                        return _LOOP_RESULT[int]();
                     si
                 );
 
