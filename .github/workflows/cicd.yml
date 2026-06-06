@@ -107,6 +107,30 @@ jobs:
         echo "Output: \"${STDOUT}\""
         test "${STDOUT}" = "Hello ghūl world!"
 
+    - name: Verify default Debug build produces a PDB
+      working-directory: integration-tests
+      run: test -f bin/Debug/net10.0/tests.pdb
+
+    - name: Verify DebugType=none suppresses the PDB
+      working-directory: integration-tests
+      run: |
+        rm -rf bin obj
+        dotnet build -p:DebugType=none
+        if [ -f bin/Debug/net10.0/tests.pdb ]; then
+          echo "DebugType=none unexpectedly produced a PDB" >&2
+          exit 1
+        fi
+
+    - name: Verify DebugSymbols=false suppresses the PDB
+      working-directory: integration-tests
+      run: |
+        rm -rf bin obj
+        dotnet build -p:DebugSymbols=false
+        if [ -f bin/Debug/net10.0/tests.pdb ]; then
+          echo "DebugSymbols=false unexpectedly produced a PDB" >&2
+          exit 1
+        fi
+
   code_review:
     needs: [version, build, integration-tests]
     name: Claude code review

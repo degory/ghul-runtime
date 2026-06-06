@@ -94,8 +94,9 @@
       <ILAsmPackagesParameter Condition="'@(ILAsmPackages)'!=''">--ilasm-packages "@(ILAsmPackages)"</ILAsmPackagesParameter>
       <VersionParameter Condition="'$(Version)'!=''">--version "$(Version)"</VersionParameter>
       <TargetFrameworkParameter Condition="'$(TargetFramework)'!=''">--target-framework "$(TargetFramework)"</TargetFrameworkParameter>
+      <DebugParameter Condition="'$(DebugType)' != '' AND '$(DebugType.ToLower())' != 'none' AND '$(DebugSymbols)' != 'false'">--debug</DebugParameter>
       <GhulCompiler Condition="'$(GhulCompiler)'==''">dotnet ghul-compiler</GhulCompiler>
-      <CommandLine>$(VersionParameter) $(ILAsmPackagesParameter) $(TargetFrameworkParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
+      <CommandLine>$(VersionParameter) $(ILAsmPackagesParameter) $(TargetFrameworkParameter) $(DebugParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
     </PropertyGroup>
     
     <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
