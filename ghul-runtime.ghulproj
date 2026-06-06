@@ -5,6 +5,11 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net10.0</TargetFramework>
 
+    <!-- The runtime itself ships without a PDB; the shared props
+         file used to set this for everyone (including consumers) so
+         it had to move private to this ghulproj. -->
+    <DebugType>None</DebugType>
+
     <PackageId>ghul.runtime</PackageId>
     <Title>ghūl runtime library</Title>
     <Authors>degory</Authors>
