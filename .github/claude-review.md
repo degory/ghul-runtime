@@ -107,7 +107,7 @@ At least one section; any can be omitted.
 - **Minor (X.Y.0).** New public APIs, new types, new overloads. Additive only.
 - **Patch (X.Y.Z).** Bug fixes aligning behaviour with the documented/intended spec. IL/codegen improvements with no observable semantic change. Internal refactors, tests, docs, CI.
 
-Mechanism: default is patch. A non-patch release is cut by **raising the `VERSION` file** in the PR (code-owned via `.github/CODEOWNERS` — requires the code owner's approval). `#minor`/`#major` markers in the PR body are no-ops; don't add them. A `workflow_dispatch` `version` input overrides outright (emergencies only).
+Mechanism: default is patch. A non-patch release is cut by **raising the `VERSION` file** in the PR. `#minor`/`#major` markers in the PR body are no-ops; don't add them. A `workflow_dispatch` `version` input overrides outright (emergencies only).
 
 Flag when:
 
