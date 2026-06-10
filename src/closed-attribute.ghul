@@ -1,0 +1,14 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on the .NET class
+    // generated for a ghūl `class` that is closed-to-assembly (i.e.
+    // not marked `open`). Lets the compiler refuse cross-assembly
+    // extension of the class and lets the type system treat the
+    // root's subclass set as enumerable for narrowing. Compiler-
+    // emitted; not user-facing — user code never spells this name.
+    class CLOSED_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
