@@ -21,4 +21,17 @@ namespace Ghul.Internal is
         init() is
         si
     si
+
+    // Marker attribute emitted by the compiler on the variant a
+    // union nominated as its default (the one `?` and `!` test and
+    // unwrap). Source-defined unions carry this either via the
+    // `default` modifier on a variant or via the implicit-default
+    // rule "exactly one variant with own fields". On import, the
+    // reflection layer reads this and sets `default_variant` on
+    // the materialised union symbol so cross-asm `?` / `!` lower
+    // to the same isa/cast as source-defined unions.
+    class DEFAULT_VARIANT_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
 si
