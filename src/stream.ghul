@@ -52,13 +52,13 @@ namespace Ghul.Pipes is
 
             let step = _advance(_state);
 
-            if step.is_done then
+            if let next: STREAM.YIELD[T, S] = step then
+                current = next.value;
+                _state  = next.state;
+                return true;
+            else
                 _done = true;
                 return false;
-            else
-                current = step.value;
-                _state  = step.state;
-                return true;
             fi
         si
 

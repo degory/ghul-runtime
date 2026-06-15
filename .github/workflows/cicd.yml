@@ -21,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     outputs:
-      tag: ${{ steps.package_version.outputs.tag }}
-      package: ${{ steps.package_version.outputs.package }}
+      tag: ${{ steps.version.outputs.tag }}
+      package: ${{ steps.version.outputs.package }}
 
     permissions:
       contents: read
@@ -32,44 +32,23 @@ jobs:
       with:
         fetch-depth: '0'
 
-    # Calculates the next version from the git history. This action only
-    # reads the repository - it never creates tags or releases. The next
-    # version is a major/minor/patch bump of the most recent vX.Y.Z tag;
-    # a #major or #minor marker in a commit subject picks the bump level,
-    # otherwise each commit bumps the patch number.
-    - name: Calculate the semantic version
-      id: semver
-      uses: paulhatch/semantic-version@v6.0.2
+    # Compute the next version: the patch bump of the latest vX.Y.Z tag, unless
+    # the checked-in VERSION file declares a higher minor/major floor (a
+    # #major/#minor marker can no longer trigger a bump). A workflow_dispatch
+    # `version` input overrides outright; pull request builds get a -beta.<run>
+    # prerelease so they never collide with a real release.
+    - name: Determine the version
+      id: version
+      uses: degory/create-version@v1.0.0
       with:
-        tag_prefix: 'v'
-        major_pattern: '#major'
-        minor_pattern: '#minor'
-        version_format: '${major}.${minor}.${patch}'
-
-    - name: Determine the package version
-      id: package_version
-      run: |
-        manual="${{ github.event.inputs.version }}"
-        if [ -n "$manual" ]; then
-          # version supplied via the workflow_dispatch input
-          package="${manual#v}"
-        else
-          package="${{ steps.semver.outputs.version }}"
-          # pull request builds get a prerelease version so they can
-          # never collide with a real release
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            package="${package}-beta.${{ github.run_number }}"
-          fi
-        fi
-        echo "tag=v${package}" >> "$GITHUB_OUTPUT"
-        echo "package=${package}" >> "$GITHUB_OUTPUT"
-        echo "Version: v${package}"
+        version: ${{ github.event.inputs.version }}
+        prerelease: ${{ github.event_name == 'pull_request' && format('beta.{0}', github.run_number) || '' }}
 
   build:
     name: Build package
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version]
@@ -96,7 +75,7 @@ jobs:
     name: Test package
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version,build]
@@ -127,13 +106,84 @@ jobs:
         echo "Output: \"${STDOUT}\""
         test "${STDOUT}" = "Hello ghūl world!"
 
+    - name: Verify default Debug build produces a PDB
+      working-directory: integration-tests
+      run: test -f bin/Debug/net10.0/tests.pdb
+
+    - name: Verify DebugType=none suppresses the PDB
+      working-directory: integration-tests
+      run: |
+        rm -rf bin obj
+        dotnet build -p:DebugType=none
+        if [ -f bin/Debug/net10.0/tests.pdb ]; then
+          echo "DebugType=none unexpectedly produced a PDB" >&2
+          exit 1
+        fi
+
+    - name: Verify DebugSymbols=false suppresses the PDB
+      working-directory: integration-tests
+      run: |
+        rm -rf bin obj
+        dotnet build -p:DebugSymbols=false
+        if [ -f bin/Debug/net10.0/tests.pdb ]; then
+          echo "DebugSymbols=false unexpectedly produced a PDB" >&2
+          exit 1
+        fi
+
+  code_review:
+    needs: [version, build, integration-tests]
+    name: Claude code review
+
+    timeout-minutes: 15
+
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+
+    continue-on-error: true
+
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 1
+
+    - name: Fetch GHUL.md from degory/ghul main
+      run: curl -fsSL https://raw.githubusercontent.com/degory/ghul/main/GHUL.md -o GHUL.md
+
+    - uses: anthropics/claude-code-action@v1
+      with:
+        claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        allowed_bots: "*"
+        prompt: |
+          Review pull request #${{ github.event.pull_request.number }} on ${{ github.repository }}.
+
+          CI has already passed for this commit — build, tests, and the integration test against a freshly packed runtime are settled. Don't second-guess validity.
+
+          Read these files first, in order:
+          1. .github/claude-review.md — how to operate, severity bar, what to flag
+          2. GHUL.md — ghūl language reference, freshly fetched from degory/ghul main (consult as needed while reading the diff)
+
+          The PR branch is already checked out. Useful commands:
+          - `gh pr diff ${{ github.event.pull_request.number }}` — the diff
+          - `gh pr view ${{ github.event.pull_request.number }} --json title,body` — PR title and description
+
+          Post findings only to GitHub per the brief. Do not put review text in chat messages.
+        claude_args: |
+          --model claude-opus-4-8
+          --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr review:*),Read,Glob,Grep"
+
   publish-beta-package:
     # for pull requests, only publish the beta package
     name: Publish beta NuGet package
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version,build,integration-tests]
@@ -160,7 +210,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
     container:
-      image: mcr.microsoft.com/dotnet/sdk:8.0-jammy
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
     needs: [version,build,integration-tests]
