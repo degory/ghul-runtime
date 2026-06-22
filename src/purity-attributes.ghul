@@ -1,0 +1,27 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on a ghūl function
+    // declared `pure` — the function has no caller-observable side
+    // effects. Read on cross-assembly import to set the function's
+    // purity to PURE, which lets the flow-sensitive narrowing
+    // on_call transfer preserve path-presence facts across the
+    // call. Compiler-emitted; not user-facing — user code never
+    // spells this name.
+    class PURE_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+
+    // Marker attribute emitted by the compiler on a ghūl function
+    // declared `mut` (mutates the receiver only). Read on cross-
+    // assembly import to set the function's purity to MUT, which
+    // lets the on_call transfer drop only path-presence facts
+    // rooted at the call's receiver. Includes ghūl constructors
+    // (auto-classified MUT) and property setters (auto-classified
+    // MUT). Compiler-emitted; not user-facing.
+    class MUT_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
