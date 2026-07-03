@@ -64,5 +64,31 @@ namespace Tests is
             Assert.is_true(maybe.has_value);
             Assert.are_equal("Hello, World!", maybe.value);
         si
+
+        Maybe_Int_ReadsValueThroughTrait() is
+            @test()
+
+            let maybe: Maybe[int] = MAYBE[int](42);
+
+            Assert.is_true(maybe.has_value);
+            Assert.are_equal(42, maybe.value);
+        si
+
+        Maybe_NotInt_ReadsAbsenceThroughTrait() is
+            @test()
+
+            let maybe: Maybe[int] = MAYBE[int]();
+
+            Assert.is_false(maybe.has_value);
+        si
+
+        Maybe_String_ReadsValueThroughTrait() is
+            @test()
+
+            let maybe: Maybe[string] = MAYBE[string]("Hello, World!");
+
+            Assert.is_true(maybe.has_value);
+            Assert.are_equal("Hello, World!", maybe.value);
+        si
     si
 si
