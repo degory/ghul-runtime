@@ -15,7 +15,7 @@ namespace Ghul.Pipes is
     // an `isa` check) to `Pipe[T]`. For state-stepping producers,
     // use `stream(initial, advance)` (see `stream.ghul`).
 
-    pipe[T](source: Iterable[T]) -> Pipe[T] is
+    pipe[T](source: Iterable[T]) -> Pipe[T] pure is
         if !source? then
             return null;
         elif isa Pipe[T](source) then
@@ -26,7 +26,7 @@ namespace Ghul.Pipes is
     si
 
     class Factory is
-        from[T](source: Iterable[T]) -> Pipe[T] static is
+        from[T](source: Iterable[T]) -> Pipe[T] pure static is
             if !source? then
                 return null;
             elif isa Pipe[T](source) then
@@ -37,42 +37,52 @@ namespace Ghul.Pipes is
         si
     si
 
+    // Pipe members are declared pure: they store nothing a caller
+    // can see, so flow narrowing keeps its facts across a chain, and
+    // their function-typed parameters only admit store-free values.
+    // The declaration deliberately overlooks internal cursor state -
+    // advancing a shared, single-shot pipe is observable by whoever
+    // holds the same pipe, which is accepted the same way map and
+    // set reads trust the key's equals-and-hash contract. for_each
+    // and the StringBuilder append_to overloads stay undeclared:
+    // actions exist to cause effects, and append_to writes to a
+    // caller-supplied builder.
     trait Pipe[T]: Iterable[T], Iterator[T] is
         iterator: Iterator[T] => self;
 
-        filter(predicate: (T) -> bool) -> Pipe[T] =>
+        filter(predicate: (T) -> bool pure) -> Pipe[T] pure =>
             FilterPipe[T](iterator, predicate);
 
-        map[U](mapper: (T) -> U) -> Pipe[U] =>
+        map[U](mapper: (T) -> U pure) -> Pipe[U] pure =>
             MAP_PIPE[T,U](iterator, mapper);
 
-        flat_map[U](mapper: (T) -> Iterable[U]) -> Pipe[U] =>
+        flat_map[U](mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
             FLAT_MAP_PIPE[T,U](iterator, mapper);
 
-        skip(count: int) -> Pipe[T] =>
+        skip(count: int) -> Pipe[T] pure =>
             SKIP_PIPE[T](iterator, count);
 
-        take(count: int) -> Pipe[T] =>
+        take(count: int) -> Pipe[T] pure =>
             TAKE_PIPE[T](iterator, count);
 
-        cat(right: Iterable[T]) -> Pipe[T] =>
+        cat(right: Iterable[T]) -> Pipe[T] pure =>
             CAT_PIPE[T](iterator, right.iterator);
 
-        index() -> Pipe[INDEXED_VALUE[T]] =>
+        index() -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, 0);
 
-        index(index: int) -> Pipe[INDEXED_VALUE[T]] =>
+        index(index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, index);
 
         // FIXME: can't use => here due to compiler bug
-        zip[U](other: Iterable[U]) -> Pipe[(T,U)] =>
+        zip[U](other: Iterable[U]) -> Pipe[(T,U)] pure =>
             ZIP_PIPE[T,U](iterator, other.iterator);
 
         // FIXME: can't use => here due to compiler bug
-        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut) -> Pipe[TOut] =>
+        zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut pure) -> Pipe[TOut] pure =>
             ZIP_MAP_PIPE[T,U,TOut](iterator, other.iterator, mapper);
 
-        reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning) -> TRunning is
+        reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning pure) -> TRunning pure is
             let running mut = seed;
             for element in self do
                 running = accumulator(running, element);
@@ -81,7 +91,7 @@ namespace Ghul.Pipes is
             return running;
         si
 
-        reduce[TRunning,TOut](seed: TRunning, accumulator: (TRunning,T) -> TRunning, mapper: (TRunning) -> TOut) -> TOut is
+        reduce[TRunning,TOut](seed: TRunning, accumulator: (TRunning,T) -> TRunning pure, mapper: (TRunning) -> TOut pure) -> TOut pure is
             let running mut = seed;
             for element in self do
                 running = accumulator(running, element);
@@ -90,13 +100,13 @@ namespace Ghul.Pipes is
             return mapper(running);
         si
 
-        collect() -> List[T] =>
+        collect() -> List[T] pure =>
             collect_list();
 
-        collect_array() -> T[] =>
+        collect_array() -> T[] pure =>
             collect_list().to_array();
 
-        collect_list() -> LIST[T] is
+        collect_list() -> LIST[T] pure is
             let result = LIST[T]();
 
             for element in self do
@@ -106,7 +116,7 @@ namespace Ghul.Pipes is
             return result;
         si
 
-        count() -> int is
+        count() -> int pure is
             let result mut = 0;
             while move_next() do
                 result = result + 1;
@@ -115,7 +125,7 @@ namespace Ghul.Pipes is
             return result;
         si
 
-        find(predicate: (T) -> bool) -> MAYBE[T] is
+        find(predicate: (T) -> bool pure) -> MAYBE[T] pure is
             while move_next() do
                 let element = current;
 
@@ -127,7 +137,7 @@ namespace Ghul.Pipes is
             return MAYBE[T]();
         si
 
-        find_map[U](mapper: (T) -> MAYBE[U]) -> MAYBE[U] is
+        find_map[U](mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
             while move_next() do
                 let element = current;
                 let maybe_result = mapper(element);
@@ -140,7 +150,7 @@ namespace Ghul.Pipes is
             return MAYBE[U]();
         si        
 
-        find_or_throw(predicate: T -> bool) -> T is
+        find_or_throw(predicate: T -> bool pure) -> T pure is
             while move_next() do
                 let element = current;
 
@@ -152,7 +162,7 @@ namespace Ghul.Pipes is
             throw InvalidOperationException("no matching element found");
         si
 
-        find_map_or_throw[U](mapper: (T) -> MAYBE[U]) -> U is
+        find_map_or_throw[U](mapper: (T) -> MAYBE[U] pure) -> U pure is
             while move_next() do
                 let element = current;
                 let maybe_result = mapper(element);
@@ -165,14 +175,14 @@ namespace Ghul.Pipes is
             throw InvalidOperationException("no matching element found");
         si        
         
-        first() -> MAYBE[T] =>
+        first() -> MAYBE[T] pure =>
             if move_next() then
                 MAYBE(current)
             else
                 MAYBE[T]()
             fi;
 
-        first_map[U](mapper: (T) -> MAYBE[U]) -> MAYBE[U] is
+        first_map[U](mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
             if move_next() then
                 let element = current;
                 let maybe_result = mapper(element);
@@ -185,14 +195,14 @@ namespace Ghul.Pipes is
             return MAYBE[U]();
         si
 
-        first_or_throw() -> T =>
+        first_or_throw() -> T pure =>
             if move_next() then
                 current
             else
                 throw InvalidOperationException("no element found")
             fi;
 
-        first_map_or_throw[U](mapper: (T) -> MAYBE[U]) -> U is
+        first_map_or_throw[U](mapper: (T) -> MAYBE[U] pure) -> U pure is
             if move_next() then
                 let element = current;
                 let maybe_result = mapper(element);
@@ -205,7 +215,7 @@ namespace Ghul.Pipes is
             throw InvalidOperationException("no matching element found");
         si
         
-        only() -> T is
+        only() -> T pure is
             if move_next() then
                 let result = current;
 
@@ -236,7 +246,7 @@ namespace Ghul.Pipes is
             return false;
         si
 
-        any(predicate: (T) -> bool) -> bool is
+        any(predicate: (T) -> bool pure) -> bool pure is
             while move_next() do
                 let element = current;
 
@@ -248,7 +258,7 @@ namespace Ghul.Pipes is
             return false;
         si
 
-        all(predicate: (T) -> bool) -> bool is
+        all(predicate: (T) -> bool pure) -> bool pure is
             while move_next() do
                 let element = current;
 
@@ -266,11 +276,11 @@ namespace Ghul.Pipes is
             od
         si
         
-        reverse() -> Pipe[T] =>
+        reverse() -> Pipe[T] pure =>
             let list = collect_list() in
             LIST_REVERSE_PIPE(list);
         
-        sort() -> Pipe[T] is
+        sort() -> Pipe[T] pure is
             let list = collect_list();
 
             list.sort();
@@ -280,7 +290,7 @@ namespace Ghul.Pipes is
             return pipe(list);
         si
 
-        sort(comparer: IComparer[T]) -> Pipe[T] is
+        sort(comparer: IComparer[T]) -> Pipe[T] pure is
             let list = collect_list();
 
             list.sort(comparer);
@@ -290,7 +300,7 @@ namespace Ghul.Pipes is
             return pipe(list);
         si
 
-        sort(compare: (T, T) -> int) -> Pipe[T] =>
+        sort(compare: (T, T) -> int pure) -> Pipe[T] pure =>
             sort(FUNCTION_COMPARER[T](compare));
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder is
@@ -313,12 +323,12 @@ namespace Ghul.Pipes is
         append_to(into: StringBuilder) -> StringBuilder =>
             append_to(into, ", ");
 
-        join(separator: string) -> string =>
+        join(separator: string) -> string pure =>
             let result = StringBuilder() in
             append_to(result, separator)
                 .to_string();
 
-        join() -> string =>
+        join() -> string pure =>
             join(", ");
 
         to_string() -> string =>
