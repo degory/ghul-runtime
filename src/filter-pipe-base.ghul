@@ -36,7 +36,7 @@ namespace Ghul.Pipes is
 
         should_include() -> bool;
 
-        count() -> int is
+        count() -> int pure is
             let result mut = 0;
 
             while move_next() do
