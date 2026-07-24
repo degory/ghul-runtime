@@ -1,0 +1,1 @@
+render(items: Collections.LIST[string]) -> string => string.join(' ', items);
