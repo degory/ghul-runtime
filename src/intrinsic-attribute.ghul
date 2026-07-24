@@ -1,0 +1,19 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on the .NET method
+    // generated for a ghūl compiler intrinsic — a built-in operator or
+    // operation (e.g. `+` on `int`, `==`, `..`) whose calls the compiler
+    // lowers directly to IL opcodes rather than emitting a real call.
+    // The constructor argument is the intrinsic operation name (e.g.
+    // "arithmetic.add"). Read on cross-assembly import to reconstruct the
+    // method as an intrinsic, so its call sites lower to opcodes exactly
+    // as for a source-declared one. Compiler-emitted; not user-facing.
+    class INTRINSIC_ATTRIBUTE: Attribute is
+        operation: string public;
+
+        init(operation: string) is
+            self.operation = operation;
+        si
+    si
+si
