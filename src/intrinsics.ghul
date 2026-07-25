@@ -1,0 +1,243 @@
+namespace Ghul.Internal is
+    // The compiler's intrinsic operators and magic types. Each carries
+    // `INTRINSIC_ATTRIBUTE`, which is what makes the compiler reconstruct
+    // it as an intrinsic — a call lowers straight to IL opcodes rather
+    // than to a call of the method emitted here.
+    //
+    // They are declared under `Ghul.Internal` but the compiler registers
+    // them in `Ghul`, where the language expects to find them. That
+    // relocation is what lets this assembly declare its own intrinsics
+    // and still be compiled by a compiler that reflects them: the
+    // declarations here and the registrations they produce never occupy
+    // the same namespace, so neither hides the other.
+
+    @INTRINSIC_ATTRIBUTE("type.reference")
+    struct REFERENCE[E] is
+        value: E => throw System.NotImplementedException(), = value is si
+
+        // TODO: 
+        // value: E innate reference.read, = value innate reference.assign;
+    si
+
+    @INTRINSIC_ATTRIBUTE("type.array")
+    trait ARRAY[E]: Collections.List[E] is
+    si
+
+    @INTRINSIC_ATTRIBUTE("type.pointer")
+    struct POINTER[E] is
+        value: E => throw System.NotImplementedException(), = value is si
+
+        // TODO: 
+        // value: E innate pointer.read, = value innate pointer.assign;
+    si
+
+    // Generic equality: bit-compare any two values of the same
+    // statically-known type. Lowered at IL time by the
+    // `compare.value` innate to a single `ceq`, which is correct
+    // for value types (compares bits) AND reference types
+    // (compares references). Subsumes the previous per-primitive
+    // `==(byte, byte) -> bool innate compare.value;` etc. and
+    // also covers types that used to fall to `==(object, object)`
+    // by boxing — notably `bool`, which had no specific
+    // overload and relied on a happenstance code path.
+    @INTRINSIC_ATTRIBUTE("compare.value") ==[T](a: T, b: T) -> bool pure;
+
+    // Retained for null comparisons (`x == null`) where type
+    // inference for the generic can't pin T, and for explicit
+    // cross-type reference comparisons. Operands are `object?` so
+    // the overload accepts a nullable left or right uniformly;
+    // implemented via `compare.reference` (`ceq` IL) which already
+    // handles null on either side (null == null → true, null == ref
+    // → false). Callers that box mixed value/ref operands still get
+    // the right behaviour.
+    @INTRINSIC_ATTRIBUTE("compare.reference") ==(a: object?, b: object?) -> bool pure;
+
+    // Generic order comparison: catches enum operands, which are
+    // integer-backed and so order with the same `clt`/`cgt` the
+    // primitives use. The `struct` kind constraint excludes
+    // reference types from the fallback — they surface as a clean
+    // constraint-violation diagnostic in semantic analysis instead
+    // of unverifiable IL out of `compare.order`. The per-primitive
+    // overloads above still win for the primitive numeric / char
+    // types via specific-over-generic overload scoring.
+    @INTRINSIC_ATTRIBUTE("compare.order") <>[T: struct](a: T, b: T) -> int pure;
+
+    @INTRINSIC_ATTRIBUTE("bool.not") !(a: bool) -> bool pure;
+    @INTRINSIC_ATTRIBUTE("bool.not") ¬(a: bool) -> bool pure;
+
+    @INTRINSIC_ATTRIBUTE("bool.and_then") /\ (a: bool, b: bool) -> bool pure;
+    @INTRINSIC_ATTRIBUTE("bool.or_else") \/ (a: bool, b: bool) -> bool pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: char) -> char pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: char, b: char) -> char pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: char, b: char) -> char pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: char, b: char) -> char pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: char, b: char) -> char pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: char, b: char) -> int pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: byte, b: byte) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: byte, b: byte) -> byte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: byte, b: byte) -> byte pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: ubyte, b: ubyte) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: ubyte, b: ubyte) -> ubyte pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: ubyte, b: ubyte) -> ubyte pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: short, b: short) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: short, b: short) -> short pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: short, b: short) -> short pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: ushort, b: ushort) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: ushort, b: ushort) -> ushort pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: ushort, b: ushort) -> ushort pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: int, b: int) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: int, b: int) -> int pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: uint, b: uint) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: uint, b: uint) -> uint pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: uint, b: uint) -> uint pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: long, b: long) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: long, b: long) -> long pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: long, b: long) -> long pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: ulong, b: ulong) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: ulong, b: ulong) -> ulong pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: ulong, b: ulong) -> ulong pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: word, b: word) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: word, b: word) -> word pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: word, b: word) -> word pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: uword, b: uword) -> int pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: uword, b: uword) -> uword pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: uword, b: uword) -> uword pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: single) -> single pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: single, b: single) -> single pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: single, b: single) -> single pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: single, b: single) -> single pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: single, b: single) -> single pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: single, b: single) -> int pure;
+
+    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: double) -> double pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: double, b: double) -> double pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: double, b: double) -> double pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: double, b: double) -> double pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: double, b: double) -> double pure;
+    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: double, b: double) -> int pure;
+
+    // System.Decimal is a 128-bit value type with no IL arithmetic
+    // or compare opcodes. Each operator below routes to the matching
+    // System.Decimal static method via the decimal-specific innate
+    // handlers in IR.INNATE_OPERATION_GENERATOR.
+    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.neg") -(a: decimal) -> decimal pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.add") +(a: decimal, b: decimal) -> decimal pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.sub") -(a: decimal, b: decimal) -> decimal pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.mul") *(a: decimal, b: decimal) -> decimal pure;
+    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.div") /(a: decimal, b: decimal) -> decimal pure;
+    @INTRINSIC_ATTRIBUTE("compare_decimal.order") <>(a: decimal, b: decimal) -> int pure;
+    @INTRINSIC_ATTRIBUTE("compare_decimal.equality") ==(a: decimal, b: decimal) -> bool pure;
+
+    // Both operands are `string?`: `System.String.op_Equality(string, string)`
+    // (the underlying innate) is null-safe — `null =~ null` is true, `null =~ "x"`
+    // is false. Accepting nullable operands here lets `=~` / `!~` work uniformly
+    // against BCL APIs that legitimately return `string?` (e.g. Environment
+    // variables, `Path.get_directory_name`).
+    @INTRINSIC_ATTRIBUTE("string.equals") =~(a: string?, b: string?) -> bool pure;
+
+    // The range operators return the runtime's own range structs, so they
+    // are declared here rather than beside the rest: the type they name
+    // has to be in scope.
+    @INTRINSIC_ATTRIBUTE("range.exclusive") ..(from: int, to: int) -> INT_RANGE pure;
+    @INTRINSIC_ATTRIBUTE("range.inclusive") ::(from: int, to: int) -> INT_RANGE_INCLUSIVE pure;
+si
