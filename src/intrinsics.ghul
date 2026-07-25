@@ -32,24 +32,19 @@ namespace Ghul.Internal is
     si
 
     // Generic equality: bit-compare any two values of the same
-    // statically-known type. Lowered at IL time by the
-    // `compare.value` innate to a single `ceq`, which is correct
-    // for value types (compares bits) AND reference types
-    // (compares references). Subsumes the previous per-primitive
-    // `==(byte, byte) -> bool innate compare.value;` etc. and
-    // also covers types that used to fall to `==(object, object)`
-    // by boxing — notably `bool`, which had no specific
-    // overload and relied on a happenstance code path.
+    // statically-known type. The `compare.value` innate lowers to a
+    // single `ceq`, correct for value types (compares bits) and
+    // reference types (compares references). Also covers `bool`,
+    // which has no dedicated overload.
     @INTRINSIC_ATTRIBUTE("compare.value") ==[T](a: T, b: T) -> bool pure;
 
-    // Retained for null comparisons (`x == null`) where type
-    // inference for the generic can't pin T, and for explicit
-    // cross-type reference comparisons. Operands are `object?` so
-    // the overload accepts a nullable left or right uniformly;
-    // implemented via `compare.reference` (`ceq` IL) which already
-    // handles null on either side (null == null → true, null == ref
-    // → false). Callers that box mixed value/ref operands still get
-    // the right behaviour.
+    // Handles null comparisons (`x == null`), where inference cannot
+    // pin the generic's T, and explicit cross-type reference
+    // comparisons. Both operands are `object?` so a nullable left or
+    // right is accepted uniformly; `compare.reference` lowers to `ceq`,
+    // which already handles null on either side (null == null is true,
+    // null == ref is false). Mixed value/ref operands box and still
+    // compare correctly.
     @INTRINSIC_ATTRIBUTE("compare.reference") ==(a: object?, b: object?) -> bool pure;
 
     // Generic order comparison: catches enum operands, which are
