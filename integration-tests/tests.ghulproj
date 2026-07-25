@@ -6,6 +6,11 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
     <GhulOptions>--define ghul</GhulOptions>
+
+    <!-- entry() in tests.ghul calls render() in render.ghul; with no
+         namespace, that cross-file reference only resolves when the two
+         files share one global namespace. -->
+    <GhulGlobalNamespace>true</GhulGlobalNamespace>
   </PropertyGroup>
 
   <ItemGroup>
