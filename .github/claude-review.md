@@ -15,35 +15,11 @@ Instructions for the reviewer invoked from the `code_review` job in `.github/wor
 - Read the changed source files in full when context matters — the diff alone often hides whether a contract is upheld.
 - Post findings only to GitHub. Anything you say in chat is invisible.
 
-## What to post, where
+## What to post
 
-**Post exactly one formal review per run.** The event is a binary choice on whether you are raising anything at all:
+The posting mechanism is owned by the review workflow's runtime notes, not this brief: one formal PR review per run, approving when you have nothing to raise and requesting changes with line-anchored inline comments when you do. This section covers only *what* to say.
 
-- **Nothing to raise** — `gh pr review <N> --approve --body "<one-sentence summary>"`. Approval is the merge signal: auto-merge is usually on, and even when it isn't, an approved PR is one button-click from landing. Always post it explicitly rather than staying silent — a skipped review is indistinguishable from a stuck bot. Do not approve while raising reservations of any kind.
-- **One or more findings, any severity** — write a JSON file and POST it:
-
-  ```
-  gh api repos/<OWNER>/<REPO>/pulls/<N>/reviews -X POST --input review.json
-  ```
-
-  ```json
-  {
-    "event": "REQUEST_CHANGES",
-    "body": "<optional cross-cutting summary; can be empty>",
-    "comments": [
-      {"path": "<repo-relative file>", "line": <new-side line>, "body": "<finding>"}
-    ]
-  }
-  ```
-
-  One finding per `comments[]` entry, anchored to the line it concerns. Use `body` only for commentary that genuinely spans the whole diff. `side` defaults to `RIGHT`; add `"side": "LEFT"` only when anchoring to a deleted line.
-
-- **Every `comments[]` entry must anchor to a line that appears in this PR's diff.** The endpoint rejects the whole POST with a 422 if any single entry falls outside the diff hunks, discarding every other finding with it. When a finding concerns code the diff doesn't touch, put it in `body` instead of anchoring it.
-- **Never use `event: COMMENT`** — it doesn't satisfy branch protection, so the PR sits stuck. **Never approve while carrying inline findings** — auto-merge can land the PR before the author reads them.
-- `/tmp` is not writeable; write `review.json` into the working directory.
-- **The approve body is a brief positive summary, nothing more.** One sentence describing what the PR does ("Adds `Pipe.zip`", "Tightens `OPTION` boxing on the cold path"). It is not a place to add caveats, "BTW", "minor nit", or "consider…" observations alongside the approval. If you find yourself wanting to add a qualification or addendum, that qualification *is* a finding — drop the approval and raise it as a `comments[]` entry in a `REQUEST_CHANGES` review.
-- **There is no "non-blocking" verdict.** If a finding is worth saying out loud, it's worth blocking on. If it isn't worth blocking, stay silent. Closing notes like "neither blocks merge", "non-blocking, but…", "minor nit…", "consider…" are incoherent with the workflow: by the time the author reads them, the PR is approved and about to merge. Don't write them.
-- Don't post a separate top-level `gh pr comment` — it isn't a review and doesn't satisfy branch protection.
+- **Don't soft-pedal.** If a finding is worth saying, say it as a finding. If it isn't worth saying, stay silent. Closing notes like "non-blocking, but…", "minor nit (no action)", "consider…" don't fit the workflow: by the time the author reads them, the PR may already have merged. A caveat you would attach to an approval is itself a finding, so raise it and request changes instead.
 
 ## What CI covers, so you don't have to
 
@@ -140,9 +116,3 @@ Flag when:
 - The PR raises `VERSION` but the change doesn't merit the bump.
 
 (Canonical reference: `docs/claude/versioning.md` in the workspace — referenced for context only; not present in this repo.)
-
-## Posting mechanics — reminder
-
-- Exactly one review per run, always. Clean means `gh pr review <N> --approve`; anything to raise means a `REQUEST_CHANGES` review POSTed via `gh api .../pulls/<N>/reviews --input review.json`, findings anchored as `comments[]` entries.
-- Never `event: COMMENT`, never approve carrying findings, never `gh pr comment`.
-- Chat output is invisible. If you didn't post it to GitHub, it didn't happen.
