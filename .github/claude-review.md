@@ -38,6 +38,7 @@ Instructions for the reviewer invoked from the `code_review` job in `.github/wor
 
   One finding per `comments[]` entry, anchored to the line it concerns. Use `body` only for commentary that genuinely spans the whole diff. `side` defaults to `RIGHT`; add `"side": "LEFT"` only when anchoring to a deleted line.
 
+- **Every `comments[]` entry must anchor to a line that appears in this PR's diff.** The endpoint rejects the whole POST with a 422 if any single entry falls outside the diff hunks, discarding every other finding with it. When a finding concerns code the diff doesn't touch, put it in `body` instead of anchoring it.
 - **Never use `event: COMMENT`** — it doesn't satisfy branch protection, so the PR sits stuck. **Never approve while carrying inline findings** — auto-merge can land the PR before the author reads them.
 - `/tmp` is not writeable; write `review.json` into the working directory.
 - **The approve body is a brief positive summary, nothing more.** One sentence describing what the PR does ("Adds `Pipe.zip`", "Tightens `OPTION` boxing on the cold path"). It is not a place to add caveats, "BTW", "minor nit", or "consider…" observations alongside the approval. If you find yourself wanting to add a qualification or addendum, that qualification *is* a finding — drop the approval and raise it as a `comments[]` entry in a `REQUEST_CHANGES` review.
