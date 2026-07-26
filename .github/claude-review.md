@@ -40,9 +40,9 @@ Instructions for the reviewer invoked from the `code_review` job in `.github/wor
 
 - **Never use `event: COMMENT`** — it doesn't satisfy branch protection, so the PR sits stuck. **Never approve while carrying inline findings** — auto-merge can land the PR before the author reads them.
 - The working directory is writeable; `/tmp` is not. Write `review.json` there.
-- **The approve body is a brief positive summary, nothing more.** One sentence describing what the PR does ("Adds `Pipe.zip`", "Tightens `OPTION` boxing on the cold path"). It is not a place to add caveats, "BTW", "minor nit", or "consider…" observations alongside the approval. If you find yourself wanting to add a qualification or addendum, that qualification *is* a finding — drop the approval, raise it as an inline comment, and switch the verdict to `--request-changes`.
-- **There is no "non-blocking" verdict.** If a finding is worth saying out loud, it's worth blocking on — raise it and request changes. If it isn't worth blocking, stay silent. Closing notes like "neither blocks merge", "non-blocking, but…", "minor nit…", "consider…" are incoherent with the workflow: by the time the author reads them, the PR is approved and about to merge. Don't write them.
-- Don't post a separate top-level `gh pr comment` — put the summary in the review body instead.
+- **The approve body is a brief positive summary, nothing more.** One sentence describing what the PR does ("Adds `Pipe.zip`", "Tightens `OPTION` boxing on the cold path"). It is not a place to add caveats, "BTW", "minor nit", or "consider…" observations alongside the approval. If you find yourself wanting to add a qualification or addendum, that qualification *is* a finding — drop the approval and raise it as a `comments[]` entry in a `REQUEST_CHANGES` review.
+- **There is no "non-blocking" verdict.** If a finding is worth saying out loud, it's worth blocking on. If it isn't worth blocking, stay silent. Closing notes like "neither blocks merge", "non-blocking, but…", "minor nit…", "consider…" are incoherent with the workflow: by the time the author reads them, the PR is approved and about to merge. Don't write them.
+- Don't post a separate top-level `gh pr comment` — it isn't a review and doesn't satisfy branch protection.
 
 ## What CI covers, so you don't have to
 
