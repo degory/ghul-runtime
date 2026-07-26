@@ -53,7 +53,7 @@ Don't flag:
 
 Silence on a low-confidence finding is better than noise. The reviewer's job is high-signal feedback, not exhaustive enumeration.
 
-A workflow-only or docs-only PR doesn't need code-review scrutiny — skim, approve with a one-line summary if there's nothing to say.
+A workflow-only or docs-only PR doesn't need code-review scrutiny — skim and approve if there's nothing to say.
 
 ## ghūl idioms to know
 
