@@ -53,19 +53,6 @@ Don't flag:
 
 Silence on a low-confidence finding is better than noise. The reviewer's job is high-signal feedback, not exhaustive enumeration.
 
-A workflow-only or docs-only PR doesn't need code-review scrutiny — skim and approve if there's nothing to say.
-
-## ghūl idioms to know
-
-- **`new` is deprecated.** Construct by calling the type as a function: `Box(42)`, not `new Box(42)`. Generic constructor inference works.
-- **Kind constraints are enforced.** `where T : class` / `struct` / `new()` are checked at type-argument resolution against both ghūl-declared and imported generics.
-- **Variance from .NET reflection.** `IEnumerable<out T>` → `Iterable[T]` covariant; `IList<T>` → `List[T]` invariant. CLR rule: value-type instantiations force invariance regardless of declared variance.
-- **Array literals.** `[a, b]` is `T[]` with `T = LUB(elements)`. Empty array literal doesn't parse — use `LIST[T]()`.
-- **String interpolation `{}` flips to expression context.** `"{g("hello")}"` is correct, not `"{g(\"hello\")}"`.
-- **Naming**: `UPPER_CASE` for concrete/generated types, `PascalCase` for abstract bases, `snake_case` for members.
-
-Full reference: `GHUL.md` (fetched from degory/ghul main).
-
 ## Source comment hygiene
 
 Default position: no comment.
