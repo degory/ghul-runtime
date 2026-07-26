@@ -37,7 +37,8 @@ root is a smoke test against a freshly-packed runtime.
 
 ## Versioning
 
-`Ghul.Runtime` is in v3.x, strict semver throughout — it never had the
+`Ghul.Runtime` is on the 5.x line — check `VERSION` for the current floor rather
+than trusting this sentence. Strict semver throughout; it never had the
 compiler's v2.0.0 accident. For this package, major means removed or renamed
 public API, a changed signature, or a behaviour change in a documented API;
 minor means new public APIs, types or overloads, additive only.
