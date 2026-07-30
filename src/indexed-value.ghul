@@ -3,10 +3,10 @@ namespace Ghul.Pipes is
         `0: int;
         `1: T;
 
-        index: int => `0;
-        value: T => `1;
+        index: int pure => `0;
+        value: T pure => `1;
 
-        init(index: int, value: T) is
+        init(index: int, value: T) pure is
             `0 = index;
             `1 = value;
         si
