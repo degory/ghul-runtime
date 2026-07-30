@@ -1,0 +1,19 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on the synthetic class
+    // that hosts a namespace's global functions, variables and
+    // property accessors. Globals have no type of their own in the
+    // source language, but only a type can be referenced across an
+    // assembly boundary, so they are emitted as static members of a
+    // carrier and lifted back out of it on import.
+    //
+    // A namespace can have several carriers - one per assembly that
+    // contributes globals to it - so the carrier is found by this
+    // attribute rather than by its name, and its name is free to vary.
+    // Compiler-emitted; not user-facing.
+    class GLOBALS_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
