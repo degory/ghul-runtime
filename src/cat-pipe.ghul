@@ -53,7 +53,7 @@ namespace Ghul.Pipes is
             _take_from_left = true;
         si
 
-        to_string() -> string => join(", ");
+        to_string() -> string => self.join(", ");
 
         dispose() is
         si

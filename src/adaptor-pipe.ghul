@@ -28,7 +28,7 @@ namespace Ghul.Pipes is
 
         reset() => _iterator.reset();
 
-        to_string() -> string => join(", ");
+        to_string() -> string => self.join(", ");
 
         dispose() is
         si

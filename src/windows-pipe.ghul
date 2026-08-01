@@ -56,7 +56,7 @@ namespace Ghul.Pipes is
             _done = false;
         si
 
-        to_string() -> string => join(", ");
+        to_string() -> string => self.join(", ");
 
         dispose() is
         si
