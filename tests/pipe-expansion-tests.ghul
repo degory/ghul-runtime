@@ -164,6 +164,22 @@ namespace Tests is
             assert_are_equal(["ccc", "bb", "a"], pipe.sort_by_descending(s => s.length));
         si
 
+        SortBy_CallsKeySelectorExactlyOncePerElement() is
+            @test()
+
+            let calls = LIST[string]();
+            let pipe = Pipes.Factory.from(["ccc", "a", "bb"]);
+
+            let result = pipe.sort_by(s is
+                calls.add(s);
+                return s.length;
+            si);
+
+            result.collect();
+
+            Assert.are_equal(3, calls.count);
+        si
+
         Partition_MixedElements_SplitsIntoMatchingAndNonMatching() is
             @test()
 

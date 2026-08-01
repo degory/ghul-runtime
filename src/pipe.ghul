@@ -436,10 +436,30 @@ namespace Ghul.Pipes is
         si
 
         sort_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
-            sort(KEY_COMPARER[T,K](key_selector, false));
+            _sort_by(key_selector, false);
 
         sort_by_descending[K: System.IComparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
-            sort(KEY_COMPARER[T,K](key_selector, true));
+            _sort_by(key_selector, true);
+
+        // Computes each element's key once (into `keyed`) rather than
+        // re-deriving it on every comparison inside the sort.
+        _sort_by[K: System.IComparable[K]](key_selector: (T) -> K pure, descending: bool) -> Pipe[T] pure is
+            let keyed = LIST[(K,T)]();
+
+            for element in self do
+                keyed.add((key_selector(element), element));
+            od
+
+            keyed.sort(PAIR_KEY_COMPARER[K,T](descending));
+
+            let result = LIST[T]();
+
+            for pair in keyed do
+                result.add(pair.`1);
+            od
+
+            return pipe(result);
+        si
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder is
             let seen_any mut = false;
