@@ -1,0 +1,27 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class DISTINCT_PIPE[T]: FilterPipeBase[T] is
+        _seen: SET[T];
+
+        init(iterator: Iterator[T]) is
+            super.init(iterator);
+            _seen = SET[T]();
+        si
+
+        should_include() -> bool is
+            if _seen.contains(current) then
+                return false;
+            fi
+
+            _seen.add(current);
+
+            return true;
+        si
+
+        reset() is
+            super.reset();
+            _seen.clear();
+        si
+    si
+si

@@ -33,8 +33,43 @@ namespace Ghul.Pipes is
                 return cast Pipe[T](source);
             else
                 return ADAPTOR_PIPE[T](source);
-            fi    
+            fi
         si
+    si
+
+    // T can't carry a bound inside Pipe[T] itself, so min/max are free
+    // functions rather than trait members - min_by/max_by don't have
+    // that problem, since the key type is a fresh per-call parameter.
+    min[T: System.IComparable[T]](values: Pipe[T]) -> MAYBE[T] pure is
+        if values.move_next() then
+            let result mut = values.current;
+
+            while values.move_next() do
+                if values.current.compare_to(result) < 0 then
+                    result = values.current;
+                fi
+            od
+
+            return MAYBE(result);
+        fi
+
+        return MAYBE[T]();
+    si
+
+    max[T: System.IComparable[T]](values: Pipe[T]) -> MAYBE[T] pure is
+        if values.move_next() then
+            let result mut = values.current;
+
+            while values.move_next() do
+                if values.current.compare_to(result) > 0 then
+                    result = values.current;
+                fi
+            od
+
+            return MAYBE(result);
+        fi
+
+        return MAYBE[T]();
     si
 
     // Pipe members are declared pure: they store nothing a caller
@@ -65,14 +100,41 @@ namespace Ghul.Pipes is
         take(count: int) -> Pipe[T] pure =>
             TAKE_PIPE[T](iterator, count);
 
+        skip_while(predicate: (T) -> bool pure) -> Pipe[T] pure =>
+            SKIP_WHILE_PIPE[T](iterator, predicate);
+
+        take_while(predicate: (T) -> bool pure) -> Pipe[T] pure =>
+            TAKE_WHILE_PIPE[T](iterator, predicate);
+
+        distinct() -> Pipe[T] pure =>
+            DISTINCT_PIPE[T](iterator);
+
+        peek(action: T -> void) -> Pipe[T] =>
+            PEEK_PIPE[T](iterator, action);
+
+        inspect(action: T -> void) -> Pipe[T] =>
+            peek(action);
+
         cat(right: Iterable[T]) -> Pipe[T] pure =>
             CAT_PIPE[T](iterator, right.iterator);
+
+        append(value: T) -> Pipe[T] pure =>
+            cat([value]);
+
+        prepend(value: T) -> Pipe[T] pure =>
+            pipe([value]).cat(self);
 
         index() -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, 0);
 
         index(index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, index);
+
+        enumerate() -> Pipe[INDEXED_VALUE[T]] pure =>
+            index();
+
+        enumerate(start_index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
+            index(start_index);
 
         // FIXME: can't use => here due to compiler bug
         zip[U](other: Iterable[U]) -> Pipe[(T,U)] pure =>
@@ -114,6 +176,81 @@ namespace Ghul.Pipes is
             od
 
             return result;
+        si
+
+        collect_set() -> SET[T] pure is
+            let result = SET[T]();
+
+            for element in self do
+                result.add(element);
+            od
+
+            return result;
+        si
+
+        collect_map[K,V](key_selector: (T) -> K pure, value_selector: (T) -> V pure) -> MAP[K,V] pure is
+            let result = MAP[K,V]();
+
+            for element in self do
+                result.add(key_selector(element), value_selector(element));
+            od
+
+            return result;
+        si
+
+        partition(predicate: (T) -> bool pure) -> (LIST[T], LIST[T]) pure is
+            let matching = LIST[T]();
+            let non_matching = LIST[T]();
+
+            for element in self do
+                if predicate(element) then
+                    matching.add(element);
+                else
+                    non_matching.add(element);
+                fi
+            od
+
+            return (matching, non_matching);
+        si
+
+        min_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure is
+            if move_next() then
+                let result mut = current;
+                let result_key mut = key_selector(result);
+
+                while move_next() do
+                    let candidate_key = key_selector(current);
+
+                    if candidate_key.compare_to(result_key) < 0 then
+                        result = current;
+                        result_key = candidate_key;
+                    fi
+                od
+
+                return MAYBE(result);
+            fi
+
+            return MAYBE[T]();
+        si
+
+        max_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure is
+            if move_next() then
+                let result mut = current;
+                let result_key mut = key_selector(result);
+
+                while move_next() do
+                    let candidate_key = key_selector(current);
+
+                    if candidate_key.compare_to(result_key) > 0 then
+                        result = current;
+                        result_key = candidate_key;
+                    fi
+                od
+
+                return MAYBE(result);
+            fi
+
+            return MAYBE[T]();
         si
 
         count() -> int pure is
@@ -302,6 +439,22 @@ namespace Ghul.Pipes is
 
         sort(compare: (T, T) -> int pure) -> Pipe[T] pure =>
             sort(FUNCTION_COMPARER[T](compare));
+
+        sort_descending() -> Pipe[T] pure is
+            let list = collect_list();
+
+            list.sort();
+
+            reset();
+
+            return LIST_REVERSE_PIPE(list);
+        si
+
+        sort_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
+            sort(KEY_COMPARER[T,K](key_selector, false));
+
+        sort_by_descending[K: System.IComparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
+            sort(KEY_COMPARER[T,K](key_selector, true));
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder is
             let seen_any mut = false;

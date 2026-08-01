@@ -1,0 +1,23 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class KEY_COMPARER[T,K: System.IComparable[K]]: IComparer[T] is
+        _key_selector: (T) -> K;
+        _descending: bool;
+
+        init(key_selector: (T) -> K, descending: bool) is
+            _key_selector = key_selector;
+            _descending = descending;
+        si
+
+        compare(x: T, y: T) -> int is
+            let result = _key_selector(x).compare_to(_key_selector(y));
+
+            if _descending then
+                return -result;
+            fi
+
+            return result;
+        si
+    si
+si
