@@ -112,9 +112,6 @@ namespace Ghul.Pipes is
         peek(action: T -> void) -> Pipe[T] =>
             PEEK_PIPE[T](iterator, action);
 
-        inspect(action: T -> void) -> Pipe[T] =>
-            peek(action);
-
         cat(right: Iterable[T]) -> Pipe[T] pure =>
             CAT_PIPE[T](iterator, right.iterator);
 
@@ -129,12 +126,6 @@ namespace Ghul.Pipes is
 
         index(index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, index);
-
-        enumerate() -> Pipe[INDEXED_VALUE[T]] pure =>
-            index();
-
-        enumerate(start_index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
-            index(start_index);
 
         // FIXME: can't use => here due to compiler bug
         zip[U](other: Iterable[U]) -> Pipe[(T,U)] pure =>

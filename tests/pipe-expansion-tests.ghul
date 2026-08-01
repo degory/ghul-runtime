@@ -92,22 +92,6 @@ namespace Tests is
             assert_are_equal([1, 2, 3, 4], pipe.prepend(1));
         si
 
-        Enumerate_NoArguments_PairsEachElementWithItsZeroBasedIndex() is
-            @test()
-
-            let pipe = Pipes.Factory.from(["a", "b", "c"]);
-
-            assert_are_equal([iv(0, "a"), iv(1, "b"), iv(2, "c")], pipe.enumerate());
-        si
-
-        Enumerate_WithStartIndex_PairsEachElementWithItsOffsetIndex() is
-            @test()
-
-            let pipe = Pipes.Factory.from(["a", "b", "c"]);
-
-            assert_are_equal([iv(5, "a"), iv(6, "b"), iv(7, "c")], pipe.enumerate(5));
-        si
-
         Min_NonEmptySequence_ReturnsSmallestElement() is
             @test()
 
