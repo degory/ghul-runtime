@@ -116,7 +116,7 @@ namespace Ghul.Pipes is
         distinct() -> Pipe[T] pure =>
             Ghul.Pipes.distinct(self);
 
-        peek(action: T -> void) -> Pipe[T] =>
+        peek(action: T -> void) -> Pipe[T] pure =>
             Ghul.Pipes.peek(self, action);
 
         chunk(size: int) -> Pipe[LIST[T]] pure =>
