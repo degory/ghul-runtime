@@ -1,0 +1,64 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class WINDOWS_PIPE[T]: Pipe[LIST[T]] is
+        iterator: Iterator[LIST[T]] => self;
+
+        current: LIST[T];
+
+        _iterator: Iterator[T];
+
+        _size: int;
+
+        _buffer: LIST[T];
+
+        // The wrapped iterator resets itself the moment move_next()
+        // returns false, so once it has signalled exhaustion this pipe
+        // must remember that on its own rather than asking again - the
+        // next call would otherwise see a freshly-reset iterator and
+        // start pulling from the beginning again.
+        _done: bool;
+
+        init(iterator: Iterator[T], size: int) is
+            assert size > 0 else "window size must be positive";
+
+            _iterator = iterator;
+            _size = size;
+            _buffer = LIST[T]();
+            _done = false;
+        si
+
+        move_next() -> bool is
+            if _done then
+                return false;
+            fi
+
+            while _buffer.count < _size /\ _iterator.move_next() do
+                _buffer.add(_iterator.current);
+            od
+
+            if _buffer.count < _size then
+                _done = true;
+
+                return false;
+            fi
+
+            current = LIST[T](_buffer);
+
+            _buffer.remove_at(0);
+
+            return true;
+        si
+
+        reset() is
+            _iterator.reset();
+            _buffer = LIST[T]();
+            _done = false;
+        si
+
+        to_string() -> string => join(", ");
+
+        dispose() is
+        si
+    si
+si

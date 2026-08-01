@@ -112,8 +112,23 @@ namespace Ghul.Pipes is
         peek(action: T -> void) -> Pipe[T] =>
             PEEK_PIPE[T](iterator, action);
 
+        chunk(size: int) -> Pipe[LIST[T]] pure =>
+            CHUNK_PIPE[T](iterator, size);
+
+        windows(size: int) -> Pipe[LIST[T]] pure =>
+            WINDOWS_PIPE[T](iterator, size);
+
         cat(right: Iterable[T]) -> Pipe[T] pure =>
             CAT_PIPE[T](iterator, right.iterator);
+
+        union_with(right: Iterable[T]) -> Pipe[T] pure =>
+            cat(right).distinct();
+
+        intersect_with(right: Iterable[T]) -> Pipe[T] pure =>
+            INTERSECT_PIPE[T](iterator, right);
+
+        except(right: Iterable[T]) -> Pipe[T] pure =>
+            EXCEPT_PIPE[T](iterator, right);
 
         index() -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, 0);
@@ -196,6 +211,24 @@ namespace Ghul.Pipes is
             od
 
             return (matching, non_matching);
+        si
+
+        group_by[K](key_selector: (T) -> K pure) -> MAP[K, LIST[T]] pure is
+            let result = MAP[K, LIST[T]]();
+
+            for element in self do
+                let key = key_selector(element);
+                let group: LIST[T] mut;
+
+                if !result.try_get_value(key, group ref) then
+                    group = LIST[T]();
+                    result.add(key, group);
+                fi
+
+                group.add(element);
+            od
+
+            return result;
         si
 
         min_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure is

@@ -1,0 +1,106 @@
+namespace Tests is
+
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+
+    class PipeGroupingAndSetOperationsShould is
+        @test()
+
+        init() is
+        si
+
+        Chunk_SizeDividesEvenly_ReturnsEqualSizedChunks() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6]);
+
+            let chunks = pipe.chunk(2).collect_list();
+
+            Assert.are_equal(3, chunks.count);
+            CollectionAssert.are_equal(LIST[int]([1, 2]), chunks[0]);
+            CollectionAssert.are_equal(LIST[int]([3, 4]), chunks[1]);
+            CollectionAssert.are_equal(LIST[int]([5, 6]), chunks[2]);
+        si
+
+        Chunk_SizeDoesNotDivideEvenly_ReturnsShorterFinalChunk() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5]);
+
+            let chunks = pipe.chunk(2).collect_list();
+
+            Assert.are_equal(3, chunks.count);
+            CollectionAssert.are_equal(LIST[int]([1, 2]), chunks[0]);
+            CollectionAssert.are_equal(LIST[int]([3, 4]), chunks[1]);
+            CollectionAssert.are_equal(LIST[int]([5]), chunks[2]);
+        si
+
+        Chunk_EmptySequence_ReturnsNoChunks() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int](empty`[int]());
+
+            Assert.are_equal(0, pipe.chunk(3).collect_list().count);
+        si
+
+        Windows_MoreElementsThanSize_ReturnsEachSlidingWindow() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4]);
+
+            let windows = pipe.windows(2).collect_list();
+
+            Assert.are_equal(3, windows.count);
+            CollectionAssert.are_equal(LIST[int]([1, 2]), windows[0]);
+            CollectionAssert.are_equal(LIST[int]([2, 3]), windows[1]);
+            CollectionAssert.are_equal(LIST[int]([3, 4]), windows[2]);
+        si
+
+        Windows_FewerElementsThanSize_ReturnsNoWindows() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2]);
+
+            Assert.are_equal(0, pipe.windows(3).collect_list().count);
+        si
+
+        GroupBy_Elements_BucketsByKey() is
+            @test()
+
+            let pipe = Pipes.Factory.from(["a", "bb", "ccc", "dd", "e"]);
+
+            let groups = pipe.group_by(s => s.length);
+
+            CollectionAssert.are_equal(LIST[string](["a", "e"]), groups[1]);
+            CollectionAssert.are_equal(LIST[string](["bb", "dd"]), groups[2]);
+            CollectionAssert.are_equal(LIST[string](["ccc"]), groups[3]);
+        si
+
+        UnionWith_OverlappingSequences_ReturnsDistinctElementsFromBoth() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3]);
+
+            assert_are_equal([1, 2, 3, 4], pipe.union_with([3, 4]));
+        si
+
+        IntersectWith_OverlappingSequences_ReturnsDistinctCommonElements() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3]);
+
+            assert_are_equal([2, 3], pipe.intersect_with([2, 3, 4]));
+        si
+
+        Except_OverlappingSequences_ReturnsDistinctElementsNotInOther() is
+            @test()
+
+            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3]);
+
+            assert_are_equal([1], pipe.except([2, 3, 4]));
+        si
+    si
+si

@@ -1,0 +1,62 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class CHUNK_PIPE[T]: Pipe[LIST[T]] is
+        iterator: Iterator[LIST[T]] => self;
+
+        current: LIST[T];
+
+        _iterator: Iterator[T];
+
+        _size: int;
+
+        // The wrapped iterator resets itself the moment move_next()
+        // returns false, so once it has signalled exhaustion this pipe
+        // must remember that on its own rather than asking again - the
+        // next call would otherwise see a freshly-reset iterator and
+        // start pulling from the beginning again.
+        _done: bool;
+
+        init(iterator: Iterator[T], size: int) is
+            assert size > 0 else "chunk size must be positive";
+
+            _iterator = iterator;
+            _size = size;
+            _done = false;
+        si
+
+        move_next() -> bool is
+            if _done then
+                return false;
+            fi
+
+            let chunk = LIST[T]();
+
+            while chunk.count < _size /\ _iterator.move_next() do
+                chunk.add(_iterator.current);
+            od
+
+            if chunk.count < _size then
+                _done = true;
+            fi
+
+            if chunk.count == 0 then
+                return false;
+            fi
+
+            current = chunk;
+
+            return true;
+        si
+
+        reset() is
+            _iterator.reset();
+            _done = false;
+        si
+
+        to_string() -> string => join(", ");
+
+        dispose() is
+        si
+    si
+si
