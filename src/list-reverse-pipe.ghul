@@ -32,7 +32,7 @@ namespace Ghul.Pipes is
 
         count() -> int => _list.count;
 
-        to_string() -> string => join(", ");
+        to_string() -> string => self.join(", ");
 
         dispose() is
         si
