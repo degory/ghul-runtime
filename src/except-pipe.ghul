@@ -1,0 +1,29 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    class EXCEPT_PIPE[T]: FilterPipeBase[T] is
+        _excluded: SET[T];
+        _seen: SET[T];
+
+        init(iterator: Iterator[T], excluded: Iterable[T]) is
+            super.init(iterator);
+            _excluded = SET[T](excluded);
+            _seen = SET[T]();
+        si
+
+        should_include() -> bool is
+            if _excluded.contains(current) \/ _seen.contains(current) then
+                return false;
+            fi
+
+            _seen.add(current);
+
+            return true;
+        si
+
+        reset() is
+            super.reset();
+            _seen.clear();
+        si
+    si
+si
