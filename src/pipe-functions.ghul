@@ -13,66 +13,68 @@ namespace Ghul.Pipes is
     //
     // Source parameter is Iterable[T], the loosest sufficient type, so a
     // chain can start directly from a raw array/list with no pipe()/| wrap.
-    // A stage function's return type is the concrete adaptor class (still
-    // assignable to Pipe[U] and to Iterable[U]) so the concrete type stays
-    // visible in the chain. Pipe[T]'s trait methods forward to these; both
-    // call styles stay fully supported side by side.
+    // A stage function's return type is the Pipe[U] trait rather than the
+    // concrete adaptor class it builds, so the adaptor classes stay an
+    // implementation detail invisible to a chain's static type - matching
+    // the trait method equivalents this forwards to. Pipe[T]'s trait
+    // methods forward to these; both call styles stay fully supported side
+    // by side.
 
-    filter[T](source: Iterable[T], predicate: (T) -> bool pure) -> FilterPipe[T] pure =>
+    filter[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
         FilterPipe[T](source.iterator, predicate);
 
-    map[T,U](source: Iterable[T], mapper: (T) -> U pure) -> MAP_PIPE[T,U] pure =>
+    map[T,U](source: Iterable[T], mapper: (T) -> U pure) -> Pipe[U] pure =>
         MAP_PIPE[T,U](source.iterator, mapper);
 
-    flat_map[T,U](source: Iterable[T], mapper: (T) -> Iterable[U] pure) -> FLAT_MAP_PIPE[T,U] pure =>
+    flat_map[T,U](source: Iterable[T], mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
         FLAT_MAP_PIPE[T,U](source.iterator, mapper);
 
-    skip[T](source: Iterable[T], count: int) -> SKIP_PIPE[T] pure =>
+    skip[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
         SKIP_PIPE[T](source.iterator, count);
 
-    take[T](source: Iterable[T], count: int) -> TAKE_PIPE[T] pure =>
+    take[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
         TAKE_PIPE[T](source.iterator, count);
 
-    skip_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> SKIP_WHILE_PIPE[T] pure =>
+    skip_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
         SKIP_WHILE_PIPE[T](source.iterator, predicate);
 
-    take_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> TAKE_WHILE_PIPE[T] pure =>
+    take_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
         TAKE_WHILE_PIPE[T](source.iterator, predicate);
 
-    distinct[T](source: Iterable[T]) -> DISTINCT_PIPE[T] pure =>
+    distinct[T](source: Iterable[T]) -> Pipe[T] pure =>
         DISTINCT_PIPE[T](source.iterator);
 
-    peek[T](source: Iterable[T], action: T -> void) -> PEEK_PIPE[T] pure =>
+    peek[T](source: Iterable[T], action: T -> void) -> Pipe[T] pure =>
         PEEK_PIPE[T](source.iterator, action);
 
-    chunk[T](source: Iterable[T], size: int) -> CHUNK_PIPE[T] pure =>
+    chunk[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
         CHUNK_PIPE[T](source.iterator, size);
 
-    windows[T](source: Iterable[T], size: int) -> WINDOWS_PIPE[T] pure =>
+    windows[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
         WINDOWS_PIPE[T](source.iterator, size);
 
-    cat[T](source: Iterable[T], right: Iterable[T]) -> CAT_PIPE[T] pure =>
+    cat[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
         CAT_PIPE[T](source.iterator, right.iterator);
 
     union_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
         distinct(cat(source, right));
 
-    intersect_with[T](source: Iterable[T], right: Iterable[T]) -> INTERSECT_PIPE[T] pure =>
+    intersect_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
         INTERSECT_PIPE[T](source.iterator, right);
 
-    except[T](source: Iterable[T], right: Iterable[T]) -> EXCEPT_PIPE[T] pure =>
+    except[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
         EXCEPT_PIPE[T](source.iterator, right);
 
-    index[T](source: Iterable[T]) -> INDEX_PIPE[T] pure =>
+    index[T](source: Iterable[T]) -> Pipe[INDEXED_VALUE[T]] pure =>
         INDEX_PIPE[T](source.iterator, 0);
 
-    index[T](source: Iterable[T], index: int) -> INDEX_PIPE[T] pure =>
+    index[T](source: Iterable[T], index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
         INDEX_PIPE[T](source.iterator, index);
 
-    zip[T,U](source: Iterable[T], other: Iterable[U]) -> ZIP_PIPE[T,U] pure =>
+    zip[T,U](source: Iterable[T], other: Iterable[U]) -> Pipe[(T,U)] pure =>
         ZIP_PIPE[T,U](source.iterator, other.iterator);
 
-    zip[T,U,TOut](source: Iterable[T], other: Iterable[U], mapper: (T,U) -> TOut pure) -> ZIP_MAP_PIPE[T,U,TOut] pure =>
+    zip[T,U,TOut](source: Iterable[T], other: Iterable[U], mapper: (T,U) -> TOut pure) -> Pipe[TOut] pure =>
         ZIP_MAP_PIPE[T,U,TOut](source.iterator, other.iterator, mapper);
 
     reduce[T,TRunning](source: Iterable[T], seed: TRunning, accumulator: (TRunning,T) -> TRunning pure) -> TRunning pure is
@@ -381,7 +383,7 @@ namespace Ghul.Pipes is
         od
     si
 
-    reverse[T](source: Iterable[T]) -> LIST_REVERSE_PIPE[T] pure =>
+    reverse[T](source: Iterable[T]) -> Pipe[T] pure =>
         let list = collect_list(source) in
         LIST_REVERSE_PIPE(list);
 
@@ -406,7 +408,7 @@ namespace Ghul.Pipes is
     sort[T](source: Iterable[T], compare: (T, T) -> int pure) -> Pipe[T] pure =>
         sort(source, FUNCTION_COMPARER[T](compare));
 
-    sort_descending[T](source: Iterable[T]) -> LIST_REVERSE_PIPE[T] pure is
+    sort_descending[T](source: Iterable[T]) -> Pipe[T] pure is
         let list = collect_list(source);
 
         list.sort();
