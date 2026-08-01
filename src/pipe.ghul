@@ -115,12 +115,6 @@ namespace Ghul.Pipes is
         cat(right: Iterable[T]) -> Pipe[T] pure =>
             CAT_PIPE[T](iterator, right.iterator);
 
-        append(value: T) -> Pipe[T] pure =>
-            cat([value]);
-
-        prepend(value: T) -> Pipe[T] pure =>
-            pipe([value]).cat(self);
-
         index() -> Pipe[INDEXED_VALUE[T]] pure =>
             INDEX_PIPE[T](iterator, 0);
 

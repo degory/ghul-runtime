@@ -76,22 +76,6 @@ namespace Tests is
             CollectionAssert.are_equal(LIST[int]([1, 2, 3]), seen);
         si
 
-        Append_SingleValue_AddsItAtTheEnd() is
-            @test()
-
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3]);
-
-            assert_are_equal([1, 2, 3, 4], pipe.append(4));
-        si
-
-        Prepend_SingleValue_AddsItAtTheStart() is
-            @test()
-
-            let pipe = Pipes.Factory.from`[int]([2, 3, 4]);
-
-            assert_are_equal([1, 2, 3, 4], pipe.prepend(1));
-        si
-
         Min_NonEmptySequence_ReturnsSmallestElement() is
             @test()
 
