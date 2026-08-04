@@ -375,7 +375,7 @@ namespace Ghul.Pipes is
         return true;
     si
 
-    for_each[T](source: Iterable[T], action: T -> void) is
+    each[T](source: Iterable[T], action: T -> void) is
         let it = source.iterator;
 
         while it.move_next() do

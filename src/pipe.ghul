@@ -82,7 +82,7 @@ namespace Ghul.Pipes is
     // The declaration deliberately overlooks internal cursor state -
     // advancing a shared, single-shot pipe is observable by whoever
     // holds the same pipe, which is accepted the same way map and
-    // set reads trust the key's equals-and-hash contract. for_each
+    // set reads trust the key's equals-and-hash contract. each
     // and the StringBuilder append_to overloads stay undeclared:
     // actions exist to cause effects, and append_to writes to a
     // caller-supplied builder.
@@ -235,8 +235,8 @@ namespace Ghul.Pipes is
         all(predicate: (T) -> bool pure) -> bool pure =>
             Ghul.Pipes.all(self, predicate);
 
-        for_each(action: T -> void) =>
-            Ghul.Pipes.for_each(self, action);
+        each(action: T -> void) =>
+            Ghul.Pipes.each(self, action);
 
         reverse() -> Pipe[T] pure =>
             Ghul.Pipes.reverse(self);

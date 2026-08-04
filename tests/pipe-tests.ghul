@@ -523,28 +523,28 @@ namespace Tests is
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
-        ForEach_EmptySequence_DoesNotCallAction() is
+        Each_EmptySequence_DoesNotCallAction() is
             @test()
             
             let pipe = Pipes.Factory.from(empty[int]());
 
             let action_was_called = BOX(false);
             
-            pipe.for_each(element is
+            pipe.each(element is
                 action_was_called.value = true;
             si);
 
             Assert.is_false(action_was_called.value);
         si
 
-        ForEach_NonEmptySequence_CallsActionOnceInOrderForEveryElement() is
+        Each_NonEmptySequence_CallsActionOnceInOrderForEveryElement() is
             @test()
 
             let pipe = Pipes.Factory.from([1, 2, 3, 4, 5, 6]);
 
             let result = LIST[int]();
 
-            pipe.for_each(element is
+            pipe.each(element is
                 result.add(element)
             si);
 
