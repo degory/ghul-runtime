@@ -166,7 +166,7 @@ namespace Ghul.Pipes is
         return result;
     si
 
-    min_by[T,K: System.IComparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
+    min_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
         let it = source.iterator;
 
         if it.move_next() then
@@ -188,7 +188,7 @@ namespace Ghul.Pipes is
         return MAYBE[T]();
     si
 
-    max_by[T,K: System.IComparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
+    max_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
         let it = source.iterator;
 
         if it.move_next() then
@@ -417,15 +417,15 @@ namespace Ghul.Pipes is
         return LIST_REVERSE_PIPE(list);
     si
 
-    sort_by[T,K: System.IComparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
+    sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
         _sort_by(source, key_selector, false);
 
-    sort_by_descending[T,K: System.IComparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
+    sort_by_descending[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
         _sort_by(source, key_selector, true);
 
     // Computes each element's key once (into `keyed`) rather than
     // re-deriving it on every comparison inside the sort.
-    _sort_by[T,K: System.IComparable[K]](source: Iterable[T], key_selector: (T) -> K pure, descending: bool) -> Pipe[T] pure is
+    _sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure, descending: bool) -> Pipe[T] pure is
         let keyed = LIST[(K,T)]();
 
         for element in source do

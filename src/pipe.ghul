@@ -40,7 +40,7 @@ namespace Ghul.Pipes is
     // T can't carry a bound inside Pipe[T] itself, so min/max are free
     // functions rather than trait members - min_by/max_by don't have
     // that problem, since the key type is a fresh per-call parameter.
-    min[T: System.IComparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
+    min[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
         let it = values.iterator;
 
         if it.move_next() then
@@ -58,7 +58,7 @@ namespace Ghul.Pipes is
         return MAYBE[T]();
     si
 
-    max[T: System.IComparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
+    max[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
         let it = values.iterator;
 
         if it.move_next() then
@@ -178,10 +178,10 @@ namespace Ghul.Pipes is
         group_by[K](key_selector: (T) -> K pure) -> MAP[K, LIST[T]] pure =>
             Ghul.Pipes.group_by(self, key_selector);
 
-        min_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure =>
+        min_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure =>
             Ghul.Pipes.min_by(self, key_selector);
 
-        max_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure =>
+        max_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure =>
             Ghul.Pipes.max_by(self, key_selector);
 
         count() -> int pure =>
@@ -253,10 +253,10 @@ namespace Ghul.Pipes is
         sort_descending() -> Pipe[T] pure =>
             Ghul.Pipes.sort_descending(self);
 
-        sort_by[K: System.IComparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
+        sort_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
             Ghul.Pipes.sort_by(self, key_selector);
 
-        sort_by_descending[K: System.IComparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
+        sort_by_descending[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
             Ghul.Pipes.sort_by_descending(self, key_selector);
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder =>
