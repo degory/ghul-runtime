@@ -5,7 +5,7 @@ namespace Ghul.Pipes is
     // every comparison, so sort_by/sort_by_descending pay for the key
     // selector once per element (O(n)) rather than once per comparison
     // (O(n log n)).
-    class PAIR_KEY_COMPARER[K: System.IComparable[K],T]: IComparer[(K,T)] is
+    class PAIR_KEY_COMPARER[K: Ghul.Comparable[K],T]: IComparer[(K,T)] is
         _descending: bool;
 
         init(descending: bool) is
