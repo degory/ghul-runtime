@@ -13,7 +13,7 @@ namespace Ghul.Pipes is
         si
 
         compare(x: (K,T), y: (K,T)) -> int is
-            let result = x.`0.compare_to(y.`0);
+            let result = x.`0 <> y.`0;
 
             if _descending then
                 return -result;
