@@ -176,7 +176,7 @@ namespace Ghul.Pipes is
             while it.move_next() do
                 let candidate_key = key_selector(it.current);
 
-                if candidate_key.compare_to(result_key) < 0 then
+                if candidate_key < result_key then
                     result = it.current;
                     result_key = candidate_key;
                 fi
@@ -198,7 +198,7 @@ namespace Ghul.Pipes is
             while it.move_next() do
                 let candidate_key = key_selector(it.current);
 
-                if candidate_key.compare_to(result_key) > 0 then
+                if candidate_key > result_key then
                     result = it.current;
                     result_key = candidate_key;
                 fi

@@ -47,7 +47,7 @@ namespace Ghul.Pipes is
             let result mut = it.current;
 
             while it.move_next() do
-                if it.current.compare_to(result) < 0 then
+                if it.current < result then
                     result = it.current;
                 fi
             od
@@ -65,7 +65,7 @@ namespace Ghul.Pipes is
             let result mut = it.current;
 
             while it.move_next() do
-                if it.current.compare_to(result) > 0 then
+                if it.current > result then
                     result = it.current;
                 fi
             od
