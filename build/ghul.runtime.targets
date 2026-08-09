@@ -20,6 +20,20 @@
   </Target>  
 
   <Target Name="CoreCompile">
+    <!-- The SDK defaults OutputType to Library, so it is never empty here;
+         an explicitly emptied one is taken as the same default. -->
+    <PropertyGroup>
+      <_GhulOutputKind>$([MSBuild]::ValueOrDefault('$(OutputType)', 'library').ToLower())</_GhulOutputKind>
+    </PropertyGroup>
+
+    <Error Code="GHUL1003"
+           Condition="'$(GhulLibrary)' != '' AND '$(GhulLibrary)' != 'true' AND '$(GhulLibrary)' != 'false'"
+           Text="GhulLibrary must be true or false, but is '$(GhulLibrary)'." />
+
+    <Error Code="GHUL1002"
+           Condition="'$(GhulLibrary)' == '' AND '$(_GhulOutputKind)' != 'library' AND '$(_GhulOutputKind)' != 'exe' AND '$(_GhulOutputKind)' != 'winexe'"
+           Text="OutputType '$(OutputType)' is not supported by the ghūl compiler. Use Library, Exe or WinExe, or set GhulLibrary to true or false to choose directly." />
+
     <ItemGroup>
       <!-- runtime.win-x64.Microsoft.NETCore.ILAsm -->
       <ILAsmPackages Include="$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)'!=''" />
@@ -97,7 +111,8 @@
       <DebugParameter Condition="'$(DebugType)' != '' AND '$(DebugType.ToLower())' != 'none' AND '$(DebugSymbols)' != 'false'">--debug</DebugParameter>
       <GlobalNamespaceParameter Condition="'$(GhulGlobalNamespace)' != '' AND '$(GhulGlobalNamespace.ToLower())' == 'true'">--global-namespace</GlobalNamespaceParameter>
       <GhulCompiler Condition="'$(GhulCompiler)'==''">dotnet ghul-compiler</GhulCompiler>
-      <CommandLine>$(VersionParameter) $(ILAsmPackagesParameter) $(TargetFrameworkParameter) $(DebugParameter) $(GlobalNamespaceParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
+      <LibraryParameter Condition="'$(GhulLibrary)' == 'true' OR ('$(GhulLibrary)' == '' AND '$(_GhulOutputKind)' == 'library')">--library</LibraryParameter>
+      <CommandLine>$(VersionParameter) $(ILAsmPackagesParameter) $(TargetFrameworkParameter) $(DebugParameter) $(LibraryParameter) $(GlobalNamespaceParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
     </PropertyGroup>
     
     <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
