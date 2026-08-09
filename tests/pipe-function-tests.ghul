@@ -121,6 +121,22 @@ namespace Tests is
             CollectionAssert.are_equal(LIST[string](["a", "bb", "ccc"]), result);
         si
 
+        Sort_ThreadFirstChain_ReturnsAscending() is
+            @test()
+
+            let result = [2, 1, 4, 3] |> sort() |> collect_list();
+
+            CollectionAssert.are_equal(LIST[int]([1, 2, 3, 4]), result);
+        si
+
+        SortDescending_ThreadFirstChain_ReturnsDescending() is
+            @test()
+
+            let result = [2, 1, 4, 3] |> sort_descending() |> collect_list();
+
+            CollectionAssert.are_equal(LIST[int]([4, 3, 2, 1]), result);
+        si
+
         Reduce_ThreadFirstChain_AccumulatesElements() is
             @test()
 

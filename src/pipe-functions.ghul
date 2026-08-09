@@ -387,7 +387,14 @@ namespace Ghul.Pipes is
         let list = collect_list(source) in
         LIST_REVERSE_PIPE(list);
 
-    sort[T](source: Iterable[T]) -> Pipe[T] pure is
+    sort[T: Ghul.Comparable[T]](source: Iterable[T]) -> Pipe[T] pure =>
+        _sort_ascending(source);
+
+    // Pipe[T].sort() cannot carry the bound, since T is the trait's own
+    // unbounded parameter, so it forwards here instead. Calling the bounded
+    // overload from there would emit a call that violates the constraint and
+    // fail verification when the method is first reached.
+    _sort_ascending[T](source: Iterable[T]) -> Pipe[T] pure is
         let list = collect_list(source);
 
         list.sort();
@@ -408,7 +415,10 @@ namespace Ghul.Pipes is
     sort[T](source: Iterable[T], compare: (T, T) -> int pure) -> Pipe[T] pure =>
         sort(source, FUNCTION_COMPARER[T](compare));
 
-    sort_descending[T](source: Iterable[T]) -> Pipe[T] pure is
+    sort_descending[T: Ghul.Comparable[T]](source: Iterable[T]) -> Pipe[T] pure =>
+        _sort_descending(source);
+
+    _sort_descending[T](source: Iterable[T]) -> Pipe[T] pure is
         let list = collect_list(source);
 
         list.sort();
