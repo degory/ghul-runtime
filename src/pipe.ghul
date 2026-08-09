@@ -241,8 +241,12 @@ namespace Ghul.Pipes is
         reverse() -> Pipe[T] pure =>
             Ghul.Pipes.reverse(self);
 
+        // T is unbounded here, so this can't require Ghul.Comparable[T] the
+        // way the free function does - an element type that isn't comparable
+        // is only caught when the sort runs. Ghul.Pipes.sort() rejects it at
+        // compile time.
         sort() -> Pipe[T] pure =>
-            Ghul.Pipes.sort(self);
+            Ghul.Pipes._sort_ascending(self);
 
         sort(comparer: IComparer[T]) -> Pipe[T] pure =>
             Ghul.Pipes.sort(self, comparer);
@@ -251,7 +255,7 @@ namespace Ghul.Pipes is
             Ghul.Pipes.sort(self, compare);
 
         sort_descending() -> Pipe[T] pure =>
-            Ghul.Pipes.sort_descending(self);
+            Ghul.Pipes._sort_descending(self);
 
         sort_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
             Ghul.Pipes.sort_by(self, key_selector);
