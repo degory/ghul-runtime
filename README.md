@@ -13,4 +13,21 @@ This package provides:
 - support for the ghūl pipe operator and fluent methods on pipes, such as `filter`, `map` and `reduce`
 - MSBuild targets needed to build ghūl projects
 
+## Building a library or an executable
+
+The targets follow the standard `OutputType` property:
+
+- `Library` (the .NET SDK's default when the project does not set one) builds a
+  library. It needs no `entry()` function.
+- `Exe` or `WinExe` builds an executable, which needs an `entry()` function.
+
+Other values are rejected. To choose directly, regardless of `OutputType`, set
+`GhulLibrary` to `true` or `false`.
+
+```xml
+<PropertyGroup>
+  <OutputType>Library</OutputType>
+</PropertyGroup>
+```
+
 
