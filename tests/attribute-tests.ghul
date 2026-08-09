@@ -22,7 +22,7 @@ namespace Tests is
         public_read_only__can_be_constructed() is
             @test()
 
-            let attribute = new Attributes.public_read_only();
+            let attribute = Attributes.public_read_only();
 
             assert attribute? else "attribute is null";
         si
@@ -30,7 +30,7 @@ namespace Tests is
         public_read_only__is_an_attribute() is
             @test()
 
-            let attribute = new Attributes.public_read_only();
+            let attribute = Attributes.public_read_only();
 
             assert isa System.Attribute(attribute);
         si
@@ -49,7 +49,7 @@ namespace Tests is
         ghul_source__can_be_constructed() is
             @test()
 
-            let attribute = new Attributes.ghul_source();
+            let attribute = Attributes.ghul_source();
 
             assert attribute? else "attribute is null";
         si
@@ -57,7 +57,7 @@ namespace Tests is
         ghul_source__is_an_attribute() is
             @test()
 
-            let attribute = new Attributes.ghul_source();
+            let attribute = Attributes.ghul_source();
 
             assert isa System.Attribute(attribute);
         si

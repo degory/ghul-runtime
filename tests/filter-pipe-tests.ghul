@@ -89,7 +89,7 @@ namespace Tests is
 
             let input = ["a", "b", "c", "d"];
 
-            let pipe = new FilterPipe[string](input.iterator, (e: string) => true);
+            let pipe = FilterPipe[string](input.iterator, (e: string) => true);
 
             Assert.are_equal(4, pipe.count());
         si
@@ -99,7 +99,7 @@ namespace Tests is
 
             let input = empty`[int]();
 
-            let pipe = new FilterPipe[int](input.iterator, (e: int) => true);
+            let pipe = FilterPipe[int](input.iterator, (e: int) => true);
 
             Assert.are_equal(0, pipe.count());
         si
@@ -109,7 +109,7 @@ namespace Tests is
 
             let input = ["a", "b", "c"];
 
-            let pipe = new FilterPipe[string](input.iterator, (e: string) => true);
+            let pipe = FilterPipe[string](input.iterator, (e: string) => true);
 
             Assert.are_same(pipe, pipe.iterator);
         si
@@ -119,7 +119,7 @@ namespace Tests is
 
             let input = ["a", "b", "c"];
 
-            let pipe = new FilterPipe[string](input.iterator, (e: string) => true);
+            let pipe = FilterPipe[string](input.iterator, (e: string) => true);
 
             assert_are_equal(["a", "b", "c"], pipe);
         si
