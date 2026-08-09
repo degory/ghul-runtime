@@ -11,11 +11,11 @@ namespace Tests is
 
     empty[T]() -> T[] => System.Array.empty`[T]();
 
-    iv[T](index: int, value: T) -> INDEXED_VALUE[T] => new INDEXED_VALUE[T](index, value);
+    iv[T](index: int, value: T) -> INDEXED_VALUE[T] => INDEXED_VALUE[T](index, value);
 
     assert_are_equal[T](expected: Iterable[T], actual: Pipe[T]) is
-        let expected_elements = new LIST[T]();
-        let actual_elements = new LIST[T]();
+        let expected_elements = LIST[T]();
+        let actual_elements = LIST[T]();
 
         expected_elements.add_range(expected);
         actual_elements.add_range(actual);
@@ -40,7 +40,7 @@ namespace Tests is
         Count_NonEmptyArray_ReturnsElementCount() is
             @test()
 
-            let pipe = new ADAPTOR_PIPE[int]([1, 2, 3, 4, 5]);
+            let pipe = ADAPTOR_PIPE[int]([1, 2, 3, 4, 5]);
 
             Assert.are_equal(5, pipe.count());
         si
@@ -48,7 +48,7 @@ namespace Tests is
         Count_EmptyArray_ReturnsZero() is
             @test()
 
-            let pipe = new ADAPTOR_PIPE[int](empty`[int]());
+            let pipe = ADAPTOR_PIPE[int](empty`[int]());
 
             Assert.are_equal(0, pipe.count());
         si
@@ -64,7 +64,7 @@ namespace Tests is
             returns(collection.iterator, [1, 2, 3, 4].iterator, null);
             returns(collection.count, 4, null);
 
-            let pipe = new ADAPTOR_PIPE[int](collection);
+            let pipe = ADAPTOR_PIPE[int](collection);
 
             let count = pipe.count();
 
@@ -82,7 +82,7 @@ namespace Tests is
             returns(collection.iterator, [1, 2, 3, 4].iterator, null);
             returns(collection.count, 4, null);
 
-            let pipe = new ADAPTOR_PIPE[int](collection);
+            let pipe = ADAPTOR_PIPE[int](collection);
 
             let count = pipe.count();
 
@@ -92,7 +92,7 @@ namespace Tests is
         Iterator_ReturnsSelf() is
             @test()
 
-            let pipe = new ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
+            let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
 
             Assert.are_same(pipe, pipe.iterator);
         si
@@ -100,7 +100,7 @@ namespace Tests is
         Iterator_ReturnsCorrectElements() is
             @test()
 
-            let pipe = new ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
+            let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
 
             assert_are_equal(
                 [ "a", "b", "c" ],

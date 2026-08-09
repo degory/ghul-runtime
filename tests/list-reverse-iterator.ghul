@@ -14,15 +14,15 @@ namespace Tests is
         LIST_REVERSE_ITERATOR__iterator__given_empty_list__returns_no_elements() is
             @test()
 
-            let iterator = new LIST_REVERSE_ITERATOR[int](new Collections.LIST[int]());
+            let iterator = LIST_REVERSE_ITERATOR[int](Collections.LIST[int]());
 
-            assert_equal(collect(iterator), new Collections.LIST[int](0).to_array());
+            assert_equal(collect(iterator), Collections.LIST[int](0).to_array());
         si
 
         LIST_REVERSE_ITERATOR__iterator__given_single_element_list__returns_that_element() is
             @test()
 
-            let iterator = new LIST_REVERSE_ITERATOR[int](new Collections.LIST[int]([1]));
+            let iterator = LIST_REVERSE_ITERATOR[int](Collections.LIST[int]([1]));
 
             assert_equal(collect(iterator), [1]);
         si
@@ -30,7 +30,7 @@ namespace Tests is
         LIST_REVERSE_ITERATOR__iterator__given_odd_length_multiple_element_list__returns_elements_in_reverse_order() is
             @test()
 
-            let iterator = new LIST_REVERSE_ITERATOR[int](new Collections.LIST[int]([1, 2, 3, 6, 7, 8, 11]));
+            let iterator = LIST_REVERSE_ITERATOR[int](Collections.LIST[int]([1, 2, 3, 6, 7, 8, 11]));
 
             assert_equal(collect(iterator), [11, 8, 7, 6, 3, 2, 1]);
         si
@@ -38,7 +38,7 @@ namespace Tests is
         LIST_REVERSE_ITERATOR__iterator__given_even_length_multiple_element_list__returns_elements_in_reverse_order() is
             @test()
 
-            let iterator = new LIST_REVERSE_ITERATOR[int](new Collections.LIST[int]([1, 2, 3, 6, 7, 8, 11, 3, 6, 2]));
+            let iterator = LIST_REVERSE_ITERATOR[int](Collections.LIST[int]([1, 2, 3, 6, 7, 8, 11, 3, 6, 2]));
 
             assert_equal(collect(iterator), [2, 6, 3, 11, 8, 7, 6, 3, 2, 1]);
         si
@@ -52,7 +52,7 @@ namespace Tests is
         LIST_REVERSE_ITERABLE__iterator__given_empty_list__returns_empty_iterator() is
             @test()
 
-            let iterable = new LIST_REVERSE_ITERABLE[int](new Collections.LIST[int]());
+            let iterable = LIST_REVERSE_ITERABLE[int](Collections.LIST[int]());
 
             assert_equal(empty[int](), iterable);
         si
@@ -60,7 +60,7 @@ namespace Tests is
         LIST_REVERSE_ITERABLE__iterator__given_non_empty_list__returns_iterator_over_that_list() is
             @test()
 
-            let iterable = new LIST_REVERSE_ITERABLE[int]([1, 2, 3, 4, 5]);
+            let iterable = LIST_REVERSE_ITERABLE[int]([1, 2, 3, 4, 5]);
 
             assert_equal([5, 4, 3, 2, 1], iterable);
         si
