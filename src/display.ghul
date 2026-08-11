@@ -42,18 +42,15 @@ namespace Ghul is
         return value.to_string() ?? "null";
     si
 
-    // Declared non-optional even though an absent string renders fine as
-    // "null": an optional parameter here loses overload resolution to the
-    // sequence overload below, which then receives the absent value and
-    // throws (degory/ghul#1943). An absent string reaches the sequence
-    // overload instead, which answers for it.
+    // Non-optional deliberately. A plain string prefers the sequence
+    // overload below - a string is an Iterable[char] - over a parameter
+    // spelled `string?`, so an optional one here never wins and the
+    // string renders as its characters. Declared this way it wins for a
+    // present string, and an absent one is answered by the object?
+    // overload above.
     $(value: string) -> string => value;
 
-    $[T](values: Collections.Iterable[T]?) -> string is
-        if !values? then
-            return "null";
-        fi
-
+    $[T](values: Collections.Iterable[T]) -> string is
         let rendered = Collections.LIST[string]();
 
         for value in values do
