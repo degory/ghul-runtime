@@ -146,6 +146,43 @@ namespace Tests is
             Assert.are_equal("unreadable", $(UNREADABLE()));
         si
 
+        Render_a_self_referencing_collection_without_overflowing() is
+            @test()
+
+            let outer = Collections.LIST[object]();
+
+            outer.add(outer);
+
+            Assert.are_equal("[<cycle>]", $(outer));
+        si
+
+        Render_a_cycle_several_hops_long() is
+            @test()
+
+            let a = Collections.LIST[object]();
+            let b = Collections.LIST[object]();
+
+            a.add(b);
+            b.add(a);
+
+            Assert.are_equal("[[<cycle>]]", $(a));
+        si
+
+        // The same collection in two branches is not a cycle, so it
+        // renders in full both times rather than the second being
+        // reported as one.
+        Render_a_repeated_collection_in_full_each_time() is
+            @test()
+
+            let shared = Collections.LIST[int]([1, 2]);
+            let outer = Collections.LIST[object]();
+
+            outer.add(shared);
+            outer.add(shared);
+
+            Assert.are_equal("[[1, 2], [1, 2]]", $(outer));
+        si
+
         Render_an_empty_sequence() is
             @test()
 
