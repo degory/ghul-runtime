@@ -47,7 +47,9 @@ namespace Ghul is
 
         let into = StringBuilder();
 
-        _append_reflected(enumerator, into);
+        if !_append_reflected(enumerator, into) then
+            return value.to_string() ?? "null";
+        fi
 
         return into.to_string();
     si
@@ -103,18 +105,21 @@ namespace Ghul is
         return get_enumerator.invoke(value, null);
     si
 
-    _append_reflected(enumerator: object, into: StringBuilder) is
+    // Returns false, having appended nothing, when the enumerator cannot
+    // be driven - an explicit interface implementation leaves no public
+    // `MoveNext` or `Current` to find. The caller then falls back to the
+    // value's own `to_string()`, rather than showing it as empty when all
+    // that is really known is that it could not be read.
+    _append_reflected(enumerator: object, into: StringBuilder) -> bool is
         let enumerator_type = enumerator.get_type();
         let move_next = enumerator_type.get_method("MoveNext");
         let current = enumerator_type.get_property("Current");
 
-        into.append('[');
-
         if !move_next? \/ !current? then
-            into.append(']');
-
-            return;
+            return false;
         fi
+
+        into.append('[');
 
         let count mut = 0;
 
@@ -135,5 +140,7 @@ namespace Ghul is
         od
 
         into.append(']');
+
+        return true;
     si
 si

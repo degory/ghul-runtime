@@ -8,6 +8,17 @@ namespace Tests is
         to_string() -> string => "({x},{y})";
     si
 
+    // Reflection finds a GetEnumerator, but what it hands back cannot be
+    // driven - the shape an explicit interface implementation of
+    // IEnumerator presents, where MoveNext and Current are not public.
+    class UNREADABLE is
+        init() is si
+
+        GetEnumerator() -> object => object();
+
+        to_string() -> string => "unreadable";
+    si
+
     class DisplayShould is
         @test()
             init() is
@@ -125,6 +136,14 @@ namespace Tests is
             let rendered = $(Ghul.Pipes.stream(0, i => i || i + 1));
 
             Assert.is_true(rendered.ends_with(", ...]"));
+        si
+
+        // Being unable to read a value is not the same as the value being
+        // empty, so it renders as itself rather than as `[]`.
+        Render_a_value_whose_enumerator_cannot_be_driven_as_itself() is
+            @test()
+
+            Assert.are_equal("unreadable", $(UNREADABLE()));
         si
 
         Render_an_empty_sequence() is
