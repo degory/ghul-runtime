@@ -1,0 +1,103 @@
+namespace Ghul is
+    // `$` renders a value for display. It is meant for showing a value to
+    // a person - a short example, a trace, a test failure - rather than
+    // for any format that is going to be parsed back.
+    //
+    // A sequence renders as its elements in square brackets, recursively,
+    // so a collection shows what it holds instead of the type name
+    // `to_string()` gives it. Anything else renders as its own
+    // `to_string()`, so a type that has said how it wants to look keeps
+    // that.
+    //
+    // A type can be rendered by whichever overload fits it best. The
+    // sequence overload catches anything whose static type says it is
+    // one; the `object?` overload covers the rest, and falls back to
+    // reflection so that a value held at `object` - an element of an
+    // `object[]`, a nested collection - still renders as a sequence when
+    // it is one.
+
+    $(value: object?) -> string is
+        if !value? then
+            return "null";
+        fi
+
+        // A string is a sequence of characters, and rendering it as one
+        // would be useless.
+        if isa string(value) then
+            return value;
+        fi
+
+        let elements = _reflect_elements(value);
+
+        if elements? then
+            let rendered = Collections.LIST[string]();
+
+            for element in elements do
+                rendered.add($(element));
+            od
+
+            return _render_elements(rendered);
+        fi
+
+        return value.to_string() ?? "null";
+    si
+
+    // Declared non-optional even though an absent string renders fine as
+    // "null": an optional parameter here loses overload resolution to the
+    // sequence overload below, which then receives the absent value and
+    // throws (degory/ghul#1943). An absent string reaches the sequence
+    // overload instead, which answers for it.
+    $(value: string) -> string => value;
+
+    $[T](values: Collections.Iterable[T]?) -> string is
+        if !values? then
+            return "null";
+        fi
+
+        let rendered = Collections.LIST[string]();
+
+        for value in values do
+            rendered.add($(value));
+        od
+
+        return _render_elements(rendered);
+    si
+
+    _render_elements(rendered: Collections.Iterable[string]) -> string =>
+        "[{Ghul.Pipes.join(rendered, ", ")}]";
+
+    // Enumerate a value whose static type says nothing about whether it is
+    // a sequence. Reflection is the only route: `Collections.Iterable[T]`
+    // needs a `T` that is not known here, and a value-type instantiation
+    // such as `LIST[int]` is not an `Iterable[object]`, so no cast covers
+    // it. Returns null when the value is not enumerable.
+    _reflect_elements(value: object) -> Collections.LIST[object?]? is
+        let get_enumerator = value.get_type().get_method("GetEnumerator");
+
+        if !get_enumerator? then
+            return null;
+        fi
+
+        let enumerator = get_enumerator.invoke(value, null);
+
+        if !enumerator? then
+            return null;
+        fi
+
+        let enumerator_type = enumerator.get_type();
+        let move_next = enumerator_type.get_method("MoveNext");
+        let current = enumerator_type.get_property("Current");
+
+        if !move_next? \/ !current? then
+            return null;
+        fi
+
+        let elements = Collections.LIST[object?]();
+
+        while cast bool(move_next.invoke(enumerator, null) ?? false) do
+            elements.add(current.get_value(enumerator));
+        od
+
+        return elements;
+    si
+si

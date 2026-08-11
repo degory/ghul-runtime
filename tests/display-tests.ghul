@@ -1,0 +1,101 @@
+namespace Tests is
+
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    class POINT(x: int, y: int) is
+        to_string() -> string => "({x},{y})";
+    si
+
+    class DisplayShould is
+        @test()
+            init() is
+        si
+
+        Render_a_string_as_itself_rather_than_its_characters() is
+            @test()
+
+            Assert.are_equal("hello", $("hello"));
+        si
+
+        Render_an_array() is
+            @test()
+
+            Assert.are_equal("[1, 2, 3]", $([1, 2, 3]));
+        si
+
+        // The element type is a value type, so this is not an
+        // Iterable[object] and only the sequence overload reaches it.
+        Render_a_list_of_a_value_type() is
+            @test()
+
+            Assert.are_equal("[1, 2]", $(LIST[int]([1, 2])));
+        si
+
+        Render_a_nested_sequence() is
+            @test()
+
+            Assert.are_equal("[[1, 2], [3]]", $([[1, 2], [3]]));
+        si
+
+        Render_a_pipe() is
+            @test()
+
+            Assert.are_equal("[1, 2, 3]", $(Ghul.Pipes.pipe([1, 2, 3])));
+        si
+
+        Render_a_scalar_as_its_own_to_string() is
+            @test()
+
+            Assert.are_equal("42", $(42));
+        si
+
+        Render_a_type_that_declares_to_string_using_it() is
+            @test()
+
+            Assert.are_equal("(1,2)", $(POINT(1, 2)));
+        si
+
+        Render_a_sequence_of_such_a_type_elementwise() is
+            @test()
+
+            Assert.are_equal("[(1,2)]", $(LIST[POINT]([POINT(1, 2)])));
+        si
+
+        Render_an_absent_value_as_null() is
+            @test()
+
+            let absent: string? = null;
+
+            Assert.are_equal("null", $(absent));
+        si
+
+        // Held at object, an element's static type says nothing, so the
+        // nested array here can only be recognised by the reflection
+        // fallback.
+        Render_a_heterogeneous_object_array() is
+            @test()
+
+            let mixed: object[] = ["a", [1, 2], 42];
+
+            Assert.are_equal("[a, [1, 2], 42]", $(mixed));
+        si
+
+        Render_a_map_as_its_entries() is
+            @test()
+
+            let map = MAP[string, int]();
+
+            map.add("a", 1);
+
+            Assert.are_equal("[[a, 1]]", $(map));
+        si
+
+        Render_an_empty_sequence() is
+            @test()
+
+            Assert.are_equal("[]", $(LIST[int]()));
+        si
+    si
+si
