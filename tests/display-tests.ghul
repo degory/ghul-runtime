@@ -63,6 +63,22 @@ namespace Tests is
             Assert.are_equal("[(1,2)]", $(LIST[POINT]([POINT(1, 2)])));
         si
 
+        Render_a_present_optional_string_as_itself() is
+            @test()
+
+            let present: string? = "hello";
+
+            Assert.are_equal("hello", $(present));
+        si
+
+        Render_an_absent_sequence_as_null() is
+            @test()
+
+            let absent: Collections.LIST[int]? = null;
+
+            Assert.are_equal("null", $(absent));
+        si
+
         Render_an_absent_value_as_null() is
             @test()
 
