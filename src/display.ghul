@@ -25,34 +25,16 @@ namespace Ghul is
     // read the value. The limit is deliberately not configurable: `$`
     // exists for showing a value, and anything wanting control over how
     // much is shown wants its own rendering rather than this one.
+    //
+    // A graph that leads back to something already being rendered would
+    // otherwise recurse until the stack ran out, so each sequence on the
+    // way down is remembered and one met again renders as `_cycle_marker`.
 
     _max_elements: int static => 100;
 
-    $(value: object?) -> string is
-        if !value? then
-            return "null";
-        fi
+    _cycle_marker: string static => "<cycle>";
 
-        // A string is a sequence of characters, and rendering it as one
-        // would be useless.
-        if isa string(value) then
-            return value;
-        fi
-
-        let enumerator = _try_get_enumerator(value);
-
-        if !enumerator? then
-            return value.to_string() ?? "null";
-        fi
-
-        let into = StringBuilder();
-
-        if !_append_reflected(enumerator, into) then
-            return value.to_string() ?? "null";
-        fi
-
-        return into.to_string();
-    si
+    $(value: object?) -> string => _render(value, Collections.LIST[object]());
 
     // Non-optional deliberately. A plain string prefers the sequence
     // overload below - a string is an Iterable[char] - over a parameter
@@ -65,29 +47,89 @@ namespace Ghul is
     $[T](values: Collections.Iterable[T]) -> string is
         let into = StringBuilder();
 
-        into.append('[');
+        let open = Collections.LIST[object]();
 
-        let count mut = 0;
-
-        for value in values do
-            if count >= _max_elements then
-                into.append(", ...");
-
-                break;
-            fi
-
-            if count > 0 then
-                into.append(", ");
-            fi
-
-            into.append($(value));
-
-            count = count + 1;
-        od
-
-        into.append(']');
+        _mark(values, open);
+        _append_sequence(values, into, open);
 
         return into.to_string();
+    si
+
+    _render(value: object?, open: Collections.LIST[object]) -> string is
+        if !value? then
+            return "null";
+        fi
+
+        // A string is a sequence of characters, and rendering it as one
+        // would be useless.
+        if isa string(value) then
+            return value;
+        fi
+
+        if _is_open(value, open) then
+            return _cycle_marker;
+        fi
+
+        let enumerator = _try_get_enumerator(value);
+
+        if !enumerator? then
+            return value.to_string() ?? "null";
+        fi
+
+        let into = StringBuilder();
+
+        _mark(value, open);
+
+        let rendered = _append_reflected(enumerator, into, open);
+
+        _release(value, open);
+
+        if !rendered then
+            return value.to_string() ?? "null";
+        fi
+
+        return into.to_string();
+    si
+
+    // Only a reference is worth remembering. A cycle cannot be made of
+    // value types alone - each is stored by copy, so the graph would have
+    // to be infinitely large - which means every cycle passes through a
+    // reference and tracking those is enough. Tracking a value type would
+    // not work anyway: one reaches here boxed, and each boxing is a
+    // distinct object, so it would never be recognised on the way round.
+    // A string is interned, so two equal literals share a reference and
+    // would look like a repeat; it is answered before this in any case.
+    _is_trackable(value: object) -> bool =>
+        !value.get_type().is_value_type /\ !isa string(value);
+
+    // Remembered only while the value is on the path currently being
+    // rendered, so the same collection appearing in two places renders in
+    // full both times. Only a value that leads back to itself is a cycle.
+    _mark(value: object, open: Collections.LIST[object]) is
+        if _is_trackable(value) then
+            open.add(value);
+        fi
+    si
+
+    _release(value: object, open: Collections.LIST[object]) is
+        if _is_trackable(value) /\ open.count > 0 then
+            open.remove_at(open.count - 1);
+        fi
+    si
+
+    // A linear scan, because `open` holds one entry per level of the
+    // value currently being rendered rather than one per value seen, so
+    // it stays short. Reference identity is the only sound test here:
+    // two structurally equal collections are not a cycle, and consulting
+    // a user's `=~` could recurse or cost more than the render.
+    _is_open(value: object, open: Collections.LIST[object]) -> bool is
+        for entry in open do
+            if entry == value then
+                return true;
+            fi
+        od
+
+        return false;
     si
 
     // Enumerate a value whose static type says nothing about whether it
@@ -105,12 +147,36 @@ namespace Ghul is
         return get_enumerator.invoke(value, null);
     si
 
+    _append_sequence[T](values: Collections.Iterable[T], into: StringBuilder, open: Collections.LIST[object]) is
+        into.append('[');
+
+        let count mut = 0;
+
+        for value in values do
+            if count >= _max_elements then
+                into.append(", ...");
+
+                break;
+            fi
+
+            if count > 0 then
+                into.append(", ");
+            fi
+
+            into.append(_render(value, open));
+
+            count = count + 1;
+        od
+
+        into.append(']');
+    si
+
     // Returns false, having appended nothing, when the enumerator cannot
     // be driven - an explicit interface implementation leaves no public
     // `MoveNext` or `Current` to find. The caller then falls back to the
     // value's own `to_string()`, rather than showing it as empty when all
     // that is really known is that it could not be read.
-    _append_reflected(enumerator: object, into: StringBuilder) -> bool is
+    _append_reflected(enumerator: object, into: StringBuilder, open: Collections.LIST[object]) -> bool is
         let enumerator_type = enumerator.get_type();
         let move_next = enumerator_type.get_method("MoveNext");
         let current = enumerator_type.get_property("Current");
@@ -134,7 +200,7 @@ namespace Ghul is
                 into.append(", ");
             fi
 
-            into.append($(current.get_value(enumerator)));
+            into.append(_render(current.get_value(enumerator), open));
 
             count = count + 1;
         od
