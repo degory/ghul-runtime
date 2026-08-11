@@ -1,7 +1,9 @@
 namespace Ghul is
+    use System.Text.StringBuilder;
+
     // `$` renders a value for display. It is meant for showing a value to
-    // a person - a short example, a trace, a test failure - rather than
-    // for any format that is going to be parsed back.
+    // a person - a short example, a trace, a value echoed back - rather
+    // than for any format that is going to be parsed back.
     //
     // A sequence renders as its elements in square brackets, recursively,
     // so a collection shows what it holds instead of the type name
@@ -15,6 +17,16 @@ namespace Ghul is
     // reflection so that a value held at `object` - an element of an
     // `object[]`, a nested collection - still renders as a sequence when
     // it is one.
+    //
+    // At most `_max_elements` elements of any one sequence are rendered,
+    // and an ellipsis stands for the rest. Without a limit an unbounded
+    // sequence - a generator, a stream - would never finish rendering,
+    // and there is no length beyond which more elements help a person
+    // read the value. The limit is deliberately not configurable: `$`
+    // exists for showing a value, and anything wanting control over how
+    // much is shown wants its own rendering rather than this one.
+
+    _max_elements: int static => 100;
 
     $(value: object?) -> string is
         if !value? then
@@ -27,19 +39,17 @@ namespace Ghul is
             return value;
         fi
 
-        let elements = _reflect_elements(value);
+        let enumerator = _try_get_enumerator(value);
 
-        if elements? then
-            let rendered = Collections.LIST[string]();
-
-            for element in elements do
-                rendered.add($(element));
-            od
-
-            return _render_elements(rendered);
+        if !enumerator? then
+            return value.to_string() ?? "null";
         fi
 
-        return value.to_string() ?? "null";
+        let into = StringBuilder();
+
+        _append_reflected(enumerator, into);
+
+        return into.to_string();
     si
 
     // Non-optional deliberately. A plain string prefers the sequence
@@ -51,50 +61,79 @@ namespace Ghul is
     $(value: string) -> string => value;
 
     $[T](values: Collections.Iterable[T]) -> string is
-        let rendered = Collections.LIST[string]();
+        let into = StringBuilder();
+
+        into.append('[');
+
+        let count mut = 0;
 
         for value in values do
-            rendered.add($(value));
+            if count >= _max_elements then
+                into.append(", ...");
+
+                break;
+            fi
+
+            if count > 0 then
+                into.append(", ");
+            fi
+
+            into.append($(value));
+
+            count = count + 1;
         od
 
-        return _render_elements(rendered);
+        into.append(']');
+
+        return into.to_string();
     si
 
-    _render_elements(rendered: Collections.Iterable[string]) -> string =>
-        "[{Ghul.Pipes.join(rendered, ", ")}]";
-
-    // Enumerate a value whose static type says nothing about whether it is
-    // a sequence. Reflection is the only route: `Collections.Iterable[T]`
+    // Enumerate a value whose static type says nothing about whether it
+    // is a sequence. Reflection is the only route: `Collections.Iterable[T]`
     // needs a `T` that is not known here, and a value-type instantiation
     // such as `LIST[int]` is not an `Iterable[object]`, so no cast covers
     // it. Returns null when the value is not enumerable.
-    _reflect_elements(value: object) -> Collections.LIST[object?]? is
+    _try_get_enumerator(value: object) -> object? is
         let get_enumerator = value.get_type().get_method("GetEnumerator");
 
         if !get_enumerator? then
             return null;
         fi
 
-        let enumerator = get_enumerator.invoke(value, null);
+        return get_enumerator.invoke(value, null);
+    si
 
-        if !enumerator? then
-            return null;
-        fi
-
+    _append_reflected(enumerator: object, into: StringBuilder) is
         let enumerator_type = enumerator.get_type();
         let move_next = enumerator_type.get_method("MoveNext");
         let current = enumerator_type.get_property("Current");
 
+        into.append('[');
+
         if !move_next? \/ !current? then
-            return null;
+            into.append(']');
+
+            return;
         fi
 
-        let elements = Collections.LIST[object?]();
+        let count mut = 0;
 
         while cast bool(move_next.invoke(enumerator, null) ?? false) do
-            elements.add(current.get_value(enumerator));
+            if count >= _max_elements then
+                into.append(", ...");
+
+                break;
+            fi
+
+            if count > 0 then
+                into.append(", ");
+            fi
+
+            into.append($(current.get_value(enumerator)));
+
+            count = count + 1;
         od
 
-        return elements;
+        into.append(']');
     si
 si

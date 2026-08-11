@@ -108,6 +108,25 @@ namespace Tests is
             Assert.are_equal("[[a, 1]]", $(map));
         si
 
+        // Beyond the limit an ellipsis stands for the rest, so an
+        // unbounded sequence renders rather than never finishing.
+        Render_at_most_the_element_limit() is
+            @test()
+
+            let rendered = $(0..1000);
+
+            Assert.is_true(rendered.ends_with(", ...]"));
+            Assert.is_true(rendered.starts_with("[0, 1, 2, "));
+        si
+
+        Render_an_unbounded_generator_without_hanging() is
+            @test()
+
+            let rendered = $(Ghul.Pipes.stream(0, i => i || i + 1));
+
+            Assert.is_true(rendered.ends_with(", ...]"));
+        si
+
         Render_an_empty_sequence() is
             @test()
 
