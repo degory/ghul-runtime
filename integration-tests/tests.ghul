@@ -2,7 +2,7 @@
 strings: Collections.LIST[string];
 
 entry() is
-    strings = new Collections.LIST[string]();
+    strings = Collections.LIST[string]();
 
     @IF.hello()
     strings.add("Hello");
