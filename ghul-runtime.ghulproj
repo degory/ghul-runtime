@@ -30,7 +30,7 @@
     <PackageIcon>ghul-logo-icon.png</PackageIcon>
     <PackageIconUrl>ghul-logo-icon.png</PackageIconUrl>
 
-    <GhulCompiler>dotnet ghul-compiler --emit-boilerplate-il src/boilerplate.il</GhulCompiler>
+    <GhulCompiler>dotnet ghul-compiler</GhulCompiler>
 
   </PropertyGroup>
 
