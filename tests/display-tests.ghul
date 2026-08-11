@@ -19,6 +19,52 @@ namespace Tests is
         to_string() -> string => "unreadable";
     si
 
+    // Says how it looks displayed, and separately how it reads as text,
+    // so which of the two `$` reaches is visible in the result.
+    class TAG(label: string): Ghul.Displayable is
+        to_string() -> string => "TAG";
+
+        display(state: Ghul.DISPLAY_STATE) is
+            state.append("<{label}>");
+        si
+    si
+
+    // Renders its children through the state rather than by calling `$`
+    // on them, which is what carries the cycle tracking down.
+    class NODE(children: Collections.LIST[object]): Ghul.Displayable is
+        display(state: Ghul.DISPLAY_STATE) is
+            state.append('(');
+
+            let count mut = 0;
+
+            for child in children do
+                if count > 0 then
+                    state.append(" ");
+                fi
+
+                state.render(child);
+
+                count = count + 1;
+            od
+
+            state.append(')');
+        si
+    si
+
+    // Iterable, so the sequence overload is the one that catches it, and
+    // deliberately not enumerable: reaching the enumeration at all is the
+    // failure this pins.
+    class SPELLED_OUT: Collections.Iterable[int], Ghul.Displayable is
+        init() is si
+
+        iterator: Collections.Iterator[int] =>
+            throw System.Exception("should have been displayed, not enumerated");
+
+        display(state: Ghul.DISPLAY_STATE) is
+            state.append("spelled out");
+        si
+    si
+
     class DisplayShould is
         @test()
             init() is
@@ -187,6 +233,55 @@ namespace Tests is
             @test()
 
             Assert.are_equal("[]", $(LIST[int]()));
+        si
+
+        Render_a_type_that_says_how_it_is_displayed_using_that() is
+            @test()
+
+            Assert.are_equal("<a>", $(TAG("a")));
+        si
+
+        Render_such_a_type_held_at_object_the_same_way() is
+            @test()
+
+            let held: object = TAG("a");
+
+            Assert.are_equal("<a>", $(held));
+        si
+
+        Render_such_a_type_as_an_element() is
+            @test()
+
+            Assert.are_equal("[<a>, <b>]", $([TAG("a"), TAG("b")]));
+        si
+
+        // The sequence overload catches it on its static type, and the
+        // type's own account of how it looks still wins.
+        Render_a_displayable_sequence_as_it_says_rather_than_elementwise() is
+            @test()
+
+            Assert.are_equal("spelled out", $(SPELLED_OUT()));
+        si
+
+        Render_children_of_a_displayable_type() is
+            @test()
+
+            let children = Collections.LIST[object]([1, "two", [3, 4]]);
+
+            Assert.are_equal("(1 two [3, 4])", $(NODE(children)));
+        si
+
+        // The child is rendered through the state, so the cycle is seen
+        // even though it closes inside a type's own display.
+        Render_a_cycle_through_a_displayable_type() is
+            @test()
+
+            let children = Collections.LIST[object]();
+            let node = NODE(children);
+
+            children.add(node);
+
+            Assert.are_equal("(<cycle>)", $(node));
         si
     si
 si

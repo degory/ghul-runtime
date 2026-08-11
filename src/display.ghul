@@ -5,11 +5,11 @@ namespace Ghul is
     // a person - a short example, a trace, a value echoed back - rather
     // than for any format that is going to be parsed back.
     //
-    // A sequence renders as its elements in square brackets, recursively,
-    // so a collection shows what it holds instead of the type name
-    // `to_string()` gives it. Anything else renders as its own
-    // `to_string()`, so a type that has said how it wants to look keeps
-    // that.
+    // A type that implements `Displayable` renders however it says it
+    // does. Otherwise a sequence renders as its elements in square
+    // brackets, recursively, so a collection shows what it holds instead
+    // of the type name `to_string()` gives it, and anything else renders
+    // as its own `to_string()`.
     //
     // A type can be rendered by whichever overload fits it best. The
     // sequence overload catches anything whose static type says it is
@@ -27,14 +27,29 @@ namespace Ghul is
     // much is shown wants its own rendering rather than this one.
     //
     // A graph that leads back to something already being rendered would
-    // otherwise recurse until the stack ran out, so each sequence on the
-    // way down is remembered and one met again renders as `_cycle_marker`.
+    // otherwise recurse until the stack ran out, so each value on the way
+    // down is remembered and one met again renders as `_cycle_marker`.
 
-    _max_elements: int static => 100;
+    // Implemented by a type that wants to say how it looks when it is
+    // displayed, which is not always how its `to_string()` should read.
+    //
+    // Write the text through `state`, and render a child value with
+    // `state.render(...)` rather than by calling `$` on it. The state
+    // carries how much of a sequence is left to show and which values are
+    // already being rendered further up; a fresh call to `$` starts with
+    // neither, so a child rendered that way escapes both the element
+    // limit and the cycle check.
+    trait Displayable is
+        display(state: DISPLAY_STATE);
+    si
 
-    _cycle_marker: string static => "<cycle>";
+    $(value: object?) -> string is
+        let state = DISPLAY_STATE();
 
-    $(value: object?) -> string => _render(value, Collections.LIST[object]());
+        state.render(value);
+
+        return state.to_string();
+    si
 
     // Non-optional deliberately. A plain string prefers the sequence
     // overload below - a string is an Iterable[char] - over a parameter
@@ -45,168 +60,234 @@ namespace Ghul is
     $(value: string) -> string => value;
 
     $[T](values: Collections.Iterable[T]) -> string is
-        let into = StringBuilder();
+        let state = DISPLAY_STATE();
 
-        let open = Collections.LIST[object]();
+        state.render_sequence(values);
 
-        _mark(values, open);
-        _append_sequence(values, into, open);
-
-        return into.to_string();
+        return state.to_string();
     si
 
-    _render(value: object?, open: Collections.LIST[object]) -> string is
-        if !value? then
-            return "null";
-        fi
+    // What an implementation of `Displayable` is handed. The buffer, the
+    // element budget and the set of values already being rendered are
+    // private: the surface is `append` and `render`, so how the text is
+    // accumulated stays free to change - to write straight to a stream,
+    // or to carry an indent - without any implementation noticing.
+    class DISPLAY_STATE is
+        _max_elements: int static => 100;
 
-        // A string is a sequence of characters, and rendering it as one
-        // would be useless.
-        if isa string(value) then
-            return value;
-        fi
+        _cycle_marker: string static => "<cycle>";
 
-        if _is_open(value, open) then
-            return _cycle_marker;
-        fi
+        _into: StringBuilder;
 
-        let enumerator = _try_get_enumerator(value);
+        // Holds one entry per level of the value currently being
+        // rendered rather than one per value seen, so it stays short.
+        _open: Collections.LIST[object];
 
-        if !enumerator? then
-            return value.to_string() ?? "null";
-        fi
+        init() is
+            _into = StringBuilder();
+            _open = Collections.LIST[object]();
+        si
 
-        let into = StringBuilder();
+        append(text: string) is
+            _into.append(text);
+        si
 
-        _mark(value, open);
+        append(c: char) is
+            _into.append(c);
+        si
 
-        let rendered = _append_reflected(enumerator, into, open);
+        to_string() -> string => _into.to_string();
 
-        _release(value, open);
+        // Render a value into this state under the same element limit and
+        // cycle tracking as everything else in the same render.
+        render(value: object?) is
+            if !value? then
+                append("null");
 
-        if !rendered then
-            return value.to_string() ?? "null";
-        fi
-
-        return into.to_string();
-    si
-
-    // Only a reference is worth remembering. A cycle cannot be made of
-    // value types alone - each is stored by copy, so the graph would have
-    // to be infinitely large - which means every cycle passes through a
-    // reference and tracking those is enough. Tracking a value type would
-    // not work anyway: one reaches here boxed, and each boxing is a
-    // distinct object, so it would never be recognised on the way round.
-    // A string is interned, so two equal literals share a reference and
-    // would look like a repeat; it is answered before this in any case.
-    _is_trackable(value: object) -> bool =>
-        !value.get_type().is_value_type /\ !isa string(value);
-
-    // Remembered only while the value is on the path currently being
-    // rendered, so the same collection appearing in two places renders in
-    // full both times. Only a value that leads back to itself is a cycle.
-    _mark(value: object, open: Collections.LIST[object]) is
-        if _is_trackable(value) then
-            open.add(value);
-        fi
-    si
-
-    _release(value: object, open: Collections.LIST[object]) is
-        if _is_trackable(value) /\ open.count > 0 then
-            open.remove_at(open.count - 1);
-        fi
-    si
-
-    // A linear scan, because `open` holds one entry per level of the
-    // value currently being rendered rather than one per value seen, so
-    // it stays short. Reference identity is the only sound test here:
-    // two structurally equal collections are not a cycle, and consulting
-    // a user's `=~` could recurse or cost more than the render.
-    _is_open(value: object, open: Collections.LIST[object]) -> bool is
-        for entry in open do
-            if entry == value then
-                return true;
-            fi
-        od
-
-        return false;
-    si
-
-    // Enumerate a value whose static type says nothing about whether it
-    // is a sequence. Reflection is the only route: `Collections.Iterable[T]`
-    // needs a `T` that is not known here, and a value-type instantiation
-    // such as `LIST[int]` is not an `Iterable[object]`, so no cast covers
-    // it. Returns null when the value is not enumerable.
-    _try_get_enumerator(value: object) -> object? is
-        let get_enumerator = value.get_type().get_method("GetEnumerator");
-
-        if !get_enumerator? then
-            return null;
-        fi
-
-        return get_enumerator.invoke(value, null);
-    si
-
-    _append_sequence[T](values: Collections.Iterable[T], into: StringBuilder, open: Collections.LIST[object]) is
-        into.append('[');
-
-        let count mut = 0;
-
-        for value in values do
-            if count >= _max_elements then
-                into.append(", ...");
-
-                break;
+                return;
             fi
 
-            if count > 0 then
-                into.append(", ");
+            // A string is a sequence of characters, and rendering it as
+            // one would be useless.
+            if isa string(value) then
+                append(value);
+
+                return;
             fi
 
-            into.append(_render(value, open));
+            if _is_open(value) then
+                append(_cycle_marker);
 
-            count = count + 1;
-        od
+                return;
+            fi
 
-        into.append(']');
-    si
+            if isa Displayable(value) then
+                _mark(value);
+                value.display(self);
+                _release(value);
 
-    // Returns false, having appended nothing, when the enumerator cannot
-    // be driven - an explicit interface implementation leaves no public
-    // `MoveNext` or `Current` to find. The caller then falls back to the
-    // value's own `to_string()`, rather than showing it as empty when all
-    // that is really known is that it could not be read.
-    _append_reflected(enumerator: object, into: StringBuilder, open: Collections.LIST[object]) -> bool is
-        let enumerator_type = enumerator.get_type();
-        let move_next = enumerator_type.get_method("MoveNext");
-        let current = enumerator_type.get_property("Current");
+                return;
+            fi
 
-        if !move_next? \/ !current? then
+            let enumerator = _try_get_enumerator(value);
+
+            if !enumerator? then
+                append(value.to_string() ?? "null");
+
+                return;
+            fi
+
+            _mark(value);
+
+            let rendered = _append_reflected(enumerator);
+
+            _release(value);
+
+            if !rendered then
+                append(value.to_string() ?? "null");
+            fi
+        si
+
+        // Render a value already known to be a sequence, without the
+        // reflection `render` would need to discover that for itself.
+        render_sequence[T](values: Collections.Iterable[T]) is
+            // A type that says how it looks says it here too: a static
+            // type that happens to be a sequence does not make the
+            // structural rendering the right one.
+            if isa Displayable(values) then
+                render(values);
+
+                return;
+            fi
+
+            if _is_open(values) then
+                append(_cycle_marker);
+
+                return;
+            fi
+
+            _mark(values);
+
+            append('[');
+
+            let count mut = 0;
+
+            for value in values do
+                if count >= _max_elements then
+                    append(", ...");
+
+                    break;
+                fi
+
+                if count > 0 then
+                    append(", ");
+                fi
+
+                render(value);
+
+                count = count + 1;
+            od
+
+            append(']');
+
+            _release(values);
+        si
+
+        // Only a reference is worth remembering. A cycle cannot be made of
+        // value types alone - each is stored by copy, so the graph would
+        // have to be infinitely large - which means every cycle passes
+        // through a reference and tracking those is enough. Tracking a
+        // value type would not work anyway: one reaches here boxed, and
+        // each boxing is a distinct object, so it would never be
+        // recognised on the way round. A string is interned, so two equal
+        // literals share a reference and would look like a repeat; it is
+        // answered before this in any case.
+        _is_trackable(value: object) -> bool =>
+            !value.get_type().is_value_type /\ !isa string(value);
+
+        // Remembered only while the value is on the path currently being
+        // rendered, so the same collection appearing in two places renders
+        // in full both times. Only a value that leads back to itself is a
+        // cycle.
+        _mark(value: object) is
+            if _is_trackable(value) then
+                _open.add(value);
+            fi
+        si
+
+        _release(value: object) is
+            if _is_trackable(value) /\ _open.count > 0 then
+                _open.remove_at(_open.count - 1);
+            fi
+        si
+
+        // Reference identity is the only sound test here: two structurally
+        // equal collections are not a cycle, and consulting a user's `=~`
+        // could recurse or cost more than the render.
+        _is_open(value: object) -> bool is
+            for entry in _open do
+                if entry == value then
+                    return true;
+                fi
+            od
+
             return false;
-        fi
+        si
 
-        into.append('[');
+        // Enumerate a value whose static type says nothing about whether
+        // it is a sequence. Reflection is the only route:
+        // `Collections.Iterable[T]` needs a `T` that is not known here,
+        // and a value-type instantiation such as `LIST[int]` is not an
+        // `Iterable[object]`, so no cast covers it. Returns null when the
+        // value is not enumerable.
+        _try_get_enumerator(value: object) -> object? is
+            let get_enumerator = value.get_type().get_method("GetEnumerator");
 
-        let count mut = 0;
-
-        while cast bool(move_next.invoke(enumerator, null) ?? false) do
-            if count >= _max_elements then
-                into.append(", ...");
-
-                break;
+            if !get_enumerator? then
+                return null;
             fi
 
-            if count > 0 then
-                into.append(", ");
+            return get_enumerator.invoke(value, null);
+        si
+
+        // Returns false, having appended nothing, when the enumerator
+        // cannot be driven - an explicit interface implementation leaves
+        // no public `MoveNext` or `Current` to find. The caller then falls
+        // back to the value's own `to_string()`, rather than showing it as
+        // empty when all that is really known is that it could not be
+        // read.
+        _append_reflected(enumerator: object) -> bool is
+            let enumerator_type = enumerator.get_type();
+            let move_next = enumerator_type.get_method("MoveNext");
+            let current = enumerator_type.get_property("Current");
+
+            if !move_next? \/ !current? then
+                return false;
             fi
 
-            into.append(_render(current.get_value(enumerator), open));
+            append('[');
 
-            count = count + 1;
-        od
+            let count mut = 0;
 
-        into.append(']');
+            while cast bool(move_next.invoke(enumerator, null) ?? false) do
+                if count >= _max_elements then
+                    append(", ...");
 
-        return true;
+                    break;
+                fi
+
+                if count > 0 then
+                    append(", ");
+                fi
+
+                render(current.get_value(enumerator));
+
+                count = count + 1;
+            od
+
+            append(']');
+
+            return true;
+        si
     si
 si
