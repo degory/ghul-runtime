@@ -35,33 +35,6 @@
            Text="OutputType '$(OutputType)' is not supported by the ghūl compiler. Use Library, Exe or WinExe, or set GhulLibrary to true or false to choose directly." />
 
     <ItemGroup>
-      <!-- runtime.win-x64.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-x64_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.linux-x64.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_linux-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime-linux_x64_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.linux-arm64.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_linux-arm64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_linux-arm64_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.linux-arm.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_linux-arm_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_linux-arm_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.win-x86.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_win-x86_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-x86_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.win-arm64.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_win-arm64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-arm64_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.linux-arm.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_win-arm_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_win-arm_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.osx-x64.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_osx-x64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_osx-x64_Microsoft_NETCore_ILAsm)'!=''" />
-
-      <!-- runtime.osx-arm64.Microsoft.NETCore.ILAsm -->
-      <ILAsmPackages Include="$(Pkgruntime_osx-arm64_Microsoft_NETCore_ILAsm)" Condition="'$(Pkgruntime_osx-arm64_Microsoft_NETCore_ILAsm)'!=''" />
-
       <AssemblyInfo Include="System.Reflection.AssemblyInformationalVersionAttribute" Condition="'$(Version)'!=''">
         <Parameter>$(Version)</Parameter>
       </AssemblyInfo>
@@ -105,14 +78,13 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <ILAsmPackagesParameter Condition="'@(ILAsmPackages)'!=''">--ilasm-packages "@(ILAsmPackages)"</ILAsmPackagesParameter>
       <VersionParameter Condition="'$(Version)'!=''">--version "$(Version)"</VersionParameter>
       <TargetFrameworkParameter Condition="'$(TargetFramework)'!=''">--target-framework "$(TargetFramework)"</TargetFrameworkParameter>
       <DebugParameter Condition="'$(DebugType)' != '' AND '$(DebugType.ToLower())' != 'none' AND '$(DebugSymbols)' != 'false'">--debug</DebugParameter>
       <GlobalNamespaceParameter Condition="'$(GhulGlobalNamespace)' != '' AND '$(GhulGlobalNamespace.ToLower())' == 'true'">--global-namespace</GlobalNamespaceParameter>
       <GhulCompiler Condition="'$(GhulCompiler)'==''">dotnet ghul-compiler</GhulCompiler>
       <LibraryParameter Condition="'$(GhulLibrary)' == 'true' OR ('$(GhulLibrary)' == '' AND '$(_GhulOutputKind)' == 'library')">--library</LibraryParameter>
-      <CommandLine>$(VersionParameter) $(ILAsmPackagesParameter) $(TargetFrameworkParameter) $(DebugParameter) $(LibraryParameter) $(GlobalNamespaceParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
+      <CommandLine>$(VersionParameter) $(TargetFrameworkParameter) $(DebugParameter) $(LibraryParameter) $(GlobalNamespaceParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20') @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
     </PropertyGroup>
     
     <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
