@@ -1,0 +1,17 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute the compiler emits on a member whose IL name
+    // differs from its ghūl-declared name — an override or interface
+    // implementation whose IL name is forced by the base or interface
+    // it satisfies (`ToString`, `MoveNext`, `Equals`, …). Carries the
+    // ghūl name, so the reflection-side name mapping can read it back
+    // directly instead of guessing one from the IL name — a guess that
+    // is wrong exactly here, since the IL name was never ghūl's own
+    // spelling to begin with. Compiler-emitted; not user-facing — user
+    // code never spells this name.
+    class GHUL_NAME_ATTRIBUTE(name: string public): Attribute is
+        init(..) is
+        si
+    si
+si
