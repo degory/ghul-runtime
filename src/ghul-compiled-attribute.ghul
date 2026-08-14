@@ -1,0 +1,15 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on every assembly it
+    // builds. Lets the reflection layer that imports a .NET assembly
+    // tell a ghūl-compiled one from an ordinary .NET assembly, so it
+    // can skip the camelCase-to-snake_case member-name conversion
+    // that .NET-authored members need but a ghūl-declared name
+    // already satisfies. Compiler-emitted; not user-facing — user
+    // code never spells this name.
+    class GHUL_COMPILED_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
