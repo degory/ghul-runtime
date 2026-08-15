@@ -90,5 +90,82 @@ namespace Tests is
             Assert.is_true(maybe.has_value);
             Assert.are_equal("Hello, World!", maybe.value);
         si
+
+        Maybe_NotInt_Value_ThrowsInvalidOperationException() is
+            @test()
+
+            let maybe = MAYBE[int]();
+
+            let caught_expected mut = false;
+
+            try
+                let result = maybe.value;
+
+            catch ex: System.InvalidOperationException
+                caught_expected = true;
+            yrt
+
+            Assert.is_true(caught_expected);
+        si
+
+        Maybe_NotInt_Unwrap_ThrowsInvalidOperationException() is
+            @test()
+
+            let maybe = MAYBE[int]();
+
+            let caught_expected mut = false;
+
+            try
+                let result = maybe.unwrap();
+
+            catch ex: System.InvalidOperationException
+                caught_expected = true;
+            yrt
+
+            Assert.is_true(caught_expected);
+        si
+
+        Maybe_Int_Unwrap_ReturnsValue() is
+            @test()
+
+            let maybe = MAYBE[int](42);
+
+            Assert.are_equal(42, maybe.unwrap());
+        si
+
+        Maybe_NotString_Value_ThrowsThroughTrait() is
+            @test()
+
+            let maybe: Maybe[string] = MAYBE[string]();
+
+            let caught_expected mut = false;
+
+            try
+                let result = maybe.value;
+
+            catch ex: System.InvalidOperationException
+                caught_expected = true;
+            yrt
+
+            Assert.is_true(caught_expected);
+        si
+
+        Maybe_Int_DestructuresPositionally() is
+            @test()
+
+            let (has_value, value) = MAYBE[int](42);
+
+            Assert.is_true(has_value);
+            Assert.are_equal(42, value);
+        si
+
+        Maybe_NotInt_DestructuresPositionally() is
+            @test()
+
+            let (has_value, value) = MAYBE[int]();
+
+            Assert.is_false(has_value);
+            Assert.are_equal(0, value);
+        si
     si
 si
