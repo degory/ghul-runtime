@@ -16,9 +16,7 @@ namespace Ghul.Pipes is
     // use `stream(initial, advance)` (see `stream.ghul`).
 
     pipe[T](source: Iterable[T]) -> Pipe[T] pure is
-        if !source? then
-            return null;
-        elif isa Pipe[T](source) then
+        if isa Pipe[T](source) then
             return cast Pipe[T](source);
         else
             return ADAPTOR_PIPE[T](source);
@@ -27,9 +25,7 @@ namespace Ghul.Pipes is
 
     class Factory is
         from[T](source: Iterable[T]) -> Pipe[T] pure static is
-            if !source? then
-                return null;
-            elif isa Pipe[T](source) then
+            if isa Pipe[T](source) then
                 return cast Pipe[T](source);
             else
                 return ADAPTOR_PIPE[T](source);

@@ -78,10 +78,6 @@ namespace Ghul.Pipes is
     // `YIELD(value, next_state)` (which the `||` infix produces) to
     // yield a value and advance.
     stream[T, S](initial: S, advance: S -> STREAM[T, S]) -> Pipe[T] is
-        if !advance? then
-            return null;
-        fi
-
         return STREAM_PIPE[T, S](initial, advance);
     si
 si
