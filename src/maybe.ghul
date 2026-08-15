@@ -5,23 +5,36 @@ namespace Ghul is
     si
 
     struct MAYBE[T]: Maybe[T] is
-        `0: bool;
-        `1: T;
+        _has_value: bool;
+        _value: T;
 
-        has_value: bool pure => `0;
-        value: T pure => `1;
+        has_value: bool pure => _has_value;
+
+        unwrap() -> T pure =>
+            if _has_value then
+                _value
+            else
+                throw System.InvalidOperationException("maybe has no value");
+            fi;
+
+        value: T pure => unwrap();
+
+        deconstruct(has_value: bool ref, value: T ref) is
+            has_value! = _has_value;
+            value! = _value;
+        si
 
         init() pure is
         si
 
         init(value: T) pure is
-            `0 = true;
-            `1 = value;
+            _has_value = true;
+            _value = value;
         si
 
         to_string() -> string =>
-            if has_value then
-                "{value}";
+            if _has_value then
+                "{_value}";
             else
                 "none";
             fi;
