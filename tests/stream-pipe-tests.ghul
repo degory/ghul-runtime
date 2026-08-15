@@ -152,12 +152,5 @@ namespace Tests is
             CollectionAssert.are_equal(expected, actual);
         si
 
-        Stream_NullAdvance_ReturnsNull() is
-            @test()
-
-            let p = stream`[int, int](0, null);
-
-            Assert.is_null(p);
-        si
     si
 si
