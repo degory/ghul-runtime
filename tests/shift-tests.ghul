@@ -1,0 +1,52 @@
+namespace Tests is
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    // The shift intrinsics, which reach an opcode directly rather than a
+    // method body, so nothing else asserts what they lower to.
+    //
+    // A right shift on an unsigned type has to reach the unsigned opcode:
+    // the signed one propagates the sign bit, which returns a wrong value
+    // rather than failing, so it is invisible without a test like this.
+    class ShiftShould is
+        @test()
+            init() is
+        si
+
+        RightShift_Unsigned_DoesNotPropagateTheSignBit() is
+            @test()
+
+            Assert.are_equal(0x0FFFFFFFu, 0xFFFFFFFFu >> 4);
+            Assert.are_equal(0x0FFFFFFFFFFFFFFFul, 0xFFFFFFFFFFFFFFFFul >> 4);
+            Assert.are_equal(0x0Fus, 0xFFus >> 4);
+        si
+
+        RightShift_Signed_PropagatesTheSignBit() is
+            @test()
+
+            Assert.are_equal(-4, -16 >> 2);
+            Assert.are_equal(-4l, -16l >> 2);
+        si
+
+        UnsignedRightShift_Signed_DoesNotPropagateTheSignBit() is
+            @test()
+
+            Assert.are_equal(1073741820, -16 >>> 2);
+            Assert.are_equal(4611686018427387900l, -16l >>> 2);
+        si
+
+        UnsignedRightShift_Unsigned_MatchesRightShift() is
+            @test()
+
+            Assert.are_equal(0xFFFFFFFFu >> 4, 0xFFFFFFFFu >>> 4);
+        si
+
+        LeftShift_TakesAnIntCount() is
+            @test()
+
+            Assert.are_equal(64u, 4u << 4);
+            Assert.are_equal(64l, 4l << 4);
+            Assert.are_equal(64, 4 << 4);
+        si
+    si
+si
