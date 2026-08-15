@@ -10,14 +10,12 @@ namespace Ghul is
 
         has_value: bool pure => _has_value;
 
-        unwrap() -> T pure =>
+        value: T pure =>
             if _has_value then
                 _value
             else
                 throw System.InvalidOperationException("maybe has no value");
             fi;
-
-        value: T pure => unwrap();
 
         deconstruct(has_value: bool ref, value: T ref) is
             has_value! = _has_value;
