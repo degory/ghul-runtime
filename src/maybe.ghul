@@ -1,5 +1,7 @@
 namespace Ghul is
-    trait Maybe[T] is
+    // Open because a type declares itself option-shaped by implementing
+    // this, which downstream assemblies have to be able to do.
+    trait Maybe[T] open is
         has_value: bool;
         value: T;
     si

@@ -39,7 +39,9 @@ namespace Ghul is
     // already being rendered further up; a fresh call to `$` starts with
     // neither, so a child rendered that way escapes both the element
     // limit and the cycle check.
-    trait Displayable is
+    // Open because a type controls how it is rendered by implementing
+    // this, which downstream assemblies have to be able to do.
+    trait Displayable open is
         display(state: DISPLAY_STATE);
     si
 
