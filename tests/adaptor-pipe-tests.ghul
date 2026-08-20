@@ -8,6 +8,8 @@ namespace Tests is
     use Microsoft.VisualStudio.TestTools.UnitTesting;
 
     use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
 
     empty[T]() -> T[] => System.Array.empty`[T]();
 
@@ -23,42 +25,37 @@ namespace Tests is
         CollectionAssert.are_equal(expected_elements, actual_elements);
     si
         
+    @TestClass()
     class ADAPTOR_PIPEShould is
-        @test()
-   
         init() is
         si
 
+        @Test()
         Pipe_FromArray_ReturnsInstanceOfADAPTOR_PIPE() is
-            @test()
-
             let pipe = Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5]);
 
-            Assert.is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int]);
+            is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int]);
         si
 
+        @Test()
         Count_NonEmptyArray_ReturnsElementCount() is
-            @test()
-
             let pipe = ADAPTOR_PIPE[int]([1, 2, 3, 4, 5]);
 
-            Assert.are_equal(5, pipe.count());
+            are_equal(5, pipe.count());
         si
 
+        @Test()
         Count_EmptyArray_ReturnsZero() is
-            @test()
-
             let pipe = ADAPTOR_PIPE[int](empty`[int]());
 
-            Assert.are_equal(0, pipe.count());
+            are_equal(0, pipe.count());
         si
 
         // If the collection is a MutableBag (ICollection) then the count method should
         // call the Count method of the collection, rather than iterating over
         // the collection to count the elements.
+        @Test()
         Count_MutableBag_CallsMutableBagCount() is
-            @test()
-
             let collection = Substitute.`for`[MutableBag[int]](empty`[object]());
 
             returns(collection.iterator, [1, 2, 3, 4].iterator, null);
@@ -74,9 +71,8 @@ namespace Tests is
         // If the collection is a MutableBag (IReadOnlyCollection) then the count
         // method should call the Count method of the collection, rather than
         // iterating over the collection to count the elements.
+        @Test()
         Count_Bag_CallsBagCount() is
-            @test()
-
             let collection = Substitute.`for`[MutableBag[int]](empty`[object]());
 
             returns(collection.iterator, [1, 2, 3, 4].iterator, null);
@@ -89,17 +85,15 @@ namespace Tests is
             let actual = received(collection, 1).count;
         si
 
+        @Test()
         Iterator_ReturnsSelf() is
-            @test()
-
             let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
 
-            Assert.are_same(pipe, pipe.iterator);
+            are_same(pipe, pipe.iterator);
         si
         
+        @Test()
         Iterator_ReturnsCorrectElements() is
-            @test()
-
             let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
 
             assert_are_equal(

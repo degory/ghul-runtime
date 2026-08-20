@@ -10,92 +10,85 @@ namespace Tests is
     use Microsoft.VisualStudio.TestTools.UnitTesting;
 
     use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
 
+    @TestClass()
     class PipeOperatorShould is
-        @test()
-
         init() is
         si
 
         // same as all the other pipe tests (see PipeShould), but using the pipe operator
 
+        @Test()
         Pipe_SkipThenFirst_ReturnsCorrectElement() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .skip(5)
                     .first();
 
-            Assert.are_equal(MAYBE[int](6), result);
+            are_equal(MAYBE[int](6), result);
         si
 
+        @Test()
         Pipe_TakeThenFirst_ReturnsFirstElement() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .take(5)
                     .first();
 
-            Assert.are_equal(MAYBE[int](1), result);
+            are_equal(MAYBE[int](1), result);
         si
 
+        @Test()
         Pipe_FirstEmptySequence_ReturnsMaybeNot() is
-            @test()
-
             let result = 
                 empty[int]() |
                     .first();
 
-            Assert.are_equal(MAYBE[int](), result);
+            are_equal(MAYBE[int](), result);
         si
 
+        @Test()
         Pipe_FindEmptySequence_ReturnsMaybeNot() is
-            @test()
-
             let result = 
                 empty[int]() | 
                     .find(i => i > 10);
 
-            Assert.are_equal(MAYBE[int](), result);
+            are_equal(MAYBE[int](), result);
         si
 
+        @Test()
         Pipe_FindNonEmptySequenceButNoMatch_ReturnsMaybeNot() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .find(i => i == 10);
 
-            Assert.are_equal(MAYBE[int](), result);
+            are_equal(MAYBE[int](), result);
         si
 
+        @Test()
         Pipe_FindSingleMatchingElement_ReturnsThatElement() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .find(i => i == 4);
 
-            Assert.are_equal(MAYBE[int](4), result);
+            are_equal(MAYBE[int](4), result);
         si
 
+        @Test()
         Pipe_FindMultipleMatchingElement_ReturnsFirstMatchingElement() is
-            @test()
-
             let array = [THING(1), THING(2), THING(3), THING(4), THING(3), THING(2), THING(3), THING(8), THING(9)];
 
             let result = 
                 array |
                     .find(t => t.key == 3);
 
-            Assert.are_equal(MAYBE[THING](array[2]), result);
+            are_equal(MAYBE[THING](array[2]), result);
         si
 
+        @Test()
         Pipe_FindOrThrowEmptySequence_ThrowsInvalidOperationException() is
-            @test()
-
             let caught_expected mut = false;
 
             try
@@ -107,12 +100,11 @@ namespace Tests is
                 caught_expected = true;
             yrt
             
-            Assert.is_true(caught_expected);
+            is_true(caught_expected);
         si
 
+        @Test()
         Pipe_FindOrThrowNonEmptySequenceButNoMatch_ThrowsInvalidOperationException() is
-            @test()
-
             let caught_expected mut = false;
 
             try
@@ -124,74 +116,67 @@ namespace Tests is
                 caught_expected = true;
             yrt
             
-            Assert.is_true(caught_expected);
+            is_true(caught_expected);
         si
 
+        @Test()
         Pipe_FindOrThrowSingleMatchingElement_ReturnsThatElement() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .find(i => i == 4);
 
-            Assert.are_equal(MAYBE[int](4), result);
+            are_equal(MAYBE[int](4), result);
         si
 
+        @Test()
         Pipe_FindOrThrowMultipleMatchingElement_ReturnsFirstMatchingElement() is
-            @test()
-
             let array = [THING(1), THING(2), THING(3), THING(4), THING(3), THING(2), THING(3), THING(8), THING(9)];
 
             let result = 
                 array |
                     .find(t => t.key == 3);
 
-            Assert.are_equal(MAYBE[THING](array[2]), result);
+            are_equal(MAYBE[THING](array[2]), result);
         si
 
+        @Test()
         Pipe_AnyNoElements_ReturnsFalse() is
-            @test()
-
             let result = 
                 empty[int]() | 
                     .any(i => i == 4);
 
-            Assert.is_false(result);
+            is_false(result);
         si
 
+        @Test()
         Pipe_AnySomeElementsButNoneMatch_ReturnsFalse() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .any(i => i == 99);
 
-            Assert.is_false(result);
+            is_false(result);
         si
 
+        @Test()
         Pipe_AnySomeElementsOneMatches_ReturnsTrue() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .any(i => i == 4);
 
-            Assert.is_true(result);
+            is_true(result);
         si
 
+        @Test()
         Pipe_AnySomeElementsMultipleMatches_ReturnsTrue() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
                     .any(i => i > 4);
 
-            Assert.is_true(result);
+            is_true(result);
         si
 
+        @Test()
         Pipe_SkipThenFilter_ReturnsFilteredTailSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .skip(5)
@@ -200,9 +185,8 @@ namespace Tests is
             assert_are_equal([6, 8, 10], result);
         si
 
+        @Test()
         Pipe_FilterThenSkip_ReturnsFilteredTailSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .filter(i => (i & 1) == 0)
@@ -211,9 +195,8 @@ namespace Tests is
             assert_are_equal([4, 6, 8, 10], result);
         si
 
+        @Test()
         Pipe_SkipThenIndex_StartsIndexingFromZero() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .skip(4)
@@ -222,9 +205,8 @@ namespace Tests is
             assert_are_equal([iv(0, 5), iv(1, 6), iv(2, 7), iv(3, 8), iv(4, 9), iv(5, 10)], result);
         si
 
+        @Test()
         Pipe_IndexThenSkip_StartsIndexingFromCorrectOffset() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .index()
@@ -233,9 +215,8 @@ namespace Tests is
             assert_are_equal([iv(6, 7), iv(7, 8), iv(8, 9), iv(9, 10)], result);
         si
 
+        @Test()
         Pipe_TakeThenFilter_ReturnsFilteredHeadSequence() is
-            @test()
-
             let result =
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .take(5)
@@ -244,9 +225,8 @@ namespace Tests is
             assert_are_equal([2, 4], result);
         si
 
+        @Test()
         Pipe_FilterThenTake_ReturnsFilteredHeadSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .filter(i => (i & 1) == 0)
@@ -255,9 +235,8 @@ namespace Tests is
             assert_are_equal([2, 4, 6], result);
         si
 
+        @Test()
         Pipe_IndexThenFilter_RetainsOriginalIndexes() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .index()
@@ -266,9 +245,8 @@ namespace Tests is
             assert_are_equal([iv(0,1), iv(2,3), iv(4,5), iv(6,7), iv(8,9)], result);
         si
 
+        @Test()
         Pipe_FilterThenIndex_AppliesNewIndexes() is
-            @test()
-
             let result = 
                 [3, 4, 1, 5, 2, 3, 1, 4, 5] | 
                     .filter(i => i > 2)
@@ -277,9 +255,8 @@ namespace Tests is
             assert_are_equal([iv(0,3), iv(1,4), iv(2,5), iv(3,3), iv(4,4), iv(5,5)], result);
         si
 
+        @Test()
         Pipe_SkipThenMap_ReturnsMappedTailSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .skip(5)
@@ -288,9 +265,8 @@ namespace Tests is
             assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result);
         si
 
+        @Test()
         Pipe_MapThenSkip_ReturnsMappedTailSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .map(i => "X{i}")
@@ -299,9 +275,8 @@ namespace Tests is
             assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result);
         si
 
+        @Test()
         Pipe_TakeThenMap_ReturnsMappedHeadSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .take(4)
@@ -310,9 +285,8 @@ namespace Tests is
             assert_are_equal(["X1", "X2", "X3", "X4"], result);
         si
 
+        @Test()
         Pipe_MapThenTake_ReturnsMappedHeadSequence() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .map(i => "X{i}")
@@ -321,9 +295,8 @@ namespace Tests is
             assert_are_equal(["X1", "X2", "X3", "X4", "X5", "X6"], result);
         si
 
+        @Test()
         Pipe_TakeThenIndex_StartsIndexingFromZero() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .take(4)
@@ -332,9 +305,8 @@ namespace Tests is
             assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4)], result);
         si
 
+        @Test()
         Pipe_IndexThenTake_StartsIndexingFromZero() is
-            @test()
-
             let result =
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .index()
@@ -343,9 +315,8 @@ namespace Tests is
             assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4), iv(4, 5), iv(5, 6)], result);
         si
 
+        @Test()
         Pipe_FilterThenFilter_ReturnsOnlyElementsThatMatchBothPredicates() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
                     .filter(i => i > 3 /\ i < 9)
@@ -354,9 +325,8 @@ namespace Tests is
             assert_are_equal([4, 6, 8], result);
         si
 
+        @Test()
         Pipe_MapThenMap_AppliesBothFunctionsToEveryElementInCorrectOrder() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6] | 
                     .map(i => "{i}-first")
@@ -365,38 +335,34 @@ namespace Tests is
             assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result);
         si
 
+        @Test()
         Pipe_Running() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6] | 
                     .reduce(0, (running, element) => running + element);
 
-            Assert.are_equal(1 + 2 + 3 + 4 + 5 + 6, result);
+            are_equal(1 + 2 + 3 + 4 + 5 + 6, result);
         si
 
+        @Test()
         Pipe_Mapped_Running() is
-            @test()
-
             let result = 
                 [1, 2, 3, 4, 5, 6] | 
                     .reduce(0, (running, element) => running + element, total => "total: {total}");
 
-            Assert.are_equal("total: {1 + 2 + 3 + 4 + 5 + 6}", result);
+            are_equal("total: {1 + 2 + 3 + 4 + 5 + 6}", result);
         si
 
+        @Test()
         Sort_NoComparer_SortsInDefaultOrder() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] | .sort();
 
             assert_are_equal([1, 2, 3, 4, 5, 6], result);
         si
 
+        @Test()
         Sort_GivenComparer_SortsInComparerOrder() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] | 
                     .sort(ReverseIntComparer());
@@ -404,9 +370,8 @@ namespace Tests is
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
+        @Test()
         Sort_GivenCompareFunction_SortsInCompareFunctionOrder() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] |
                     .sort((x, y) => y - x);
@@ -414,9 +379,8 @@ namespace Tests is
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
+        @Test()
         Sort_CalledTwice_SortsInLastComparerOrder() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] | 
                     .sort()
@@ -425,9 +389,8 @@ namespace Tests is
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
+        @Test()
         Sort_EnumeratedTwice_ReturnsSameResultBothTimes() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] | 
                     .sort(ReverseIntComparer());
@@ -437,61 +400,55 @@ namespace Tests is
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
+        @Test()
         ToString_WithNoSeparatorArgument_ReturnsStringRepresentationOfAllElementsSeparatedWithACommaAndSpace() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] | 
                     .to_string();
 
-            Assert.are_equal("2, 1, 4, 3, 6, 5", result);
+            are_equal("2, 1, 4, 3, 6, 5", result);
         si
 
+        @Test()
         ToString_WithSeparatorArgument_ReturnsStringRepresentationOfAllElementsSeparatedWithThatSeparator() is
-            @test()
-
             let result = 
                 [2, 1, 4, 3, 6, 5] | 
                     .to_string("///");
 
-            Assert.are_equal("2///1///4///3///6///5", result);
+            are_equal("2///1///4///3///6///5", result);
         si
 
+        @Test()
         ToString_CalledTwice_ReturnsStringRepresentationOfAllElements() is
-            @test()
-
             let pipe = [2, 1, 4, 3, 6, 5] |;
 
             pipe.to_string();
 
             let result = pipe.to_string("\t");
 
-            Assert.are_equal("2\t1\t4\t3\t6\t5", result);
+            are_equal("2\t1\t4\t3\t6\t5", result);
         si
 
+        @Test()
         AppendTo_WithNoSeparatorArgument_AppendsStringRepresentationOfAllElementsSeparatedWithACommaAndSpace() is
-            @test()
-
             let result = StringBuilder("XX");
 
             [2, 1, 4, 3, 6, 5] | .append_to(result);
 
-            Assert.are_equal("XX2, 1, 4, 3, 6, 5", result.to_string());
+            are_equal("XX2, 1, 4, 3, 6, 5", result.to_string());
         si
 
+        @Test()
         AppendTo_WithSeparatorArgument_AppendsStringRepresentationOfAllElementsSeparatedWithThatSeparator() is
-            @test()
-
             let result = StringBuilder("XX");
 
             let pipe = [2, 1, 4, 3, 6, 5] | .append_to(result, "///");
 
-            Assert.are_equal("XX2///1///4///3///6///5", result.to_string());
+            are_equal("XX2///1///4///3///6///5", result.to_string());
         si
 
+        @Test()
         AppendTo_CalledTwice_AppendsStringRepresentationOfAllElementsTwice() is
-            @test()
-
             let result = StringBuilder("XX");
 
             let pipe = [2, 1, 4, 3, 6, 5] |;
@@ -502,7 +459,7 @@ namespace Tests is
 
             pipe.append_to(result, "_");
 
-            Assert.are_equal("XX2-1-4-3-6-5YY2_1_4_3_6_5", result.to_string());
+            are_equal("XX2-1-4-3-6-5YY2_1_4_3_6_5", result.to_string());
         si
     si    
 si
