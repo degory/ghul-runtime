@@ -9,91 +9,83 @@ namespace Tests is
     use Microsoft.VisualStudio.TestTools.UnitTesting;
 
     use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
 
+    @TestClass()
     class MaybeShould is
-        @test()
             init() is
         si
 
+        @Test()
         Maybe_NotInt_HasNoValue() is
-            @test()
-
             let maybe = MAYBE[int]();
 
-            Assert.is_false(maybe.has_value);
+            is_false(maybe.has_value);
         si
 
+        @Test()
         Maybe_Int_HasExpectedValue() is
-            @test()
-
             let maybe = MAYBE[int](42);
 
-            Assert.is_true(maybe.has_value);
-            Assert.are_equal(42, maybe.value);
+            is_true(maybe.has_value);
+            are_equal(42, maybe.value);
         si
         
+        @Test()
         Maybe_NotInt_HasExpectedStringRepresentation() is
-            @test()
-
             let maybe = MAYBE[int]();
 
-            Assert.are_equal("none", maybe.to_string());
+            are_equal("none", maybe.to_string());
         si
 
+        @Test()
         Maybe_Int_HasExpectedStringRepresentation() is
-            @test()
-
             let maybe = MAYBE[int](42);
 
-            Assert.are_equal("42", maybe.to_string());
+            are_equal("42", maybe.to_string());
         si
         
+        @Test()
         Maybe_NotString_HasNoValue() is
-            @test()
-
             let maybe = MAYBE[string]();
 
-            Assert.is_false(maybe.has_value);
+            is_false(maybe.has_value);
         si
         
+        @Test()
         Maybe_String_HasExpectedValue() is
-            @test()
-
             let maybe = MAYBE[string]("Hello, World!");
 
-            Assert.is_true(maybe.has_value);
-            Assert.are_equal("Hello, World!", maybe.value);
+            is_true(maybe.has_value);
+            are_equal("Hello, World!", maybe.value);
         si
 
+        @Test()
         Maybe_Int_ReadsValueThroughTrait() is
-            @test()
-
             let maybe: Maybe[int] = MAYBE[int](42);
 
-            Assert.is_true(maybe.has_value);
-            Assert.are_equal(42, maybe.value);
+            is_true(maybe.has_value);
+            are_equal(42, maybe.value);
         si
 
+        @Test()
         Maybe_NotInt_ReadsAbsenceThroughTrait() is
-            @test()
-
             let maybe: Maybe[int] = MAYBE[int]();
 
-            Assert.is_false(maybe.has_value);
+            is_false(maybe.has_value);
         si
 
+        @Test()
         Maybe_String_ReadsValueThroughTrait() is
-            @test()
-
             let maybe: Maybe[string] = MAYBE[string]("Hello, World!");
 
-            Assert.is_true(maybe.has_value);
-            Assert.are_equal("Hello, World!", maybe.value);
+            is_true(maybe.has_value);
+            are_equal("Hello, World!", maybe.value);
         si
 
+        @Test()
         Maybe_NotInt_Value_ThrowsInvalidOperationException() is
-            @test()
-
             let maybe = MAYBE[int]();
 
             let caught_expected mut = false;
@@ -105,12 +97,11 @@ namespace Tests is
                 caught_expected = true;
             yrt
 
-            Assert.is_true(caught_expected);
+            is_true(caught_expected);
         si
 
+        @Test()
         Maybe_NotString_Value_ThrowsThroughTrait() is
-            @test()
-
             let maybe: Maybe[string] = MAYBE[string]();
 
             let caught_expected mut = false;
@@ -122,25 +113,23 @@ namespace Tests is
                 caught_expected = true;
             yrt
 
-            Assert.is_true(caught_expected);
+            is_true(caught_expected);
         si
 
+        @Test()
         Maybe_Int_DestructuresPositionally() is
-            @test()
-
             let (has_value, value) = MAYBE[int](42);
 
-            Assert.is_true(has_value);
-            Assert.are_equal(42, value);
+            is_true(has_value);
+            are_equal(42, value);
         si
 
+        @Test()
         Maybe_NotInt_DestructuresPositionally() is
-            @test()
-
             let (has_value, value) = MAYBE[int]();
 
-            Assert.is_false(has_value);
-            Assert.are_equal(0, value);
+            is_false(has_value);
+            are_equal(0, value);
         si
     si
 si

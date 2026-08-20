@@ -1,6 +1,8 @@
 namespace Tests is
 
     use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
 
     // The shift intrinsics, which reach an opcode directly rather than a
     // method body, so nothing else asserts what they lower to.
@@ -8,18 +10,17 @@ namespace Tests is
     // A right shift on an unsigned type has to reach the unsigned opcode:
     // the signed one propagates the sign bit, which returns a wrong value
     // rather than failing, so it is invisible without a test like this.
+    @TestClass()
     class ShiftShould is
-        @test()
             init() is
         si
 
+        @Test()
         RightShift_Unsigned_DoesNotPropagateTheSignBit() is
-            @test()
-
-            Assert.are_equal(0x0Fub, 0xFFub >> 4);
-            Assert.are_equal(0x0FFFus, 0xFFFFus >> 4);
-            Assert.are_equal(0x0FFFFFFFu, 0xFFFFFFFFu >> 4);
-            Assert.are_equal(0x0FFFFFFFFFFFFFFFul, 0xFFFFFFFFFFFFFFFFul >> 4);
+            are_equal(0x0Fub, 0xFFub >> 4);
+            are_equal(0x0FFFus, 0xFFFFus >> 4);
+            are_equal(0x0FFFFFFFu, 0xFFFFFFFFu >> 4);
+            are_equal(0x0FFFFFFFFFFFFFFFul, 0xFFFFFFFFFFFFFFFFul >> 4);
         si
 
         // `word` and `uword` are pointer-sized, so a literal of every bit
@@ -27,54 +28,48 @@ namespace Tests is
         // whatever width the target uses, and shifting it right unsigned
         // has to clear the top bit - which is precisely what the signed
         // opcode fails to do, leaving the value unchanged.
+        @Test()
         RightShift_PointerSizedUnsigned_DoesNotPropagateTheSignBit() is
-            @test()
-
             let all_ones = \0uw;
 
-            Assert.are_not_equal(all_ones, all_ones >> 1);
-            Assert.is_true((all_ones >> 1) < all_ones);
+            are_not_equal(all_ones, all_ones >> 1);
+            is_true((all_ones >> 1) < all_ones);
         si
 
+        @Test()
         UnsignedRightShift_PointerSizedSigned_DoesNotPropagateTheSignBit() is
-            @test()
-
             let all_ones = \0w;
 
-            Assert.are_equal(-1w, all_ones);
-            Assert.is_true((all_ones >>> 1) > 0w);
+            are_equal(-1w, all_ones);
+            is_true((all_ones >>> 1) > 0w);
         si
 
+        @Test()
         RightShift_Signed_PropagatesTheSignBit() is
-            @test()
-
-            Assert.are_equal(-4b, -16b >> 2);
-            Assert.are_equal(-4s, -16s >> 2);
-            Assert.are_equal(-4, -16 >> 2);
-            Assert.are_equal(-4l, -16l >> 2);
+            are_equal(-4b, -16b >> 2);
+            are_equal(-4s, -16s >> 2);
+            are_equal(-4, -16 >> 2);
+            are_equal(-4l, -16l >> 2);
         si
 
+        @Test()
         UnsignedRightShift_Signed_DoesNotPropagateTheSignBit() is
-            @test()
-
-            Assert.are_equal(1073741820, -16 >>> 2);
-            Assert.are_equal(4611686018427387900l, -16l >>> 2);
-            Assert.is_true((-16s >>> 2) > 0s);
-            Assert.is_true((-16b >>> 2) > 0b);
+            are_equal(1073741820, -16 >>> 2);
+            are_equal(4611686018427387900l, -16l >>> 2);
+            is_true((-16s >>> 2) > 0s);
+            is_true((-16b >>> 2) > 0b);
         si
 
+        @Test()
         UnsignedRightShift_Unsigned_MatchesRightShift() is
-            @test()
-
-            Assert.are_equal(0xFFFFFFFFu >> 4, 0xFFFFFFFFu >>> 4);
+            are_equal(0xFFFFFFFFu >> 4, 0xFFFFFFFFu >>> 4);
         si
 
+        @Test()
         LeftShift_TakesAnIntCount() is
-            @test()
-
-            Assert.are_equal(64u, 4u << 4);
-            Assert.are_equal(64l, 4l << 4);
-            Assert.are_equal(64, 4 << 4);
+            are_equal(64u, 4u << 4);
+            are_equal(64l, 4l << 4);
+            are_equal(64, 4 << 4);
         si
     si
 si

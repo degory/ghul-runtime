@@ -4,32 +4,30 @@ namespace Tests is
     use Microsoft.VisualStudio.TestTools.UnitTesting;
 
     use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
 
     // Coverage for the free-function equivalents of Pipe[T]'s combinators
     // and terminals (see degory/ghul-runtime#134) - direct calls, |>
     // composition starting from a raw array (no pipe()/| wrap needed), and
     // that the free functions and the existing .method()/| surface agree.
+    @TestClass()
     class PipeFunctionsShould is
-        @test()
-
         init() is
         si
 
+        @Test()
         Filter_DirectCall_ReturnsMatchingElements() is
-            @test()
-
             assert_are_equal([2, 4], Ghul.Pipes.filter([1, 2, 3, 4, 5], i => i % 2 == 0));
         si
 
+        @Test()
         Map_DirectCall_ReturnsMappedElements() is
-            @test()
-
             assert_are_equal([2, 4, 6], Ghul.Pipes.map([1, 2, 3], i => i * 2));
         si
 
+        @Test()
         FilterThenMap_ChainedWithThreadFirst_MatchesMethodChainResult() is
-            @test()
-
             let source = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
             let via_thread_first =
@@ -40,68 +38,60 @@ namespace Tests is
             assert_are_equal(via_methods.collect_list(), via_thread_first);
         si
 
+        @Test()
         Min_ChainedWithThreadFirst_NoPipeWrapNeeded() is
-            @test()
-
             let result = [5, 3, 9, 1, 7] |> filter(i => i > 2) |> min();
 
-            Assert.are_equal(MAYBE[int](3), result);
+            are_equal(MAYBE[int](3), result);
         si
 
+        @Test()
         Max_ChainedWithThreadFirst_NoPipeWrapNeeded() is
-            @test()
-
             let result = [5, 3, 9, 1, 7] |> filter(i => i > 2) |> max();
 
-            Assert.are_equal(MAYBE[int](9), result);
+            are_equal(MAYBE[int](9), result);
         si
 
+        @Test()
         Min_EmptySource_ReturnsMaybeNot() is
-            @test()
-
             let result: int[] = [];
 
-            Assert.are_equal(MAYBE[int](), Ghul.Pipes.min(result));
+            are_equal(MAYBE[int](), Ghul.Pipes.min(result));
         si
 
+        @Test()
         CollectList_DirectCallOnArray_ReturnsSameElements() is
-            @test()
-
             let result = Ghul.Pipes.collect_list([1, 2, 3]);
 
-            Assert.are_equal(3, result.count);
+            are_equal(3, result.count);
             CollectionAssert.are_equal(LIST[int]([1, 2, 3]), result);
         si
 
+        @Test()
         Count_ThreadFirstChain_ReturnsElementCount() is
-            @test()
-
             let result = [1, 2, 3, 4, 5] |> filter(i => i % 2 == 0) |> count();
 
-            Assert.are_equal(2, result);
+            are_equal(2, result);
         si
 
+        @Test()
         Any_ThreadFirstChain_MatchesMethodResult() is
-            @test()
-
             let source = [1, 2, 3, 4, 5];
 
-            Assert.are_equal(
+            are_equal(
                 source | .any(i => i > 3),
                 source |> any(i => i > 3));
         si
 
+        @Test()
         Join_ThreadFirstChain_MatchesMethodResult() is
-            @test()
-
             let source = ["a", "b", "c"];
 
-            Assert.are_equal(source | .join("-"), source |> join("-"));
+            are_equal(source | .join("-"), source |> join("-"));
         si
 
+        @Test()
         FreeFunctionOnExistingPipe_MatchesMethodResult() is
-            @test()
-
             let pipe1 = Pipes.Factory.from`[int]([1, 2, 3, 4, 5]);
             let pipe2 = Pipes.Factory.from`[int]([1, 2, 3, 4, 5]);
 
@@ -111,9 +101,8 @@ namespace Tests is
             CollectionAssert.are_equal(via_method, via_function);
         si
 
+        @Test()
         SortBy_ThreadFirstChain_ReturnsAscendingByKey() is
-            @test()
-
             let source = ["ccc", "a", "bb"];
 
             let result = source |> sort_by(s => s.length) |> collect_list();
@@ -121,28 +110,25 @@ namespace Tests is
             CollectionAssert.are_equal(LIST[string](["a", "bb", "ccc"]), result);
         si
 
+        @Test()
         Sort_ThreadFirstChain_ReturnsAscending() is
-            @test()
-
             let result = [2, 1, 4, 3] |> sort() |> collect_list();
 
             CollectionAssert.are_equal(LIST[int]([1, 2, 3, 4]), result);
         si
 
+        @Test()
         SortDescending_ThreadFirstChain_ReturnsDescending() is
-            @test()
-
             let result = [2, 1, 4, 3] |> sort_descending() |> collect_list();
 
             CollectionAssert.are_equal(LIST[int]([4, 3, 2, 1]), result);
         si
 
+        @Test()
         Reduce_ThreadFirstChain_AccumulatesElements() is
-            @test()
-
             let result = [1, 2, 3, 4] |> reduce(0, (acc, i) => acc + i);
 
-            Assert.are_equal(10, result);
+            are_equal(10, result);
         si
     si
 si
