@@ -1,0 +1,18 @@
+namespace Ghul.Internal is
+    use System;
+
+    // Marker attribute emitted by the compiler on the read accessor
+    // of a ghūl property declared `stable` — two adjacent reads of
+    // the property, with nothing between them, agree on presence and
+    // runtime type. The declaration is trusted, not verified, the
+    // same standing as `pure`: it lets facts narrowed through the
+    // property count as backed when the getter's body is not
+    // provably self-stable (a general memoiser, a cache). Read on
+    // cross-assembly import so an override of the property is held
+    // to the same contract. Compiler-emitted; not user-facing —
+    // user code never spells this name.
+    class STABLE_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
