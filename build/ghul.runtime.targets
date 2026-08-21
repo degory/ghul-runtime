@@ -147,8 +147,16 @@
       </AssemblyInfo>
     </ItemGroup>
 
+    <!-- MSBuild only parses its canonical diagnostic shape
+         (file(line,col,endLine,endCol): category code: text) - anything
+         else it logs as untyped message text, so errors surface as an
+         MSB3073 attributed to this targets file and warnings are never
+         counted. The flag is kept out of _GhulResolvedOptions on purpose:
+         it says how this Exec reports to MSBuild, not how the project
+         compiles, and GenerateGhulOptionsJson publishes those options to
+         analysis clients. -->
     <PropertyGroup>
-      <CommandLine>$(_GhulResolvedOptions) @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
+      <CommandLine>$(_GhulResolvedOptions) @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 --msbuild-diagnostics @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
     </PropertyGroup>
 
     <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
