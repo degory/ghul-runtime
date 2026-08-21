@@ -131,9 +131,12 @@
        the contents splits on lines instead, which is what the JSON parse was
        doing the hard way.
 
-       One argument per line, so that splitting on lines is enough and no
-       consumer has to deal with quoting. The compiler treats a newline as
-       argument whitespace exactly as it treats a space.
+       One option per line, and one reference per line, so that a consumer
+       reading the file gets the flags separated for it. A flag that takes a
+       value keeps it on the same line, quoted as the compiler expects, so a
+       consumer that wants the value still has to strip the quotes - a line is
+       one flag, not one argument. The compiler treats a newline as argument
+       whitespace exactly as it treats a space.
 
        Not wired into Build: a consumer opts in with
        `dotnet build -t:GenerateGhulResponseFile`, and passes
@@ -143,11 +146,21 @@
   <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
     <PropertyGroup>
       <GhulResponseFile Condition="'$(GhulResponseFile)' == ''">$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-$([System.Guid]::NewGuid()).rsp))</GhulResponseFile>
-      <_GhulResponseOptions>$(_GhulResolvedOptions.Trim())</_GhulResponseOptions>
     </PropertyGroup>
 
     <ItemGroup>
-      <_GhulResponseLine Include="$(_GhulResponseOptions)" Condition="'$(_GhulResponseOptions)' != ''" />
+      <_GhulResponseLine Include="$(VersionParameter)" Condition="'$(VersionParameter)' != ''" />
+      <_GhulResponseLine Include="$(TargetFrameworkParameter)" Condition="'$(TargetFrameworkParameter)' != ''" />
+      <_GhulResponseLine Include="$(DebugParameter)" Condition="'$(DebugParameter)' != ''" />
+      <_GhulResponseLine Include="$(LibraryParameter)" Condition="'$(LibraryParameter)' != ''" />
+      <_GhulResponseLine Include="$(GlobalNamespaceParameter)" Condition="'$(GlobalNamespaceParameter)' != ''" />
+      <_GhulResponseLine Include="$(UnderscoreAccessParameter)" Condition="'$(UnderscoreAccessParameter)' != ''" />
+      <_GhulResponseLine Include="$(NoWarnParameter)" Condition="'$(NoWarnParameter)' != ''" />
+      <_GhulResponseLine Include="$(WarnAsErrorParameter)" Condition="'$(WarnAsErrorParameter)' != ''" />
+      <_GhulResponseLine Include="$(WarnAsHintParameter)" Condition="'$(WarnAsHintParameter)' != ''" />
+      <_GhulResponseLine Include="$(WarnAsInfoParameter)" Condition="'$(WarnAsInfoParameter)' != ''" />
+      <_GhulResponseLine Include="$(GhulOptions)" Condition="'$(GhulOptions)' != ''" />
+      <_GhulResponseLine Include="@(GhulOptions)" />
       <_GhulResponseLine Include="@(_GhulReferenceArgument)" />
     </ItemGroup>
 
