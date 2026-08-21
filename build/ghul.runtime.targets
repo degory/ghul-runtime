@@ -24,6 +24,19 @@
     </Task>
   </UsingTask>
 
+  <!-- The reference assemblies, already in the `-a "<path>"` spelling the
+       compiler takes. Both the batch compile and the response file published
+       for analysis clients need exactly this list, so it is computed once
+       here rather than transformed separately in each. -->
+  <Target Name="_ComputeGhulReferenceArguments" DependsOnTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <_GhulReferenceArgument Include="@(ReferencePathWithRefAssemblies -> '-a &quot;%(FullPath)&quot;')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Superseded by GenerateGhulResponseFile. Kept so a client built against
+       an earlier runtime keeps working; remove once ghul-vsce, ghul-mcp and
+       the playground have all moved to the response file. -->
   <Target Name="GenerateAssembliesJson" DependsOnTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
       <QuotedAssemblies Include="@(ReferencePathWithRefAssemblies)">
@@ -36,7 +49,7 @@
 
     <WriteLinesToFile File=".assemblies.json" Lines="$(Assemblies)" Overwrite="true" Encoding="Utf-8" />
     <Message Importance="Low" Text="Updated .assemblies.json with referenced assemblies" />
-  </Target>  
+  </Target>
 
   <!-- Computes the compiler flags that come from typed MSBuild properties and
        items, fully resolved: conditions applied, properties evaluated. Shared
@@ -93,6 +106,8 @@
        GenerateAssembliesJson. Source files, the output path and reference
        assemblies are left out: a client already has GhulSources from the
        project's own items and reference assemblies from .assemblies.json. -->
+  <!-- Superseded by GenerateGhulResponseFile, and kept on the same terms as
+       GenerateAssembliesJson above. -->
   <Target Name="GenerateGhulOptionsJson" DependsOnTargets="_ComputeGhulCompilerOptions">
     <PropertyGroup>
       <_GhulOptionsJsonEscaped>$(_GhulResolvedOptions.Trim().Replace('\', '\\').Replace('"', '\"'))</_GhulOptionsJsonEscaped>
@@ -103,7 +118,44 @@
     <Message Importance="Low" Text="Updated .ghul-options.json with resolved compiler options" />
   </Target>
 
-  <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions">
+  <!-- Publishes everything a client needs to drive the compiler over this
+       project - the resolved options and the reference assemblies - as a
+       response file, in the same spelling the compiler takes on its command
+       line. It replaces the two JSON targets above, which published the same
+       two halves in a format nothing else speaks and every client had to
+       hand-parse.
+
+       A client can hand the file to the compiler as `@<path>` without reading
+       it: a response file may reference another, so the client writes only
+       its own flags and points at this one. A client that needs to inspect
+       the contents splits on lines instead, which is what the JSON parse was
+       doing the hard way.
+
+       One argument per line, so that splitting on lines is enough and no
+       consumer has to deal with quoting. The compiler treats a newline as
+       argument whitespace exactly as it treats a space.
+
+       Not wired into Build: a consumer opts in with
+       `dotnet build -t:GenerateGhulResponseFile`, and passes
+       GhulResponseFile to choose where it lands. The default is a fresh name
+       in the system temporary directory, so that concurrent builds of
+       different projects cannot collide. -->
+  <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
+    <PropertyGroup>
+      <GhulResponseFile Condition="'$(GhulResponseFile)' == ''">$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-$([System.Guid]::NewGuid()).rsp))</GhulResponseFile>
+      <_GhulResponseOptions>$(_GhulResolvedOptions.Trim())</_GhulResponseOptions>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_GhulResponseLine Include="$(_GhulResponseOptions)" Condition="'$(_GhulResponseOptions)' != ''" />
+      <_GhulResponseLine Include="@(_GhulReferenceArgument)" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="$(GhulResponseFile)" Lines="@(_GhulResponseLine)" Overwrite="true" Encoding="Utf-8" />
+    <Message Importance="Low" Text="Wrote $(GhulResponseFile) with the resolved compiler options and referenced assemblies" />
+  </Target>
+
+  <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
     <ItemGroup>
       <AssemblyInfo Include="System.Reflection.AssemblyInformationalVersionAttribute" Condition="'$(Version)'!=''">
         <Parameter>$(Version)</Parameter>
@@ -155,14 +207,29 @@
          it says how this Exec reports to MSBuild, not how the project
          compiles, and GenerateGhulOptionsJson publishes those options to
          analysis clients. -->
+    <!-- A fresh name in the system temporary directory, so that builds of
+         different projects running at once cannot collide on it, and so that
+         one left behind by a killed build is somewhere the system reclaims
+         rather than in the source tree. Concurrent builds of the same project
+         are not supported and this does not attempt to make them so. -->
     <PropertyGroup>
-      <CommandLine>$(_GhulResolvedOptions) @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 --msbuild-diagnostics @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(ReferencePathWithRefAssemblies -> '-a "%(fullpath)"', '%20')</CommandLine>
+      <_GhulBuildResponseFile>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-build-$([System.Guid]::NewGuid()).rsp))</_GhulBuildResponseFile>
+      <CommandLine>$(_GhulResolvedOptions) @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 --msbuild-diagnostics @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(_GhulReferenceArgument, '%20')</CommandLine>
     </PropertyGroup>
 
     <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
 
-    <WriteLinesToFile File=".build.rsp" Lines="$(CommandLine)" Overwrite="true" Encoding="Utf-8" />
-    <Exec Command="$(GhulCompiler) @.build.rsp" />
-    <Delete Files=".build.rsp" />
+    <WriteLinesToFile File="$(_GhulBuildResponseFile)" Lines="$(CommandLine)" Overwrite="true" Encoding="Utf-8" />
+    <Exec Command="$(GhulCompiler) @&quot;$(_GhulBuildResponseFile)&quot;" />
+    <Delete Files="$(_GhulBuildResponseFile)" />
+
+    <!-- Exec stops the target on a failed compile, so the Delete above only
+         covers the success path. Without this the response file of every
+         failed build is left behind. -->
+    <OnError ExecuteTargets="_DeleteGhulBuildResponseFile" />
+  </Target>
+
+  <Target Name="_DeleteGhulBuildResponseFile">
+    <Delete Files="$(_GhulBuildResponseFile)" />
   </Target>
 </Project>
