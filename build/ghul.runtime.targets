@@ -24,6 +24,30 @@
     </Task>
   </UsingTask>
 
+  <!-- The glob patterns this project's ghūl sources are found by, semicolon
+       separated, as written rather than as expanded. A project that sets
+       GhulSourceGlobs gets its GhulSources item built from it here, so the
+       two cannot disagree.
+
+       It exists because MSBuild keeps nothing of an item's original Include
+       once it has expanded a glob - %(RecursiveDir) holds only the part the
+       `**` matched, and a literal include is indistinguishable from a pattern
+       - while a tool that watches the filesystem for sources appearing needs
+       the pattern, not the files that happened to match when the build ran.
+       GenerateGhulResponseFile publishes whatever is here, unexpanded, for
+       such a tool to read.
+
+       Declaring GhulSources items directly still works and still builds;
+       there is simply nothing for the build to publish in that case, and a
+       tool is left guessing at the pattern as it was before.
+
+       Declared here rather than in the .props: a package's .props is imported
+       before the project body, so a property the project itself sets would
+       not be visible yet. -->
+  <ItemGroup Condition="'$(GhulSourceGlobs)' != ''">
+    <GhulSources Include="$(GhulSourceGlobs)" />
+  </ItemGroup>
+
   <!-- The reference assemblies, already in the `-a "<path>"` spelling the
        compiler takes. Both the batch compile and the response file published
        for analysis clients need exactly this list, so it is computed once
@@ -142,7 +166,17 @@
        `dotnet build -t:GenerateGhulResponseFile`, and passes
        GhulResponseFile to choose where it lands. The default is a fresh name
        in the system temporary directory, so that concurrent builds of
-       different projects cannot collide. -->
+       different projects cannot collide.
+
+       Source files are not in it, and cannot be: the compiler does not expand
+       globs, so a client that watches the filesystem needs the patterns
+       rather than a list of what matched, and patterns in a response file
+       would reach the compiler as source paths that do not exist. A consumer
+       that wants them passes GhulSourceGlobsFile as well and gets them in a
+       file of their own, one per line, which is a list for a client to read
+       and not a response file to hand the compiler. Nothing is written there
+       when the project declares GhulSources items directly rather than
+       setting GhulSourceGlobs - there is no pattern left to publish. -->
   <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
     <PropertyGroup>
       <GhulResponseFile Condition="'$(GhulResponseFile)' == ''">$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-$([System.Guid]::NewGuid()).rsp))</GhulResponseFile>
@@ -166,6 +200,15 @@
 
     <WriteLinesToFile File="$(GhulResponseFile)" Lines="@(_GhulResponseLine)" Overwrite="true" Encoding="Utf-8" />
     <Message Importance="Low" Text="Wrote $(GhulResponseFile) with the resolved compiler options and referenced assemblies" />
+
+    <!-- The property goes to Lines directly. Routed through an ItemGroup it
+         would be globbed on the way, which is the one thing this file exists
+         not to do; as a task parameter it splits on the semicolons and the
+         patterns arrive as written, including any that match nothing yet. -->
+    <WriteLinesToFile Condition="'$(GhulSourceGlobsFile)' != '' AND '$(GhulSourceGlobs)' != ''"
+                      File="$(GhulSourceGlobsFile)" Lines="$(GhulSourceGlobs)" Overwrite="true" Encoding="Utf-8" />
+    <Message Importance="Low" Condition="'$(GhulSourceGlobsFile)' != '' AND '$(GhulSourceGlobs)' != ''"
+             Text="Wrote $(GhulSourceGlobsFile) with the source globs" />
   </Target>
 
   <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
