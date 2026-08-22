@@ -49,6 +49,13 @@
   <Target Name="_ComputeGhulSourceGlobs">
     <ItemGroup>
       <_GhulSourceDeclaringFile Include="@(GhulSources->'%(DefiningProjectFullPath)')" />
+
+      <!-- An item only exists once its glob has matched something, so a
+           project whose patterns match nothing yet - the freshly cloned one,
+           before anything generates into them - has none to ask. Its
+           declarations are in the project file, which is then the only place
+           there is to read. -->
+      <_GhulSourceDeclaringFile Include="$(MSBuildProjectFullPath)" Condition="'@(_GhulSourceDeclaringFile)' == ''" />
     </ItemGroup>
 
     <RemoveDuplicates Inputs="@(_GhulSourceDeclaringFile)">
@@ -64,8 +71,22 @@
     </XmlPeek>
 
     <RemoveDuplicates Inputs="@(_GhulSourceGlobFound)">
-      <Output TaskParameter="Filtered" ItemName="GhulSourceGlob" />
+      <Output TaskParameter="Filtered" ItemName="_GhulSourceGlobCandidate" />
     </RemoveDuplicates>
+
+    <!-- One declaration can carry several patterns - Include="a/**/x.ghul;b/**/x.ghul"
+         - and XmlPeek returns that whole attribute as one string. Joining the
+         strings into a property escapes the semicolons (%3B), so Unescape puts
+         them back before the write: handed to WriteLinesToFile as a property
+         with raw separators, the task parameter splits on them and each
+         pattern lands on its own line. Written from items instead, an
+         attribute would arrive as one line; expanded through an ItemGroup,
+         the patterns would arrive as files, which is what this exists not to
+         do. -->
+    <PropertyGroup>
+      <_GhulSourceGlobsRaw>@(_GhulSourceGlobCandidate)</_GhulSourceGlobsRaw>
+      <_GhulSourceGlobs Condition="'$(_GhulSourceGlobsRaw)' != ''">$([MSBuild]::Unescape('$(_GhulSourceGlobsRaw)'))</_GhulSourceGlobs>
+    </PropertyGroup>
   </Target>
 
   <!-- The reference assemblies, already in the `-a "<path>"` spelling the
@@ -218,10 +239,10 @@
     <WriteLinesToFile File="$(GhulResponseFile)" Lines="@(_GhulResponseLine)" Overwrite="true" Encoding="Utf-8" />
     <Message Importance="Low" Text="Wrote $(GhulResponseFile) with the resolved compiler options and referenced assemblies" />
 
-    <WriteLinesToFile Condition="'$(GhulSourceGlobsFile)' != ''"
-                      File="$(GhulSourceGlobsFile)" Lines="@(GhulSourceGlob)" Overwrite="true" Encoding="Utf-8" />
-    <Message Importance="Low" Condition="'$(GhulSourceGlobsFile)' != ''"
-             Text="Wrote $(GhulSourceGlobsFile) with the source globs: @(GhulSourceGlob)" />
+    <WriteLinesToFile Condition="'$(GhulSourceGlobsFile)' != '' AND '$(_GhulSourceGlobs)' != ''"
+                      File="$(GhulSourceGlobsFile)" Lines="$(_GhulSourceGlobs)" Overwrite="true" Encoding="Utf-8" />
+    <Message Importance="Low" Condition="'$(GhulSourceGlobsFile)' != '' AND '$(_GhulSourceGlobs)' != ''"
+             Text="Wrote $(GhulSourceGlobsFile) with the source globs: $(_GhulSourceGlobs)" />
   </Target>
 
   <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
