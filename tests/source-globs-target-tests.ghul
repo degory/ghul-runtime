@@ -1,0 +1,168 @@
+namespace Tests is
+
+    use Collections;
+    use System.Exception;
+    use System.Diagnostics.Process;
+    use System.Diagnostics.ProcessStartInfo;
+    use System.Reflection.Assembly;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+
+    use IO.Directory;
+    use IO.File;
+    use IO.Path;
+
+    // The source-globs publication in build/ghul.runtime.targets: what a
+    // consumer of GhulSourceGlobsFile gets for each way GhulSources can be
+    // declared. Driven end to end through dotnet msbuild against fixture
+    // projects written into a temporary directory, importing this repo's own
+    // targets file by absolute path, so the target under test is exactly the
+    // one in the working tree and no package resolution is involved.
+    @TestClass()
+    class SourceGlobsTargetShould is
+        init() is
+        si
+
+        // <repo>/build/ghul.runtime.targets, found by walking up from the test
+        // assembly to the checkout root.
+        repo_targets_path() -> string is
+            let dir mut = Path.get_directory_name(Assembly.get_executing_assembly().location);
+
+            while let d: string = dir do
+                let candidate = Path.combine(d, "build/ghul.runtime.targets");
+
+                if File.exists(candidate) then
+                    return candidate;
+                fi
+
+                dir = Path.get_directory_name(d);
+            od
+
+            throw Exception("could not find build/ghul.runtime.targets above the test assembly");
+        si
+
+        // A project declaring src/**/*.ghul (which matches the file written
+        // beside it) and, in a shared Directory.Build.props, generated/*.ghul
+        // (which matches nothing yet). Both must be published: the props
+        // declaration names itself nowhere in any evaluated item, so it is
+        // the case that motivated reading the XML back at all.
+        write_mixed_fixture(directory: string) is
+            Directory.create_directory(directory);
+            Directory.create_directory(Path.combine(directory, "src"));
+
+            File.write_all_text(Path.combine(directory, "src/main.ghul"), "entry() is si");
+
+            File.write_all_text(Path.combine(directory, "Directory.Build.props"),
+                "<Project><ItemGroup><GhulSources Include=\"generated/*.ghul\" /></ItemGroup></Project>");
+
+            File.write_all_text(Path.combine(directory, "p.ghulproj"),
+                "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup>"
+                "<EnableDefaultCompileItems>false</EnableDefaultCompileItems>"
+                "<TargetFramework>net10.0</TargetFramework></PropertyGroup>"
+                "<ItemGroup><GhulSources Include=\"src/**/*.ghul\" /></ItemGroup>"
+                "<Import Project=\"{repo_targets_path()}\" /></Project>");
+        si
+
+        // A project whose every pattern matches nothing yet, both patterns in
+        // one declaration - the fresh-clone shape.
+        write_fresh_clone_fixture(directory: string) is
+            Directory.create_directory(directory);
+            Directory.create_directory(Path.combine(directory, ".config"));
+
+            File.write_all_text(Path.combine(directory, "p.ghulproj"),
+                "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup>"
+                "<EnableDefaultCompileItems>false</EnableDefaultCompileItems>"
+                "<TargetFramework>net10.0</TargetFramework></PropertyGroup>"
+                "<ItemGroup><GhulSources Include=\"src/**/*.ghul;tools/**/*.ghul\" /></ItemGroup>"
+                "<Import Project=\"{repo_targets_path()}\" /></Project>");
+        si
+
+        // Run the response-file target over the fixture and return the
+        // published globs as a sorted list, so assertions do not couple to
+        // the order declarations happen to be read back in.
+        generate_and_read_globs(directory: string) -> LIST[string] is
+            let start_info = ProcessStartInfo();
+
+            start_info.file_name = "dotnet";
+            // -restore: the reference-resolution targets the response file
+            // depends on want a NuGet assets file, and the fixture has none
+            // until then. The fixture references no packages, so this is
+            // local work only.
+            start_info.arguments = "msbuild -restore p.ghulproj -t:GenerateGhulResponseFile "
+                "-p:GhulResponseFile=response.rsp -p:GhulSourceGlobsFile=globs.txt";
+            start_info.working_directory = directory;
+
+            start_info.use_shell_execute = false;
+            start_info.redirect_standard_output = true;
+            start_info.redirect_standard_error = true;
+
+            let process = Process.start(start_info);
+
+            assert process? else Exception("could not start dotnet msbuild");
+
+            let out = process.standard_output.read_to_end();
+            let err = process.standard_error.read_to_end();
+
+            assert process.wait_for_exit(120000) else
+                Exception("dotnet msbuild timed out:\n{out}\n{err}");
+
+            if process.exit_code != 0 then
+                throw Exception("dotnet msbuild failed with {process.exit_code}:\n{out}\n{err}");
+            fi
+
+            let globs_path = Path.combine(directory, "globs.txt");
+
+            if !File.exists(globs_path) then
+                throw Exception("no globs file was written:\n{out}\n{err}");
+            fi
+
+            let lines = LIST[string]();
+
+            for line in File.read_all_lines(globs_path) do
+                let trimmed = line.trim();
+
+                if trimmed.length > 0 then
+                    lines.add(trimmed);
+                fi
+            od
+
+            lines.sort();
+            return lines;
+        si
+
+        @Test()
+        Mixed_Declarations_Across_Project_And_Props_Are_All_Published() is
+            let directory = Path.combine(Path.get_temp_path(), "ghul-globs-mixed-{System.Guid.new_guid()}");
+            write_mixed_fixture(directory);
+
+            try
+                let globs = generate_and_read_globs(directory);
+
+                are_equal[int](2, globs.count);
+                are_equal("generated/*.ghul", globs[0]);
+                are_equal("src/**/*.ghul", globs[1]);
+            finally
+                Directory.delete(directory, true);
+            yrt
+        si
+
+        @Test()
+        Fresh_Clone_Multi_Pattern_Attribute_Is_Split_One_Per_Line() is
+            let directory = Path.combine(Path.get_temp_path(), "ghul-globs-fresh-{System.Guid.new_guid()}");
+            write_fresh_clone_fixture(directory);
+
+            try
+                let globs = generate_and_read_globs(directory);
+
+                are_equal[int](2, globs.count);
+                are_equal("src/**/*.ghul", globs[0]);
+                are_equal("tools/**/*.ghul", globs[1]);
+            finally
+                Directory.delete(directory, true);
+            yrt
+        si
+    si
+si
