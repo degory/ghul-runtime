@@ -24,6 +24,75 @@
     </Task>
   </UsingTask>
 
+  <!-- This project's source globs, as written rather than as expanded.
+
+       A tool that watches the filesystem for sources appearing needs the
+       pattern, not the files that happened to match when the build ran, and
+       an expanded item cannot be turned back into one: %(RecursiveDir) holds
+       only the part the `**` matched, and a literal include is
+       indistinguishable from a pattern.
+
+       The text is still there in the XML that declared it, though, and this
+       target reads it back with XmlPeek - from wherever a matched item says
+       it came from, plus the .ghulproj and the shared Directory.Build.props,
+       whose unmatched declarations name themselves nowhere in any item. A
+       glob written in shared props is therefore found the same way as one in
+       the .ghulproj, the case a tool reading the .ghulproj alone misses
+       entirely, and a pattern matching nothing yet is found the same way as
+       one matching - which is exactly the pattern a watch is wanted on.
+
+       Conditional declarations are left out on purpose. XmlPeek reads XML
+       rather than evaluating it, so a Condition on the item or on its
+       ItemGroup cannot be honoured here - MSBuild expands a property inside a
+       peeked condition string but will not re-parse the result as an
+       expression - and publishing a glob the build had excluded would have a
+       tool analysing files the build does not compile. -->
+  <Target Name="_ComputeGhulSourceGlobs">
+    <!-- The files a declaration can live in: wherever an already-matched
+         item says it came from, plus, unconditionally, the .ghulproj and the
+         shared Directory.Build.props. An item exists only once its pattern
+         has matched something, so going by items alone drops exactly the
+         declaration a watcher most wants - the one matching nothing yet -
+         and it would drop a whole project's worth of them on a fresh clone.
+         MSBuildAllProjects cannot fill that gap here: it no longer lists
+         what the SDK imports. -->
+    <ItemGroup>
+      <_GhulProjectFileToPeek Include="@(GhulSources->'%(DefiningProjectFullPath)')" />
+      <_GhulProjectFileToPeek Include="$(MSBuildProjectFullPath)" />
+      <_GhulProjectFileToPeek Include="$(DirectoryBuildPropsPath)" Condition="'$(DirectoryBuildPropsPath)' != ''" />
+    </ItemGroup>
+
+    <RemoveDuplicates Inputs="@(_GhulProjectFileToPeek)">
+      <Output TaskParameter="Filtered" ItemName="_GhulProjectFileToPeekOnce" />
+    </RemoveDuplicates>
+
+    <!-- local-name() because a project file may or may not carry the old
+         MSBuild namespace, and both spellings declare the same item. -->
+    <XmlPeek XmlInputPath="%(_GhulProjectFileToPeekOnce.Identity)"
+             Query="/*[local-name()='Project']/*[local-name()='ItemGroup' and not(@Condition)]/*[local-name()='GhulSources' and not(@Condition)]/@Include"
+             Condition="'@(_GhulProjectFileToPeekOnce)' != ''">
+      <Output TaskParameter="Result" ItemName="_GhulSourceGlobFound" />
+    </XmlPeek>
+
+    <RemoveDuplicates Inputs="@(_GhulSourceGlobFound)">
+      <Output TaskParameter="Filtered" ItemName="_GhulSourceGlobCandidate" />
+    </RemoveDuplicates>
+
+    <!-- One declaration can carry several patterns - Include="a/**/x.ghul;b/**/x.ghul"
+         - and XmlPeek returns that whole attribute as one string. Joining the
+         strings into a property escapes the semicolons (%3B), so Unescape puts
+         them back before the write: handed to WriteLinesToFile as a property
+         with raw separators, the task parameter splits on them and each
+         pattern lands on its own line. Written from items instead, an
+         attribute would arrive as one line; expanded through an ItemGroup,
+         the patterns would arrive as files, which is what this exists not to
+         do. -->
+    <PropertyGroup>
+      <_GhulSourceGlobsRaw>@(_GhulSourceGlobCandidate)</_GhulSourceGlobsRaw>
+      <_GhulSourceGlobs Condition="'$(_GhulSourceGlobsRaw)' != ''">$([MSBuild]::Unescape('$(_GhulSourceGlobsRaw)'))</_GhulSourceGlobs>
+    </PropertyGroup>
+  </Target>
+
   <!-- The reference assemblies, already in the `-a "<path>"` spelling the
        compiler takes. Both the batch compile and the response file published
        for analysis clients need exactly this list, so it is computed once
@@ -142,8 +211,15 @@
        `dotnet build -t:GenerateGhulResponseFile`, and passes
        GhulResponseFile to choose where it lands. The default is a fresh name
        in the system temporary directory, so that concurrent builds of
-       different projects cannot collide. -->
-  <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
+       different projects cannot collide.
+
+       Source files are not in it, and cannot be: the compiler does not expand
+       globs, so a pattern here would reach it as a source path that does not
+       exist, while a consumer that watches the filesystem needs the pattern
+       rather than a list of what matched. A consumer that wants them passes
+       GhulSourceGlobsFile as well and gets them in a file of their own, one
+       per line - a list to read, not a response file to hand the compiler. -->
+  <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments;_ComputeGhulSourceGlobs">
     <PropertyGroup>
       <GhulResponseFile Condition="'$(GhulResponseFile)' == ''">$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-$([System.Guid]::NewGuid()).rsp))</GhulResponseFile>
     </PropertyGroup>
@@ -166,6 +242,11 @@
 
     <WriteLinesToFile File="$(GhulResponseFile)" Lines="@(_GhulResponseLine)" Overwrite="true" Encoding="Utf-8" />
     <Message Importance="Low" Text="Wrote $(GhulResponseFile) with the resolved compiler options and referenced assemblies" />
+
+    <WriteLinesToFile Condition="'$(GhulSourceGlobsFile)' != '' AND '$(_GhulSourceGlobs)' != ''"
+                      File="$(GhulSourceGlobsFile)" Lines="$(_GhulSourceGlobs)" Overwrite="true" Encoding="Utf-8" />
+    <Message Importance="Low" Condition="'$(GhulSourceGlobsFile)' != '' AND '$(_GhulSourceGlobs)' != ''"
+             Text="Wrote $(GhulSourceGlobsFile) with the source globs: $(_GhulSourceGlobs)" />
   </Target>
 
   <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
