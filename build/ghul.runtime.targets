@@ -32,13 +32,14 @@
        only the part the `**` matched, and a literal include is
        indistinguishable from a pattern.
 
-       The text is still there in the XML that declared it, though, and each
-       item says which file that was - which is how a glob written in a shared
-       Directory.Build.props is found, the case a tool reading the .ghulproj
-       alone misses entirely. So the declaring files are read back with
-       XmlPeek. Only files that contributed an item are visited, but every
-       GhulSources in such a file is picked up, including a pattern that
-       matches nothing yet, which is exactly the pattern a watch is wanted on.
+       The text is still there in the XML that declared it, though, and this
+       target reads it back with XmlPeek - from wherever a matched item says
+       it came from, plus the .ghulproj and the shared Directory.Build.props,
+       whose unmatched declarations name themselves nowhere in any item. A
+       glob written in shared props is therefore found the same way as one in
+       the .ghulproj, the case a tool reading the .ghulproj alone misses
+       entirely, and a pattern matching nothing yet is found the same way as
+       one matching - which is exactly the pattern a watch is wanted on.
 
        Conditional declarations are left out on purpose. XmlPeek reads XML
        rather than evaluating it, so a Condition on the item or on its
@@ -47,26 +48,29 @@
        expression - and publishing a glob the build had excluded would have a
        tool analysing files the build does not compile. -->
   <Target Name="_ComputeGhulSourceGlobs">
+    <!-- The files a declaration can live in: wherever an already-matched
+         item says it came from, plus, unconditionally, the .ghulproj and the
+         shared Directory.Build.props. An item exists only once its pattern
+         has matched something, so going by items alone drops exactly the
+         declaration a watcher most wants - the one matching nothing yet -
+         and it would drop a whole project's worth of them on a fresh clone.
+         MSBuildAllProjects cannot fill that gap here: it no longer lists
+         what the SDK imports. -->
     <ItemGroup>
-      <_GhulSourceDeclaringFile Include="@(GhulSources->'%(DefiningProjectFullPath)')" />
-
-      <!-- An item only exists once its glob has matched something, so a
-           project whose patterns match nothing yet - the freshly cloned one,
-           before anything generates into them - has none to ask. Its
-           declarations are in the project file, which is then the only place
-           there is to read. -->
-      <_GhulSourceDeclaringFile Include="$(MSBuildProjectFullPath)" Condition="'@(_GhulSourceDeclaringFile)' == ''" />
+      <_GhulProjectFileToPeek Include="@(GhulSources->'%(DefiningProjectFullPath)')" />
+      <_GhulProjectFileToPeek Include="$(MSBuildProjectFullPath)" />
+      <_GhulProjectFileToPeek Include="$(DirectoryBuildPropsPath)" Condition="'$(DirectoryBuildPropsPath)' != ''" />
     </ItemGroup>
 
-    <RemoveDuplicates Inputs="@(_GhulSourceDeclaringFile)">
-      <Output TaskParameter="Filtered" ItemName="_GhulSourceDeclaringFileOnce" />
+    <RemoveDuplicates Inputs="@(_GhulProjectFileToPeek)">
+      <Output TaskParameter="Filtered" ItemName="_GhulProjectFileToPeekOnce" />
     </RemoveDuplicates>
 
     <!-- local-name() because a project file may or may not carry the old
          MSBuild namespace, and both spellings declare the same item. -->
-    <XmlPeek XmlInputPath="%(_GhulSourceDeclaringFileOnce.Identity)"
+    <XmlPeek XmlInputPath="%(_GhulProjectFileToPeekOnce.Identity)"
              Query="/*[local-name()='Project']/*[local-name()='ItemGroup' and not(@Condition)]/*[local-name()='GhulSources' and not(@Condition)]/@Include"
-             Condition="'@(_GhulSourceDeclaringFileOnce)' != ''">
+             Condition="'@(_GhulProjectFileToPeekOnce)' != ''">
       <Output TaskParameter="Result" ItemName="_GhulSourceGlobFound" />
     </XmlPeek>
 
