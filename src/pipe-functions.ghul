@@ -482,4 +482,41 @@ namespace Ghul.Pipes is
 
     join[T](source: Iterable[T]) -> string pure =>
         join(source, ", ");
+
+    // A window onto part of an indexable source, taken with a range:
+    // `xs |> view(1..4)`. Nothing is copied, so the result is a view of the
+    // source rather than a snapshot of it - a later change to a mutable
+    // source shows through. `..` excludes its end and `::` includes it, as
+    // they do everywhere else.
+    //
+    // The result is a `List[T]`, so unlike a pipe it can be indexed,
+    // counted and iterated more than once, and it composes: a view of a
+    // view is another view of the same source.
+    //
+    // Source is `List[T]` rather than `Iterable[T]` - a window needs to
+    // index its source, not just walk it - so anything indexable can be
+    // viewed: an array, a `LIST[T]`, an `ArraySegment[T]`, an immutable
+    // collection, or another view. An array is handed to `ArraySegment[T]`,
+    // which is the same window in the shape .NET already understands.
+
+    view[T](source: T[], r: INT_RANGE) -> List[T] pure =>
+        System.ArraySegment[T](source, r.from, r.to - r.from);
+
+    view[T](source: T[], r: INT_RANGE_INCLUSIVE) -> List[T] pure =>
+        System.ArraySegment[T](source, r.from, r.to - r.from + 1);
+
+    view[T](source: List[T], r: INT_RANGE) -> List[T] pure =>
+        LIST_VIEW[T](source, r.from, r.to - r.from);
+
+    view[T](source: List[T], r: INT_RANGE_INCLUSIVE) -> List[T] pure =>
+        LIST_VIEW[T](source, r.from, r.to - r.from + 1);
+
+    // `string` is not a `List[char]`, so it takes its own overload, and
+    // returns a string rather than a view: a substring is what a caller
+    // wants back, and .NET has no non-copying one to hand out.
+    view(source: string, r: INT_RANGE) -> string pure =>
+        source.substring(r.from, r.to - r.from);
+
+    view(source: string, r: INT_RANGE_INCLUSIVE) -> string pure =>
+        source.substring(r.from, r.to - r.from + 1);
 si
