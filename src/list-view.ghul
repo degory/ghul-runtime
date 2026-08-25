@@ -1,0 +1,70 @@
+namespace Ghul.Pipes is
+    use Collections;
+
+    // A window onto part of an indexable source. No elements are copied, so
+    // taking a view is constant time whatever the source's size, and a later
+    // change to the source shows through the view.
+    //
+    // Bounds are checked where the view is taken rather than at a later read,
+    // so an out-of-range window fails at the point the mistake was made.
+    class LIST_VIEW[T]: List[T] is
+        _source: List[T];
+        _from: int;
+        _count: int;
+
+        init(source: List[T], from: int, count: int) is
+            if from < 0 \/ count < 0 \/ from + count > source.count then
+                throw
+                    System.ArgumentOutOfRangeException(
+                        "from",
+                        "{from} for {count} is not within a source of {source.count}");
+            fi
+
+            _source = source;
+            _from = from;
+            _count = count;
+        si
+
+        [i: int]: T is
+            if i < 0 \/ i >= _count then
+                throw System.ArgumentOutOfRangeException("i", "{i} is not within a view of {_count}");
+            fi
+
+            return _source[_from + i];
+        si
+
+        count: int => _count;
+
+        iterator: Iterator[T] => LIST_VIEW_ITERATOR[T](_source, _from, _count);
+    si
+
+    class LIST_VIEW_ITERATOR[T]: Iterator[T] is
+        _source: List[T];
+        _from: int;
+        _count: int;
+        _index: int;
+
+        init(source: List[T], from: int, count: int) is
+            _source = source;
+            _from = from;
+            _count = count;
+
+            reset();
+        si
+
+        current: T => _source[_from + _index];
+
+        move_next() -> bool is
+            _index = _index + 1;
+
+            return _index < _count;
+        si
+
+        reset() is
+            _index = -1;
+        si
+
+        dispose() is
+        si
+    si
+si

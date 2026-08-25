@@ -11,6 +11,7 @@
 This package provides: 
 - internal types required by all [ghūl](https://ghul.dev) applications
 - support for the ghūl pipe operator and fluent methods on pipes, such as `filter`, `map` and `reduce`
+- `view`, which windows part of an array, list or string without copying it: `xs |> view(1..4)`
 - MSBuild targets needed to build ghūl projects
 
 ## Building a library or an executable
