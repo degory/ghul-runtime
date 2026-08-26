@@ -1,0 +1,109 @@
+namespace Tests is
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+
+    // Coverage for the range operators whose endpoints count back from the
+    // end: where each endpoint lands once resolved against a length, and
+    // that `<0` names the length so `a..<0` runs to the end.
+    //
+    // Every left operand here is a variable rather than a literal. A
+    // numeric literal followed by `..` takes a different path through the
+    // tokenizer, and which token that produces is the compiler's business
+    // rather than these operators' - it is covered there.
+    @TestClass()
+    class RangeOperatorsShould is
+        init() is
+        si
+
+        // The compiler resolves an index by a range through
+        // `Ghul.Pipes.view`, so a window is what these produce.
+        window(source: int[], r: System.Range) -> List[int] => source |> view(r);
+
+        @Test()
+        Exclusive_CountsTheEndBackFromTheEnd() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 1;
+
+            assert_elements([2, 3, 4], window(source, from..<1));
+        si
+
+        @Test()
+        Exclusive_ZeroFromTheEndRunsToTheEnd() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 1;
+
+            assert_elements([2, 3, 4, 5], window(source, from..<0));
+        si
+
+        @Test()
+        Inclusive_IncludesTheEndpointCountedBack() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 1;
+
+            assert_elements([2, 3, 4, 5], window(source, from::<1));
+        si
+
+        @Test()
+        BothCountedBack_TakesTheLastElements() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 3;
+
+            assert_elements([3, 4, 5], window(source, from..<<0));
+        si
+
+        @Test()
+        BothCountedBack_Inclusive_IncludesTheEndpoint() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 3;
+
+            assert_elements([3, 4], window(source, from::<<2));
+        si
+
+        @Test()
+        Inclusive_RunsThroughTheLastElement() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 3;
+
+            assert_elements([4, 5], window(source, from::<1));
+        si
+
+        @Test()
+        Inclusive_PastTheLastElement_IsRejected() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 1;
+
+            try
+                window(source, from::<0);
+
+                fail("should have thrown");
+            catch ex: System.ArgumentOutOfRangeException
+            yrt
+        si
+
+        @Test()
+        BothCountedBack_Inclusive_PastTheLastElement_IsRejected() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 3;
+
+            try
+                window(source, from::<<0);
+
+                fail("should have thrown");
+            catch ex: System.ArgumentOutOfRangeException
+            yrt
+        si
+
+        @Test()
+        WholeSource_IsBothEndpointsAtTheirLimits() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 0;
+
+            assert_elements([1, 2, 3, 4, 5], window(source, from..<0));
+        si
+    si
+si
