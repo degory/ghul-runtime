@@ -21,15 +21,15 @@ namespace Tests is
         si
 
         // The compiler resolves an index by a range through
-        // `Ghul.Pipes.view`, so a window is what these produce.
-        window(source: int[], r: System.Range) -> List[int] => source |> view(r);
+        // `Ghul.Pipes.slice`, so a slice is what these produce.
+        slice_of(source: int[], r: System.Range) -> List[int] => source |> slice(r);
 
         @Test()
         Exclusive_CountsTheEndBackFromTheEnd() is
             let source = [1, 2, 3, 4, 5];
             let from = 1;
 
-            assert_elements([2, 3, 4], window(source, from..<1));
+            assert_elements([2, 3, 4], slice_of(source, from..<1));
         si
 
         @Test()
@@ -37,7 +37,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5];
             let from = 1;
 
-            assert_elements([2, 3, 4, 5], window(source, from..<0));
+            assert_elements([2, 3, 4, 5], slice_of(source, from..<0));
         si
 
         @Test()
@@ -45,7 +45,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5];
             let from = 1;
 
-            assert_elements([2, 3, 4, 5], window(source, from::<1));
+            assert_elements([2, 3, 4, 5], slice_of(source, from::<1));
         si
 
         @Test()
@@ -53,7 +53,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5];
             let from = 3;
 
-            assert_elements([3, 4, 5], window(source, from..<<0));
+            assert_elements([3, 4, 5], slice_of(source, from..<<0));
         si
 
         @Test()
@@ -61,7 +61,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5];
             let from = 3;
 
-            assert_elements([3, 4], window(source, from::<<2));
+            assert_elements([3, 4], slice_of(source, from::<<2));
         si
 
         @Test()
@@ -69,7 +69,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5];
             let from = 3;
 
-            assert_elements([4, 5], window(source, from::<1));
+            assert_elements([4, 5], slice_of(source, from::<1));
         si
 
         @Test()
@@ -78,7 +78,7 @@ namespace Tests is
             let from = 1;
 
             try
-                window(source, from::<0);
+                slice_of(source, from::<0);
 
                 fail("should have thrown");
             catch ex: System.ArgumentOutOfRangeException
@@ -91,7 +91,7 @@ namespace Tests is
             let from = 3;
 
             try
-                window(source, from::<<0);
+                slice_of(source, from::<<0);
 
                 fail("should have thrown");
             catch ex: System.ArgumentOutOfRangeException
@@ -103,7 +103,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5];
             let from = 0;
 
-            assert_elements([1, 2, 3, 4, 5], window(source, from..<0));
+            assert_elements([1, 2, 3, 4, 5], slice_of(source, from..<0));
         si
     si
 si
