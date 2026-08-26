@@ -21,6 +21,8 @@ namespace Ghul.Pipes is
 
             if result then
                 _index = _index - 1;
+            else
+                reset();
             fi
 
             return result;
