@@ -32,3 +32,7 @@ Other values are rejected. To choose directly, regardless of `OutputType`, set
 ```
 
 
+
+## issues
+
+[View open issues](https://github.com/degory/ghul/issues?q=is%3Aopen+is%3Aissue+label%3Aghul-runtime) or [raise a new one](https://github.com/degory/ghul/issues/new?labels=ghul-runtime).
