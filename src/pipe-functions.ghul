@@ -519,4 +519,26 @@ namespace Ghul.Pipes is
 
     view(source: string, r: INT_RANGE_INCLUSIVE) -> string pure =>
         source.substring(r.from, r.to - r.from + 1);
+
+    // The from-the-end range operators (`a..^b`, `^a..^b`) carry a
+    // `System.Range`, whose endpoints are only resolvable against a
+    // length - which is here, where the source is known.
+
+    view[T](source: T[], r: System.Range) -> List[T] pure is
+        let (offset, count) = r.get_offset_and_length(source.count);
+
+        return System.ArraySegment[T](source, offset, count);
+    si
+
+    view[T](source: List[T], r: System.Range) -> List[T] pure is
+        let (offset, count) = r.get_offset_and_length(source.count);
+
+        return LIST_VIEW[T](source, offset, count);
+    si
+
+    view(source: string, r: System.Range) -> string pure is
+        let (offset, count) = r.get_offset_and_length(source.length);
+
+        return source.substring(offset, count);
+    si
 si

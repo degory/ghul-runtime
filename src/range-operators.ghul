@@ -1,0 +1,27 @@
+namespace Ghul is
+    // Ranges with an endpoint measured from the end of whatever they are
+    // applied to. `..` and `::` count from the start and know their own
+    // bounds, so they are ordinary iterable ranges; these do not, because
+    // where an endpoint falls is not settled until the range meets a
+    // source. They carry `System.Range` for that reason - it holds the
+    // from-the-end bit per endpoint, and `get_offset_and_length` resolves
+    // the pair against a length - and it is not iterable, so the type
+    // system declines `for i in 1..^1 do` rather than needing a rule.
+    //
+    // `^k` counts back from the end, so `^0` is the length and `a..^0`
+    // is the open-ended "from a to the end".
+
+    ^(i: int) -> System.Index pure => System.Index(i, true);
+
+    ..^(from: int, to: int) -> System.Range pure =>
+        System.Range(System.Index(from, false), System.Index(to, true));
+
+    ..^(from: System.Index, to: int) -> System.Range pure =>
+        System.Range(from, System.Index(to, true));
+
+    ::^(from: int, to: int) -> System.Range pure =>
+        System.Range(System.Index(from, false), System.Index(to - 1, true));
+
+    ::^(from: System.Index, to: int) -> System.Range pure =>
+        System.Range(from, System.Index(to - 1, true));
+si
