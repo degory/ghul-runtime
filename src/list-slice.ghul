@@ -1,13 +1,14 @@
 namespace Ghul.Pipes is
     use Collections;
 
-    // A window onto part of an indexable source. No elements are copied, so
-    // taking a view is constant time whatever the source's size, and a later
-    // change to the source shows through the view.
+    // A slice of part of an indexable source: a view onto the source rather
+    // than a copy of it. No elements are copied, so taking a slice is
+    // constant time whatever the source's size, and a later change to the
+    // source shows through the slice.
     //
-    // Bounds are checked where the view is taken rather than at a later read,
-    // so an out-of-range window fails at the point the mistake was made.
-    class LIST_VIEW[T]: List[T] is
+    // Bounds are checked where the slice is taken rather than at a later read,
+    // so an out-of-range slice fails at the point the mistake was made.
+    class LIST_SLICE[T]: List[T] is
         _source: List[T];
         _from: int;
         _count: int;
@@ -27,7 +28,7 @@ namespace Ghul.Pipes is
 
         [i: int]: T is
             if i < 0 \/ i >= _count then
-                throw System.ArgumentOutOfRangeException("i", "{i} is not within a view of {_count}");
+                throw System.ArgumentOutOfRangeException("i", "{i} is not within a slice of {_count}");
             fi
 
             return _source[_from + i];
@@ -35,10 +36,10 @@ namespace Ghul.Pipes is
 
         count: int => _count;
 
-        iterator: Iterator[T] => LIST_VIEW_ITERATOR[T](_source, _from, _count);
+        iterator: Iterator[T] => LIST_SLICE_ITERATOR[T](_source, _from, _count);
     si
 
-    class LIST_VIEW_ITERATOR[T]: Iterator[T] is
+    class LIST_SLICE_ITERATOR[T]: Iterator[T] is
         _source: List[T];
         _from: int;
         _count: int;
