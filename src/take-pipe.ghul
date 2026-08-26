@@ -2,10 +2,12 @@ namespace Ghul.Pipes is
     use Collections;
 
     class TAKE_PIPE[T]: FilterPipeBase[T] is
+        _initial_take_count: int;
         _take_count: int;
 
         init(iterator: Iterator[T], take_count: int) is
             super.init(iterator);
+            _initial_take_count = take_count;
             _take_count = take_count;
         si
 
@@ -15,6 +17,11 @@ namespace Ghul.Pipes is
 
         should_continue() -> bool => _take_count >= 0;
 
-        should_include() -> bool => true;    
+        should_include() -> bool => true;
+
+        reset() is
+            super.reset();
+            _take_count = _initial_take_count;
+        si
     si
 si

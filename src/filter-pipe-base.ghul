@@ -25,7 +25,7 @@ namespace Ghul.Pipes is
                 fi
             od
 
-            _iterator.reset();
+            reset();
 
             return false;  
         si

@@ -29,7 +29,10 @@ namespace Tests is
             is_true(p.move_next());
             are_equal(1, p.current);
             is_false(p.move_next());
-            is_false(p.move_next());
+
+            // Ending the pass resets the pipe, so asking again starts a new one.
+            is_true(p.move_next());
+            are_equal(3, p.current);
         si
 
         @Test()

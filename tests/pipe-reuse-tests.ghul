@@ -1,0 +1,114 @@
+namespace Tests is
+
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+
+    // A pipe holding per-pass state has to restore it when the pass ends,
+    // or the second enumeration of the same pipe answers differently from
+    // the first.
+    @TestClass()
+    class PipeReuseShould is
+        _values: List[int];
+        _other: List[int];
+
+        init() is
+            _values = [1, 2, 3, 4, 5];
+            _other = [3, 4, 9];
+        si
+
+        _assert_repeatable[T](expected: string, pipe: Pipe[T]) is
+            are_equal(expected, "{$(pipe.collect())}", "first pass");
+            are_equal(expected, "{$(pipe.collect())}", "second pass");
+            are_equal(expected, "{$(pipe.collect())}", "third pass");
+        si
+
+        @Test()
+        Skip_EnumeratedAgain_SkipsAgain() is
+            _assert_repeatable("[3, 4, 5]", _values |> skip(2));
+        si
+
+        @Test()
+        SkipWhile_EnumeratedAgain_SkipsAgain() is
+            _assert_repeatable("[3, 4, 5]", _values |> skip_while(v => v < 3));
+        si
+
+        @Test()
+        Take_EnumeratedAgain_TakesAgain() is
+            _assert_repeatable("[1, 2]", _values |> take(2));
+        si
+
+        @Test()
+        TakeWhile_EnumeratedAgain_TakesAgain() is
+            _assert_repeatable("[1, 2]", _values |> take_while(v => v < 3));
+        si
+
+        @Test()
+        Distinct_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[1, 2, 3, 4, 5]", _values |> cat(_values) |> distinct());
+        si
+
+        @Test()
+        Except_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[1, 2, 5]", _values |> except(_other));
+        si
+
+        @Test()
+        IntersectWith_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[3, 4]", _values |> intersect_with(_other));
+        si
+
+        @Test()
+        UnionWith_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[1, 2, 3, 4, 5, 9]", _values |> union_with(_other));
+        si
+
+        @Test()
+        Chunk_EnumeratedAgain_YieldsTheSameChunks() is
+            _assert_repeatable("[[1, 2], [3, 4], [5]]", _values |> chunk(2));
+        si
+
+        @Test()
+        Windows_EnumeratedAgain_YieldsTheSameWindows() is
+            _assert_repeatable("[[1, 2], [2, 3], [3, 4], [4, 5]]", _values |> windows(2));
+        si
+
+        @Test()
+        Reverse_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[5, 4, 3, 2, 1]", _values |> reverse());
+        si
+
+        @Test()
+        Stream_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable(
+                "[1, 2, 3]",
+                stream(1, (s: int) => if s > 3 then STREAM.DONE[int, int]() else s || s + 1 fi)
+            );
+        si
+
+        @Test()
+        Filter_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[3, 4, 5]", _values |> filter(v => v > 2));
+        si
+
+        @Test()
+        Map_EnumeratedAgain_YieldsTheSameValues() is
+            _assert_repeatable("[2, 4, 6, 8, 10]", _values |> map(v => v * 2));
+        si
+
+        // Two consumers over one pipe is the shape that turned this up: a
+        // partition of the same tail into the values below and above a pivot.
+        @Test()
+        Skip_PartitionedTwice_SeesTheWholeTailBothTimes() is
+            let pivot = _values[0];
+            let rest = _values |> skip(1);
+
+            are_equal("[]", "{$((rest |> filter(v => v < pivot)).collect())}");
+            are_equal("[2, 3, 4, 5]", "{$((rest |> filter(v => v >= pivot)).collect())}");
+        si
+    si
+si

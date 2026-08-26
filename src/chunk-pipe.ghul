@@ -10,11 +10,10 @@ namespace Ghul.Pipes is
 
         _size: int;
 
-        // The wrapped iterator resets itself the moment move_next()
-        // returns false, so once it has signalled exhaustion this pipe
-        // must remember that on its own rather than asking again - the
-        // next call would otherwise see a freshly-reset iterator and
-        // start pulling from the beginning again.
+        // Set when the source signals exhaustion partway through a chunk.
+        // The source resets itself at that point, so asking it again would
+        // start pulling from the beginning; this pipe ends the pass on its
+        // own instead.
         _done: bool;
 
         init(iterator: Iterator[T], size: int) is
@@ -27,6 +26,8 @@ namespace Ghul.Pipes is
 
         move_next() -> bool is
             if _done then
+                reset();
+
                 return false;
             fi
 
@@ -41,6 +42,8 @@ namespace Ghul.Pipes is
             fi
 
             if chunk.count == 0 then
+                reset();
+
                 return false;
             fi
 
