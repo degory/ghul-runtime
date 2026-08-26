@@ -1,27 +1,29 @@
 namespace Ghul is
-    // Ranges with an endpoint measured from the end of whatever they are
-    // applied to. `..` and `::` count from the start and know their own
-    // bounds, so they are ordinary iterable ranges; these do not, because
-    // where an endpoint falls is not settled until the range meets a
-    // source. They carry `System.Range` for that reason - it holds the
-    // from-the-end bit per endpoint, and `get_offset_and_length` resolves
-    // the pair against a length - and it is not iterable, so the type
-    // system declines `for i in 1..^1 do` rather than needing a rule.
+    // Ranges with one or both endpoints counted back from the end of
+    // whatever they are applied to. The number of `<` says how many are,
+    // filling from the right: `a..<b` counts `b` back from the end,
+    // `a..<<b` counts both. `<k` is k back from the end, so `<0` is the
+    // length and `a..<0` runs from a to the end.
     //
-    // `^k` counts back from the end, so `^0` is the length and `a..^0`
-    // is the open-ended "from a to the end".
+    // `..` and `::` count from the start and know their own bounds, so
+    // they are ordinary iterable ranges. These do not, because where an
+    // endpoint falls is not settled until the range meets a source. They
+    // carry `System.Range` for that reason - it holds the from-the-end
+    // bit per endpoint, and `get_offset_and_length` resolves the pair
+    // against a length - and it is not iterable, so the type system
+    // declines `for i in 1..<1 do` rather than needing a rule.
 
-    ^(i: int) -> System.Index pure => System.Index(i, true);
-
-    ..^(from: int, to: int) -> System.Range pure =>
+    ..<(from: int, to: int) -> System.Range pure =>
         System.Range(System.Index(from, false), System.Index(to, true));
 
-    ..^(from: System.Index, to: int) -> System.Range pure =>
-        System.Range(from, System.Index(to, true));
+    ..<<(from: int, to: int) -> System.Range pure =>
+        System.Range(System.Index(from, true), System.Index(to, true));
 
-    ::^(from: int, to: int) -> System.Range pure =>
+    // An inclusive end one back from the end is an exclusive end at the
+    // same place, so the endpoint moves rather than the range growing.
+    ::<(from: int, to: int) -> System.Range pure =>
         System.Range(System.Index(from, false), System.Index(to - 1, true));
 
-    ::^(from: System.Index, to: int) -> System.Range pure =>
-        System.Range(from, System.Index(to - 1, true));
+    ::<<(from: int, to: int) -> System.Range pure =>
+        System.Range(System.Index(from, true), System.Index(to - 1, true));
 si
