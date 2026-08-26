@@ -19,11 +19,25 @@ namespace Ghul is
     ..<<(from: int, to: int) -> System.Range pure =>
         System.Range(System.Index(from, true), System.Index(to, true));
 
-    // An inclusive end one back from the end is an exclusive end at the
-    // same place, so the endpoint moves rather than the range growing.
+    // An inclusive end k back from the end is an exclusive end at k - 1
+    // back, so the endpoint moves rather than the range growing.
     ::<(from: int, to: int) -> System.Range pure =>
-        System.Range(System.Index(from, false), System.Index(to - 1, true));
+        System.Range(System.Index(from, false), _inclusive_end(to));
 
     ::<<(from: int, to: int) -> System.Range pure =>
-        System.Range(System.Index(from, true), System.Index(to - 1, true));
+        System.Range(System.Index(from, true), _inclusive_end(to));
+
+    // Rejected here rather than where the range meets a source, and named
+    // for what was asked: shifting `to = 0` would build an index one past
+    // the end, and `System.Index` reports that as a negative value.
+    _inclusive_end(to: int) -> System.Index pure is
+        if to < 1 then
+            throw
+                System.ArgumentOutOfRangeException(
+                    "to",
+                    "{to} from the end is not an element to include: to run through the last element, use ::<1");
+        fi
+
+        return System.Index(to - 1, true);
+    si
 si

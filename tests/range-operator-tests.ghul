@@ -65,6 +65,40 @@ namespace Tests is
         si
 
         @Test()
+        Inclusive_RunsThroughTheLastElement() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 3;
+
+            assert_elements([4, 5], window(source, from::<1));
+        si
+
+        @Test()
+        Inclusive_PastTheLastElement_IsRejected() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 1;
+
+            try
+                window(source, from::<0);
+
+                fail("should have thrown");
+            catch ex: System.ArgumentOutOfRangeException
+            yrt
+        si
+
+        @Test()
+        BothCountedBack_Inclusive_PastTheLastElement_IsRejected() is
+            let source = [1, 2, 3, 4, 5];
+            let from = 3;
+
+            try
+                window(source, from::<<0);
+
+                fail("should have thrown");
+            catch ex: System.ArgumentOutOfRangeException
+            yrt
+        si
+
+        @Test()
         WholeSource_IsBothEndpointsAtTheirLimits() is
             let source = [1, 2, 3, 4, 5];
             let from = 0;
