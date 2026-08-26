@@ -520,7 +520,7 @@ namespace Ghul.Pipes is
     view(source: string, r: INT_RANGE_INCLUSIVE) -> string pure =>
         source.substring(r.from, r.to - r.from + 1);
 
-    // The from-the-end range operators (`a..^b`, `^a..^b`) carry a
+    // The from-the-end range operators (`a..<b`, `a..<<b`) carry a
     // `System.Range`, whose endpoints are only resolvable against a
     // length - which is here, where the source is known.
 
