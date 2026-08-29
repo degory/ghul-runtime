@@ -420,7 +420,7 @@ namespace Tests is
 
         @Test()
         ToString_CalledTwice_ReturnsStringRepresentationOfAllElements() is
-            let pipe = [2, 1, 4, 3, 6, 5] |;
+            let pipe = ([2, 1, 4, 3, 6, 5] |);
 
             pipe.to_string();
 
@@ -451,7 +451,7 @@ namespace Tests is
         AppendTo_CalledTwice_AppendsStringRepresentationOfAllElementsTwice() is
             let result = StringBuilder("XX");
 
-            let pipe = [2, 1, 4, 3, 6, 5] |;
+            let pipe = ([2, 1, 4, 3, 6, 5] |);
             
             pipe.append_to(result, "-");
 

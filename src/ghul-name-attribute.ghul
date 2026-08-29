@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute the compiler emits on a member whose IL name
     // differs from its ghūl-declared name — an override or interface

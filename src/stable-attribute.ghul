@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute emitted by the compiler on the read accessor
     // of a ghūl property declared `stable` — two adjacent reads of

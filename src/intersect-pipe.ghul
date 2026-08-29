@@ -1,13 +1,13 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class INTERSECT_PIPE[T]: FilterPipeBase[T] is
-        _included: SET[T];
-        _seen: SET[T];
+        _included: SET[T]
+        _seen: SET[T]
 
         init(iterator: Iterator[T], included: Iterable[T]) is
-            super.init(iterator);
-            _included = SET[T](included);
+            super.init(iterator)
+            _included = SET[T](included)
             _seen = SET[T]();
         si
 
@@ -16,13 +16,13 @@ namespace Ghul.Pipes is
                 return false;
             fi
 
-            _seen.add(current);
+            _seen.add(current)
 
             return true;
         si
 
         reset() is
-            super.reset();
+            super.reset()
             _seen.clear();
         si
     si

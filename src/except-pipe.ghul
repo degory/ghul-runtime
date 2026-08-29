@@ -1,13 +1,13 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class EXCEPT_PIPE[T]: FilterPipeBase[T] is
-        _excluded: SET[T];
-        _seen: SET[T];
+        _excluded: SET[T]
+        _seen: SET[T]
 
         init(iterator: Iterator[T], excluded: Iterable[T]) is
-            super.init(iterator);
-            _excluded = SET[T](excluded);
+            super.init(iterator)
+            _excluded = SET[T](excluded)
             _seen = SET[T]();
         si
 
@@ -16,13 +16,13 @@ namespace Ghul.Pipes is
                 return false;
             fi
 
-            _seen.add(current);
+            _seen.add(current)
 
             return true;
         si
 
         reset() is
-            super.reset();
+            super.reset()
             _seen.clear();
         si
     si

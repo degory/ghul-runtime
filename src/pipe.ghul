@@ -1,10 +1,10 @@
 namespace Ghul.Pipes is
-    use System.InvalidOperationException;
-    use System.NotImplementedException;
+    use System.InvalidOperationException
+    use System.NotImplementedException
 
-    use System.Text.StringBuilder;
+    use System.Text.StringBuilder
 
-    use Collections;
+    use Collections
 
     // FIXME: should dispose of all enumerators - ideally somehow check if they really need disposing
     // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
@@ -37,10 +37,10 @@ namespace Ghul.Pipes is
     // functions rather than trait members - min_by/max_by don't have
     // that problem, since the key type is a fresh per-call parameter.
     min[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
-        let it = values.iterator;
+        let it = values.iterator
 
         if it.move_next() then
-            let result mut = it.current;
+            let result mut = it.current
 
             while it.move_next() do
                 if it.current < result then
@@ -55,10 +55,10 @@ namespace Ghul.Pipes is
     si
 
     max[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
-        let it = values.iterator;
+        let it = values.iterator
 
         if it.move_next() then
-            let result mut = it.current;
+            let result mut = it.current
 
             while it.move_next() do
                 if it.current > result then
@@ -86,200 +86,200 @@ namespace Ghul.Pipes is
     // equivalent in this namespace (see #134) - `.method()` call sites are
     // unaffected, and the free functions are the single source of truth.
     trait Pipe[T]: Iterable[T], Iterator[T] is
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
         filter(predicate: (T) -> bool pure) -> Pipe[T] pure =>
-            Ghul.Pipes.filter(self, predicate);
+            Ghul.Pipes.filter(self, predicate)
 
         map[U](mapper: (T) -> U pure) -> Pipe[U] pure =>
-            Ghul.Pipes.map(self, mapper);
+            Ghul.Pipes.map(self, mapper)
 
         flat_map[U](mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
-            Ghul.Pipes.flat_map(self, mapper);
+            Ghul.Pipes.flat_map(self, mapper)
 
         skip(count: int) -> Pipe[T] pure =>
-            Ghul.Pipes.skip(self, count);
+            Ghul.Pipes.skip(self, count)
 
         take(count: int) -> Pipe[T] pure =>
-            Ghul.Pipes.take(self, count);
+            Ghul.Pipes.take(self, count)
 
         skip_while(predicate: (T) -> bool pure) -> Pipe[T] pure =>
-            Ghul.Pipes.skip_while(self, predicate);
+            Ghul.Pipes.skip_while(self, predicate)
 
         take_while(predicate: (T) -> bool pure) -> Pipe[T] pure =>
-            Ghul.Pipes.take_while(self, predicate);
+            Ghul.Pipes.take_while(self, predicate)
 
         distinct() -> Pipe[T] pure =>
-            Ghul.Pipes.distinct(self);
+            Ghul.Pipes.distinct(self)
 
         peek(action: T -> void) -> Pipe[T] pure =>
-            Ghul.Pipes.peek(self, action);
+            Ghul.Pipes.peek(self, action)
 
         memo() -> Pipe[T] pure =>
-            Ghul.Pipes.memo(self);
+            Ghul.Pipes.memo(self)
 
         chunk(size: int) -> Pipe[LIST[T]] pure =>
-            Ghul.Pipes.chunk(self, size);
+            Ghul.Pipes.chunk(self, size)
 
         windows(size: int) -> Pipe[LIST[T]] pure =>
-            Ghul.Pipes.windows(self, size);
+            Ghul.Pipes.windows(self, size)
 
         cat(right: Iterable[T]) -> Pipe[T] pure =>
-            Ghul.Pipes.cat(self, right);
+            Ghul.Pipes.cat(self, right)
 
         union_with(right: Iterable[T]) -> Pipe[T] pure =>
-            Ghul.Pipes.union_with(self, right);
+            Ghul.Pipes.union_with(self, right)
 
         intersect_with(right: Iterable[T]) -> Pipe[T] pure =>
-            Ghul.Pipes.intersect_with(self, right);
+            Ghul.Pipes.intersect_with(self, right)
 
         except(right: Iterable[T]) -> Pipe[T] pure =>
-            Ghul.Pipes.except(self, right);
+            Ghul.Pipes.except(self, right)
 
         index() -> Pipe[INDEXED_VALUE[T]] pure =>
-            Ghul.Pipes.index(self);
+            Ghul.Pipes.index(self)
 
         index(index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
-            Ghul.Pipes.index(self, index);
+            Ghul.Pipes.index(self, index)
 
         // FIXME: can't use => here due to compiler bug
         zip[U](other: Iterable[U]) -> Pipe[(T,U)] pure =>
-            Ghul.Pipes.zip(self, other);
+            Ghul.Pipes.zip(self, other)
 
         // FIXME: can't use => here due to compiler bug
         zip[U,TOut](other: Iterable[U], mapper: (T,U) -> TOut pure) -> Pipe[TOut] pure =>
-            Ghul.Pipes.zip(self, other, mapper);
+            Ghul.Pipes.zip(self, other, mapper)
 
         reduce[TRunning](seed: TRunning, accumulator: (TRunning,T) -> TRunning pure) -> TRunning pure =>
-            Ghul.Pipes.reduce(self, seed, accumulator);
+            Ghul.Pipes.reduce(self, seed, accumulator)
 
         reduce[TRunning,TOut](seed: TRunning, accumulator: (TRunning,T) -> TRunning pure, mapper: (TRunning) -> TOut pure) -> TOut pure =>
-            Ghul.Pipes.reduce(self, seed, accumulator, mapper);
+            Ghul.Pipes.reduce(self, seed, accumulator, mapper)
 
         collect() -> List[T] pure =>
-            Ghul.Pipes.collect(self);
+            Ghul.Pipes.collect(self)
 
         collect_array() -> T[] pure =>
-            Ghul.Pipes.collect_array(self);
+            Ghul.Pipes.collect_array(self)
 
         collect_list() -> LIST[T] pure =>
-            Ghul.Pipes.collect_list(self);
+            Ghul.Pipes.collect_list(self)
 
         collect_set() -> SET[T] pure =>
-            Ghul.Pipes.collect_set(self);
+            Ghul.Pipes.collect_set(self)
 
         collect_map[K,V](key_selector: (T) -> K pure, value_selector: (T) -> V pure) -> MAP[K,V] pure =>
-            Ghul.Pipes.collect_map(self, key_selector, value_selector);
+            Ghul.Pipes.collect_map(self, key_selector, value_selector)
 
         partition(predicate: (T) -> bool pure) -> (LIST[T], LIST[T]) pure =>
-            Ghul.Pipes.partition(self, predicate);
+            Ghul.Pipes.partition(self, predicate)
 
         group_by[K](key_selector: (T) -> K pure) -> MAP[K, LIST[T]] pure =>
-            Ghul.Pipes.group_by(self, key_selector);
+            Ghul.Pipes.group_by(self, key_selector)
 
         min_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure =>
-            Ghul.Pipes.min_by(self, key_selector);
+            Ghul.Pipes.min_by(self, key_selector)
 
         max_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> MAYBE[T] pure =>
-            Ghul.Pipes.max_by(self, key_selector);
+            Ghul.Pipes.max_by(self, key_selector)
 
         count() -> int pure =>
-            Ghul.Pipes.count(self);
+            Ghul.Pipes.count(self)
 
         find(predicate: (T) -> bool pure) -> MAYBE[T] pure =>
-            Ghul.Pipes.find(self, predicate);
+            Ghul.Pipes.find(self, predicate)
 
         find_map[U](mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure =>
-            Ghul.Pipes.find_map(self, mapper);
+            Ghul.Pipes.find_map(self, mapper)
 
         find_or_throw(predicate: T -> bool pure) -> T pure =>
-            Ghul.Pipes.find_or_throw(self, predicate);
+            Ghul.Pipes.find_or_throw(self, predicate)
 
         find_map_or_throw[U](mapper: (T) -> MAYBE[U] pure) -> U pure =>
-            Ghul.Pipes.find_map_or_throw(self, mapper);
+            Ghul.Pipes.find_map_or_throw(self, mapper)
 
         first() -> MAYBE[T] pure =>
-            Ghul.Pipes.first(self);
+            Ghul.Pipes.first(self)
 
         first_map[U](mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure =>
-            Ghul.Pipes.first_map(self, mapper);
+            Ghul.Pipes.first_map(self, mapper)
 
         first_or_throw() -> T pure =>
-            Ghul.Pipes.first_or_throw(self);
+            Ghul.Pipes.first_or_throw(self)
 
         first_map_or_throw[U](mapper: (T) -> MAYBE[U] pure) -> U pure =>
-            Ghul.Pipes.first_map_or_throw(self, mapper);
+            Ghul.Pipes.first_map_or_throw(self, mapper)
 
         only() -> T pure =>
-            Ghul.Pipes.only(self);
+            Ghul.Pipes.only(self)
 
         // deprecated
         has(predicate: (T) -> bool) -> bool is
             while move_next() do
-                let element = current;
+                let element = current
 
                 if predicate(element) then
                     return true;
                 fi
             od
 
-            reset();
+            reset()
 
             return false;
         si
 
         any(predicate: (T) -> bool pure) -> bool pure =>
-            Ghul.Pipes.any(self, predicate);
+            Ghul.Pipes.any(self, predicate)
 
         all(predicate: (T) -> bool pure) -> bool pure =>
-            Ghul.Pipes.all(self, predicate);
+            Ghul.Pipes.all(self, predicate)
 
         each(action: T -> void) =>
-            Ghul.Pipes.each(self, action);
+            Ghul.Pipes.each(self, action)
 
         reverse() -> Pipe[T] pure =>
-            Ghul.Pipes.reverse(self);
+            Ghul.Pipes.reverse(self)
 
         // T is unbounded here, so this can't require Ghul.Comparable[T] the
         // way the free function does - an element type that isn't comparable
         // is only caught when the sort runs. Ghul.Pipes.sort() rejects it at
         // compile time.
         sort() -> Pipe[T] pure =>
-            Ghul.Pipes._sort_ascending(self);
+            Ghul.Pipes._sort_ascending(self)
 
         sort(comparer: IComparer[T]) -> Pipe[T] pure =>
-            Ghul.Pipes.sort(self, comparer);
+            Ghul.Pipes.sort(self, comparer)
 
         sort(compare: (T, T) -> int pure) -> Pipe[T] pure =>
-            Ghul.Pipes.sort(self, compare);
+            Ghul.Pipes.sort(self, compare)
 
         sort_descending() -> Pipe[T] pure =>
-            Ghul.Pipes._sort_descending(self);
+            Ghul.Pipes._sort_descending(self)
 
         sort_by[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
-            Ghul.Pipes.sort_by(self, key_selector);
+            Ghul.Pipes.sort_by(self, key_selector)
 
         sort_by_descending[K: Ghul.Comparable[K]](key_selector: (T) -> K pure) -> Pipe[T] pure =>
-            Ghul.Pipes.sort_by_descending(self, key_selector);
+            Ghul.Pipes.sort_by_descending(self, key_selector)
 
         append_to(into: StringBuilder, separator: string) -> StringBuilder =>
-            Ghul.Pipes.append_to(self, into, separator);
+            Ghul.Pipes.append_to(self, into, separator)
 
         append_to(into: StringBuilder) -> StringBuilder =>
-            Ghul.Pipes.append_to(self, into);
+            Ghul.Pipes.append_to(self, into)
 
         join(separator: string) -> string pure =>
-            Ghul.Pipes.join(self, separator);
+            Ghul.Pipes.join(self, separator)
 
         join() -> string pure =>
-            Ghul.Pipes.join(self);
+            Ghul.Pipes.join(self)
 
         to_string() -> string =>
-            self.join(", ");
+            self.join(", ")
 
         // deprecated
         to_string(separator: string) -> string =>
-            self.join(separator);
+            self.join(separator)
 
         dispose() is
         si

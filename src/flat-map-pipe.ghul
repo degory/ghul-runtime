@@ -1,20 +1,20 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class FLAT_MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
-        iterator: Iterator[TTo] => self;
+        iterator: Iterator[TTo] => self
 
-        current: TTo;
+        current: TTo
 
-        _iterator: Iterator[TFrom];
+        _iterator: Iterator[TFrom]
         // Absent until the first source element supplies one, and
         // again after reset.
-        _flat_iterator: Iterator[TTo]?;
+        _flat_iterator: Iterator[TTo]?
 
-        _mapper: (TFrom) -> Iterable[TTo];
+        _mapper: (TFrom) -> Iterable[TTo]
 
         init(iterator: Iterator[TFrom], mapper: (TFrom) -> Iterable[TTo]) is
-            _iterator = iterator;
+            _iterator = iterator
             _mapper = mapper;
         si
 
@@ -23,32 +23,32 @@ namespace Ghul.Pipes is
                 // Read into a local: advancing the iterator is a call,
                 // which drops what the presence test just established
                 // about the field.
-                let flat = _flat_iterator;
+                let flat = _flat_iterator
 
                 if flat? /\ flat.move_next() then
-                    current = flat.current;
+                    current = flat.current
 
                     return true;
                 fi
 
                 if !_iterator.move_next() then
-                    reset();
+                    reset()
 
                     return false;
                 fi
-                    
-                let flat_iterable = _mapper(_iterator.current);
-    
+
+                let flat_iterable = _mapper(_iterator.current)
+
                 _flat_iterator = flat_iterable.iterator;
             od
         si
 
         reset() is
-            _iterator.reset();
+            _iterator.reset()
             _flat_iterator = null;
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

@@ -1,5 +1,5 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     // A slice of part of an indexable source: a view onto the source rather
     // than a copy of it. No elements are copied, so taking a slice is
@@ -9,9 +9,9 @@ namespace Ghul.Pipes is
     // Bounds are checked where the slice is taken rather than at a later read,
     // so an out-of-range slice fails at the point the mistake was made.
     class LIST_SLICE[T]: List[T] is
-        _source: List[T];
-        _from: int;
-        _count: int;
+        _source: List[T]
+        _from: int
+        _count: int
 
         init(source: List[T], from: int, count: int) is
             if from < 0 \/ count < 0 \/ from + count > source.count then
@@ -21,8 +21,8 @@ namespace Ghul.Pipes is
                         "{from} for {count} is not within a source of {source.count}");
             fi
 
-            _source = source;
-            _from = from;
+            _source = source
+            _from = from
             _count = count;
         si
 
@@ -34,29 +34,29 @@ namespace Ghul.Pipes is
             return _source[_from + i];
         si
 
-        count: int => _count;
+        count: int => _count
 
         iterator: Iterator[T] => LIST_SLICE_ITERATOR[T](_source, _from, _count);
     si
 
     class LIST_SLICE_ITERATOR[T]: Iterator[T] is
-        _source: List[T];
-        _from: int;
-        _count: int;
-        _index: int;
+        _source: List[T]
+        _from: int
+        _count: int
+        _index: int
 
         init(source: List[T], from: int, count: int) is
-            _source = source;
-            _from = from;
-            _count = count;
+            _source = source
+            _from = from
+            _count = count
 
             reset();
         si
 
-        current: T => _source[_from + _index];
+        current: T => _source[_from + _index]
 
         move_next() -> bool is
-            _index = _index + 1;
+            _index = _index + 1
 
             return _index < _count;
         si

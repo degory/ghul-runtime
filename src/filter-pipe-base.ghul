@@ -1,20 +1,20 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class FilterPipeBase[T]: Pipe[T] is
-        _iterator: Iterator[T];
+        _iterator: Iterator[T]
 
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
-        current: T => _iterator.current;
-        
+        current: T => _iterator.current
+
         init(iterator: Iterator[T]) is
             _iterator = iterator;
         si
 
         move_next() -> bool is
             while _iterator.move_next() do
-                have_moved();
+                have_moved()
 
                 if !should_continue() then
                     break;
@@ -25,33 +25,33 @@ namespace Ghul.Pipes is
                 fi
             od
 
-            reset();
+            reset()
 
-            return false;  
+            return false;
         si
 
         have_moved() is si
 
-        should_continue() -> bool => true;
+        should_continue() -> bool => true
 
-        should_include() -> bool;
+        should_include() -> bool
 
         count() -> int pure is
-            let result mut = 0;
+            let result mut = 0
 
             while move_next() do
                 result = result + 1;
             od
 
-            reset();
+            reset()
 
             return result;
         si
 
-        reset() => _iterator.reset();
+        reset() => _iterator.reset()
         // dispose() => _iterator.dispose();
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

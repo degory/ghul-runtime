@@ -1,17 +1,17 @@
 namespace Collections is
     class LIST_REVERSE_ITERATOR[T]: Iterator[T] is
-        _list: List[T];
-        _index: int;
+        _list: List[T]
+        _index: int
 
-        current: T => _list[_index];
+        current: T => _list[_index]
 
         init(list: List[T]) is
-            _list = list;
+            _list = list
             reset();
         si
 
         move_next() -> bool is
-            let result = _index > 0;
+            let result = _index > 0
 
             if result then
                 _index = _index - 1;
@@ -23,17 +23,17 @@ namespace Collections is
         reset() is
             _index = _list.count;
         si
-        
+
         dispose() is
         si
     si
 
     class LIST_REVERSE_ITERABLE[T]: Iterable[T] is
-        _list: List[T];
+        _list: List[T]
 
-        iterator: Iterator[T] => LIST_REVERSE_ITERATOR(_list);
+        iterator: Iterator[T] => LIST_REVERSE_ITERATOR(_list)
 
-        init(list: List[T]) is            
+        init(list: List[T]) is
             _list = list;
         si
     si

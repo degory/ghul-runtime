@@ -1,13 +1,13 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class CAT_PIPE[T]: Pipe[T] is
-        _left: Iterator[T];
-        _right: Iterator[T];
+        _left: Iterator[T]
+        _right: Iterator[T]
 
-        _take_from_left: bool;
+        _take_from_left: bool
 
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
         current: T is
             if _take_from_left then
@@ -18,14 +18,14 @@ namespace Ghul.Pipes is
         si
 
         init(left: Iterator[T], right: Iterator[T]) is
-            _left = left;
-            _right = right;
+            _left = left
+            _right = right
             _take_from_left = true;
         si
 
         move_next() -> bool is
             if _take_from_left then
-                _take_from_left = _left.move_next();
+                _take_from_left = _left.move_next()
 
                 if _take_from_left then
                     return true;
@@ -34,26 +34,26 @@ namespace Ghul.Pipes is
                 _left.reset();
             fi
 
-            let result = _right.move_next();
+            let result = _right.move_next()
 
             if result then
                 return true;
             fi
 
-            _take_from_left = true;
-            _right.reset();
+            _take_from_left = true
+            _right.reset()
 
             return false;
         si
 
         reset() is
-            _left.reset();
-            _right.reset();
+            _left.reset()
+            _right.reset()
 
             _take_from_left = true;
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

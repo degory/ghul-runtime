@@ -1,13 +1,13 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class SKIP_WHILE_PIPE[T]: FilterPipeBase[T] is
-        _predicate: (T) -> bool;
-        _skipping: bool;
+        _predicate: (T) -> bool
+        _skipping: bool
 
         init(iterator: Iterator[T], predicate: (T) -> bool) is
-            super.init(iterator);
-            _predicate = predicate;
+            super.init(iterator)
+            _predicate = predicate
             _skipping = true;
         si
 
@@ -16,13 +16,13 @@ namespace Ghul.Pipes is
                 return false;
             fi
 
-            _skipping = false;
+            _skipping = false
 
             return true;
         si
 
         reset() is
-            super.reset();
+            super.reset()
             _skipping = true;
         si
     si

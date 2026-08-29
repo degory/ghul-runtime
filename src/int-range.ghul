@@ -1,8 +1,8 @@
 namespace Ghul is
-    use Collections;
+    use Collections
 
     trait Range[T] is
-        from: T;
+        from: T
         to: T;
     si
 
@@ -10,27 +10,27 @@ namespace Ghul is
         @IL.name("Reset")
         reset();
     si
-    
+
     struct INT_RANGE: Range[int], Iterable[int], Iterator[int], Resettable is
-        iterator: Iterator[int] => self;
+        iterator: Iterator[int] => self
 
-        from: int;
-        to: int;
+        from: int
+        to: int
 
-        current: int;
- 
+        current: int
+
         init(from: int, to: int) is
-            self.from = from;
-            self.to = to;
+            self.from = from
+            self.to = to
 
             current = from - 1;
         si
 
         move_next() -> bool is
-            current = current + 1;
+            current = current + 1
             return current < to;
         si
-        
+
         reset() is
             current = from - 1;
         si
@@ -51,44 +51,44 @@ namespace Ghul is
                     else
                         result
                     fi
-            ).to_string();
+            ).to_string()
 
-        dispose() is 
+        dispose() is
         si
     si
 
     struct INT_RANGE_INCLUSIVE: Range[int], Iterable[int], Iterator[int], Resettable is
-        iterator: Iterator[int] => self;
+        iterator: Iterator[int] => self
 
-        from: int;
-        to: int;
+        from: int
+        to: int
 
-        current: int;
+        current: int
 
         init(from: int, to: int) is
-            self.from = from;
-            self.to = to;
+            self.from = from
+            self.to = to
 
             current = from - 1;
         si
 
         move_next() -> bool is
-            current = current + 1;
+            current = current + 1
             return current <= to;
-        si        
+        si
 
         reset() is
             current = from - 1;
         si
-        
+
         to_string() -> string =>
             (
-                let result = 
+                let result =
                     System.Text.StringBuilder()
                         .append(from)
                         .append("::")
                         .append(to)
-                in    
+                in
                     if current != from -1 then
                         result
                             .append(" @ ")
@@ -96,7 +96,7 @@ namespace Ghul is
                     else
                         result
                     fi
-            ).to_string();
+            ).to_string()
 
         dispose() is
         si

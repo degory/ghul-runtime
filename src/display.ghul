@@ -1,5 +1,5 @@
 namespace Ghul is
-    use System.Text.StringBuilder;
+    use System.Text.StringBuilder
 
     // `$` renders a value for display. It is meant for showing a value to
     // a person - a short example, a trace, a value echoed back - rather
@@ -46,9 +46,9 @@ namespace Ghul is
     si
 
     $(value: object?) -> string is
-        let state = DISPLAY_STATE();
+        let state = DISPLAY_STATE()
 
-        state.render(value);
+        state.render(value)
 
         return state.to_string();
     si
@@ -59,12 +59,12 @@ namespace Ghul is
     // string renders as its characters. Declared this way it wins for a
     // present string, and an absent one is answered by the object?
     // overload above.
-    $(value: string) -> string => value;
+    $(value: string) -> string => value
 
     $[T](values: Collections.Iterable[T]) -> string is
-        let state = DISPLAY_STATE();
+        let state = DISPLAY_STATE()
 
-        state.render_sequence(values);
+        state.render_sequence(values)
 
         return state.to_string();
     si
@@ -75,18 +75,18 @@ namespace Ghul is
     // accumulated stays free to change - to write straight to a stream,
     // or to carry an indent - without any implementation noticing.
     class DISPLAY_STATE is
-        _max_elements: int static => 100;
+        _max_elements: int static => 100
 
-        _cycle_marker: string static => "<cycle>";
+        _cycle_marker: string static => "<cycle>"
 
-        _into: StringBuilder;
+        _into: StringBuilder
 
         // Holds one entry per level of the value currently being
         // rendered rather than one per value seen, so it stays short.
-        _open: Collections.LIST[object];
+        _open: Collections.LIST[object]
 
         init() is
-            _into = StringBuilder();
+            _into = StringBuilder()
             _open = Collections.LIST[object]();
         si
 
@@ -98,13 +98,13 @@ namespace Ghul is
             _into.append(c);
         si
 
-        to_string() -> string => _into.to_string();
+        to_string() -> string => _into.to_string()
 
         // Render a value into this state under the same element limit and
         // cycle tracking as everything else in the same render.
         render(value: object?) is
             if !value? then
-                append("null");
+                append("null")
 
                 return;
             fi
@@ -112,38 +112,38 @@ namespace Ghul is
             // A string is a sequence of characters, and rendering it as
             // one would be useless.
             if isa string(value) then
-                append(value);
+                append(value)
 
                 return;
             fi
 
             if _is_open(value) then
-                append(_cycle_marker);
+                append(_cycle_marker)
 
                 return;
             fi
 
             if isa Displayable(value) then
-                _mark(value);
-                value.display(self);
-                _release(value);
+                _mark(value)
+                value.display(self)
+                _release(value)
 
                 return;
             fi
 
-            let enumerator = _try_get_enumerator(value);
+            let enumerator = _try_get_enumerator(value)
 
             if !enumerator? then
-                append(value.to_string() ?? "null");
+                append(value.to_string() ?? "null")
 
                 return;
             fi
 
-            _mark(value);
+            _mark(value)
 
-            let rendered = _append_reflected(enumerator);
+            let rendered = _append_reflected(enumerator)
 
-            _release(value);
+            _release(value)
 
             if !rendered then
                 append(value.to_string() ?? "null");
@@ -157,26 +157,26 @@ namespace Ghul is
             // type that happens to be a sequence does not make the
             // structural rendering the right one.
             if isa Displayable(values) then
-                render(values);
+                render(values)
 
                 return;
             fi
 
             if _is_open(values) then
-                append(_cycle_marker);
+                append(_cycle_marker)
 
                 return;
             fi
 
-            _mark(values);
+            _mark(values)
 
-            append('[');
+            append('[')
 
-            let count mut = 0;
+            let count mut = 0
 
             for value in values do
                 if count >= _max_elements then
-                    append(", ...");
+                    append(", ...")
 
                     break;
                 fi
@@ -185,12 +185,12 @@ namespace Ghul is
                     append(", ");
                 fi
 
-                render(value);
+                render(value)
 
                 count = count + 1;
             od
 
-            append(']');
+            append(']')
 
             _release(values);
         si
@@ -205,7 +205,7 @@ namespace Ghul is
         // literals share a reference and would look like a repeat; it is
         // answered before this in any case.
         _is_trackable(value: object) -> bool =>
-            !value.get_type().is_value_type /\ !isa string(value);
+            !value.get_type().is_value_type /\ !isa string(value)
 
         // Remembered only while the value is on the path currently being
         // rendered, so the same collection appearing in two places renders
@@ -243,7 +243,7 @@ namespace Ghul is
         // `Iterable[object]`, so no cast covers it. Returns null when the
         // value is not enumerable.
         _try_get_enumerator(value: object) -> object? is
-            let get_enumerator = value.get_type().get_method("GetEnumerator");
+            let get_enumerator = value.get_type().get_method("GetEnumerator")
 
             if !get_enumerator? then
                 return null;
@@ -259,21 +259,21 @@ namespace Ghul is
         // empty when all that is really known is that it could not be
         // read.
         _append_reflected(enumerator: object) -> bool is
-            let enumerator_type = enumerator.get_type();
-            let move_next = enumerator_type.get_method("MoveNext");
-            let current = enumerator_type.get_property("Current");
+            let enumerator_type = enumerator.get_type()
+            let move_next = enumerator_type.get_method("MoveNext")
+            let current = enumerator_type.get_property("Current")
 
             if !move_next? \/ !current? then
                 return false;
             fi
 
-            append('[');
+            append('[')
 
-            let count mut = 0;
+            let count mut = 0
 
             while cast bool(move_next.invoke(enumerator, null) ?? false) do
                 if count >= _max_elements then
-                    append(", ...");
+                    append(", ...")
 
                     break;
                 fi
@@ -282,12 +282,12 @@ namespace Ghul is
                     append(", ");
                 fi
 
-                render(current.get_value(enumerator));
+                render(current.get_value(enumerator))
 
                 count = count + 1;
             od
 
-            append(']');
+            append(']')
 
             return true;
         si

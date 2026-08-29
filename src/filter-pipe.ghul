@@ -1,11 +1,11 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class FilterPipe[T]: FilterPipeBase[T] is
-        _predicate: T -> bool;
+        _predicate: T -> bool
 
         init(iterator: Iterator[T], predicate: T -> bool) is
-            super.init(iterator);
+            super.init(iterator)
 
             _predicate = predicate;
         si

@@ -1,19 +1,19 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     // Compares by a pre-computed key rather than re-deriving it from T on
     // every comparison, so sort_by/sort_by_descending pay for the key
     // selector once per element (O(n)) rather than once per comparison
     // (O(n log n)).
     class PAIR_KEY_COMPARER[K: Ghul.Comparable[K],T]: IComparer[(K,T)] is
-        _descending: bool;
+        _descending: bool
 
         init(descending: bool) is
             _descending = descending;
         si
 
         compare(x: (K,T), y: (K,T)) -> int is
-            let result = x.`0 <> y.`0;
+            let result = x.`0 <> y.`0
 
             if _descending then
                 return -result;
