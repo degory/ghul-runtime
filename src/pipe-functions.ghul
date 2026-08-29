@@ -47,6 +47,9 @@ namespace Ghul.Pipes is
     peek[T](source: Iterable[T], action: T -> void) -> Pipe[T] pure =>
         PEEK_PIPE[T](source.iterator, action);
 
+    memo[T](source: Iterable[T]) -> Pipe[T] pure =>
+        MEMO_PIPE[T](source);
+
     chunk[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
         CHUNK_PIPE[T](source.iterator, size);
 

@@ -115,6 +115,9 @@ namespace Ghul.Pipes is
         peek(action: T -> void) -> Pipe[T] pure =>
             Ghul.Pipes.peek(self, action);
 
+        memo() -> Pipe[T] pure =>
+            Ghul.Pipes.memo(self);
+
         chunk(size: int) -> Pipe[LIST[T]] pure =>
             Ghul.Pipes.chunk(self, size);
 
