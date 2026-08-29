@@ -1,13 +1,13 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class TAKE_WHILE_PIPE[T]: FilterPipeBase[T] is
-        _predicate: (T) -> bool;
-        _done: bool;
+        _predicate: (T) -> bool
+        _done: bool
 
         init(iterator: Iterator[T], predicate: (T) -> bool) is
-            super.init(iterator);
-            _predicate = predicate;
+            super.init(iterator)
+            _predicate = predicate
             _done = false;
         si
 
@@ -17,7 +17,7 @@ namespace Ghul.Pipes is
             fi
 
             if !_predicate(current) then
-                _done = true;
+                _done = true
 
                 return false;
             fi
@@ -25,10 +25,10 @@ namespace Ghul.Pipes is
             return true;
         si
 
-        should_include() -> bool => true;
+        should_include() -> bool => true
 
         reset() is
-            super.reset();
+            super.reset()
             _done = false;
         si
     si

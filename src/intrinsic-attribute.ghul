@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute emitted by the compiler on the .NET method
     // generated for a ghūl compiler intrinsic — a built-in operator or
@@ -10,7 +10,7 @@ namespace Ghul.Internal is
     // method as an intrinsic, so its call sites lower to opcodes exactly
     // as for a source-declared one. Compiler-emitted; not user-facing.
     class INTRINSIC_ATTRIBUTE: Attribute is
-        operation: string public;
+        operation: string public
 
         init(operation: string) is
             self.operation = operation;

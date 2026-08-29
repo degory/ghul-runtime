@@ -1,6 +1,6 @@
 namespace Ghul is
-    class BOX[T] is 
-        value: T public;
+    class BOX[T] is
+        value: T public
 
         init() is
         si

@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute emitted by the compiler on the synthetic class
     // that hosts a namespace's global functions, variables and

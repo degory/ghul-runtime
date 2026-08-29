@@ -1,13 +1,13 @@
 namespace Ghul.Pipes is
     struct INDEXED_VALUE[T] is
-        `0: int;
-        `1: T;
+        `0: int
+        `1: T
 
-        index: int pure => `0;
-        value: T pure => `1;
+        index: int pure => `0
+        value: T pure => `1
 
         init(index: int, value: T) pure is
-            `0 = index;
+            `0 = index
             `1 = value;
         si
 

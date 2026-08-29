@@ -1,8 +1,8 @@
 namespace Ghul.Pipes is
-    use System.InvalidOperationException;
-    use System.Text.StringBuilder;
+    use System.InvalidOperationException
+    use System.Text.StringBuilder
 
-    use Collections;
+    use Collections
 
     // Free-function equivalents of the Pipe[T] trait's combinators and
     // terminals (see degory/ghul-runtime#134 and degory/ghul#1846). A trait
@@ -21,67 +21,67 @@ namespace Ghul.Pipes is
     // by side.
 
     filter[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        FilterPipe[T](source.iterator, predicate);
+        FilterPipe[T](source.iterator, predicate)
 
     map[T,U](source: Iterable[T], mapper: (T) -> U pure) -> Pipe[U] pure =>
-        MAP_PIPE[T,U](source.iterator, mapper);
+        MAP_PIPE[T,U](source.iterator, mapper)
 
     flat_map[T,U](source: Iterable[T], mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
-        FLAT_MAP_PIPE[T,U](source.iterator, mapper);
+        FLAT_MAP_PIPE[T,U](source.iterator, mapper)
 
     skip[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
-        SKIP_PIPE[T](source.iterator, count);
+        SKIP_PIPE[T](source.iterator, count)
 
     take[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
-        TAKE_PIPE[T](source.iterator, count);
+        TAKE_PIPE[T](source.iterator, count)
 
     skip_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        SKIP_WHILE_PIPE[T](source.iterator, predicate);
+        SKIP_WHILE_PIPE[T](source.iterator, predicate)
 
     take_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        TAKE_WHILE_PIPE[T](source.iterator, predicate);
+        TAKE_WHILE_PIPE[T](source.iterator, predicate)
 
     distinct[T](source: Iterable[T]) -> Pipe[T] pure =>
-        DISTINCT_PIPE[T](source.iterator);
+        DISTINCT_PIPE[T](source.iterator)
 
     peek[T](source: Iterable[T], action: T -> void) -> Pipe[T] pure =>
-        PEEK_PIPE[T](source.iterator, action);
+        PEEK_PIPE[T](source.iterator, action)
 
     memo[T](source: Iterable[T]) -> Pipe[T] pure =>
-        MEMO_PIPE[T](source);
+        MEMO_PIPE[T](source)
 
     chunk[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
-        CHUNK_PIPE[T](source.iterator, size);
+        CHUNK_PIPE[T](source.iterator, size)
 
     windows[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
-        WINDOWS_PIPE[T](source.iterator, size);
+        WINDOWS_PIPE[T](source.iterator, size)
 
     cat[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        CAT_PIPE[T](source.iterator, right.iterator);
+        CAT_PIPE[T](source.iterator, right.iterator)
 
     union_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        distinct(cat(source, right));
+        distinct(cat(source, right))
 
     intersect_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        INTERSECT_PIPE[T](source.iterator, right);
+        INTERSECT_PIPE[T](source.iterator, right)
 
     except[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        EXCEPT_PIPE[T](source.iterator, right);
+        EXCEPT_PIPE[T](source.iterator, right)
 
     index[T](source: Iterable[T]) -> Pipe[INDEXED_VALUE[T]] pure =>
-        INDEX_PIPE[T](source.iterator, 0);
+        INDEX_PIPE[T](source.iterator, 0)
 
     index[T](source: Iterable[T], index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
-        INDEX_PIPE[T](source.iterator, index);
+        INDEX_PIPE[T](source.iterator, index)
 
     zip[T,U](source: Iterable[T], other: Iterable[U]) -> Pipe[(T,U)] pure =>
-        ZIP_PIPE[T,U](source.iterator, other.iterator);
+        ZIP_PIPE[T,U](source.iterator, other.iterator)
 
     zip[T,U,TOut](source: Iterable[T], other: Iterable[U], mapper: (T,U) -> TOut pure) -> Pipe[TOut] pure =>
-        ZIP_MAP_PIPE[T,U,TOut](source.iterator, other.iterator, mapper);
+        ZIP_MAP_PIPE[T,U,TOut](source.iterator, other.iterator, mapper)
 
     reduce[T,TRunning](source: Iterable[T], seed: TRunning, accumulator: (TRunning,T) -> TRunning pure) -> TRunning pure is
-        let running mut = seed;
+        let running mut = seed
 
         for element in source do
             running = accumulator(running, element);
@@ -91,7 +91,7 @@ namespace Ghul.Pipes is
     si
 
     reduce[T,TRunning,TOut](source: Iterable[T], seed: TRunning, accumulator: (TRunning,T) -> TRunning pure, mapper: (TRunning) -> TOut pure) -> TOut pure is
-        let running mut = seed;
+        let running mut = seed
 
         for element in source do
             running = accumulator(running, element);
@@ -101,13 +101,13 @@ namespace Ghul.Pipes is
     si
 
     collect[T](source: Iterable[T]) -> List[T] pure =>
-        collect_list(source);
+        collect_list(source)
 
     collect_array[T](source: Iterable[T]) -> T[] pure =>
-        collect_list(source).to_array();
+        collect_list(source).to_array()
 
     collect_list[T](source: Iterable[T]) -> LIST[T] pure is
-        let result = LIST[T]();
+        let result = LIST[T]()
 
         for element in source do
             result.add(element);
@@ -117,7 +117,7 @@ namespace Ghul.Pipes is
     si
 
     collect_set[T](source: Iterable[T]) -> SET[T] pure is
-        let result = SET[T]();
+        let result = SET[T]()
 
         for element in source do
             result.add(element);
@@ -127,7 +127,7 @@ namespace Ghul.Pipes is
     si
 
     collect_map[T,K,V](source: Iterable[T], key_selector: (T) -> K pure, value_selector: (T) -> V pure) -> MAP[K,V] pure is
-        let result = MAP[K,V]();
+        let result = MAP[K,V]()
 
         for element in source do
             result.add(key_selector(element), value_selector(element));
@@ -137,8 +137,8 @@ namespace Ghul.Pipes is
     si
 
     partition[T](source: Iterable[T], predicate: (T) -> bool pure) -> (LIST[T], LIST[T]) pure is
-        let matching = LIST[T]();
-        let non_matching = LIST[T]();
+        let matching = LIST[T]()
+        let non_matching = LIST[T]()
 
         for element in source do
             if predicate(element) then
@@ -152,14 +152,14 @@ namespace Ghul.Pipes is
     si
 
     group_by[T,K](source: Iterable[T], key_selector: (T) -> K pure) -> MAP[K, LIST[T]] pure is
-        let result = MAP[K, LIST[T]]();
+        let result = MAP[K, LIST[T]]()
 
         for element in source do
-            let key = key_selector(element);
-            let group: LIST[T] mut;
+            let key = key_selector(element)
+            let group: LIST[T] mut
 
             if !result.try_get_value(key, group ref) then
-                group = LIST[T]();
+                group = LIST[T]()
                 result.add(key, group);
             fi
 
@@ -170,17 +170,17 @@ namespace Ghul.Pipes is
     si
 
     min_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
-            let result mut = it.current;
-            let result_key mut = key_selector(result);
+            let result mut = it.current
+            let result_key mut = key_selector(result)
 
             while it.move_next() do
-                let candidate_key = key_selector(it.current);
+                let candidate_key = key_selector(it.current)
 
                 if candidate_key < result_key then
-                    result = it.current;
+                    result = it.current
                     result_key = candidate_key;
                 fi
             od
@@ -192,17 +192,17 @@ namespace Ghul.Pipes is
     si
 
     max_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
-            let result mut = it.current;
-            let result_key mut = key_selector(result);
+            let result mut = it.current
+            let result_key mut = key_selector(result)
 
             while it.move_next() do
-                let candidate_key = key_selector(it.current);
+                let candidate_key = key_selector(it.current)
 
                 if candidate_key > result_key then
-                    result = it.current;
+                    result = it.current
                     result_key = candidate_key;
                 fi
             od
@@ -214,8 +214,8 @@ namespace Ghul.Pipes is
     si
 
     count[T](source: Iterable[T]) -> int pure is
-        let it = source.iterator;
-        let result mut = 0;
+        let it = source.iterator
+        let result mut = 0
 
         while it.move_next() do
             result = result + 1;
@@ -225,10 +225,10 @@ namespace Ghul.Pipes is
     si
 
     find[T](source: Iterable[T], predicate: (T) -> bool pure) -> MAYBE[T] pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
-            let element = it.current;
+            let element = it.current
 
             if predicate(element) then
                 return MAYBE(element);
@@ -239,11 +239,11 @@ namespace Ghul.Pipes is
     si
 
     find_map[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
-            let element = it.current;
-            let maybe_result = mapper(element);
+            let element = it.current
+            let maybe_result = mapper(element)
 
             if maybe_result? then
                 return maybe_result;
@@ -254,10 +254,10 @@ namespace Ghul.Pipes is
     si
 
     find_or_throw[T](source: Iterable[T], predicate: T -> bool pure) -> T pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
-            let element = it.current;
+            let element = it.current
 
             if predicate(element) then
                 return element;
@@ -268,11 +268,11 @@ namespace Ghul.Pipes is
     si
 
     find_map_or_throw[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> U pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
-            let element = it.current;
-            let maybe_result = mapper(element);
+            let element = it.current
+            let maybe_result = mapper(element)
 
             if maybe_result? then
                 return maybe_result!;
@@ -283,7 +283,7 @@ namespace Ghul.Pipes is
     si
 
     first[T](source: Iterable[T]) -> MAYBE[T] pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
             return MAYBE(it.current);
@@ -293,11 +293,11 @@ namespace Ghul.Pipes is
     si
 
     first_map[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
-            let element = it.current;
-            let maybe_result = mapper(element);
+            let element = it.current
+            let maybe_result = mapper(element)
 
             if maybe_result? then
                 return maybe_result;
@@ -308,7 +308,7 @@ namespace Ghul.Pipes is
     si
 
     first_or_throw[T](source: Iterable[T]) -> T pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
             return it.current;
@@ -318,11 +318,11 @@ namespace Ghul.Pipes is
     si
 
     first_map_or_throw[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> U pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
-            let element = it.current;
-            let maybe_result = mapper(element);
+            let element = it.current
+            let maybe_result = mapper(element)
 
             if maybe_result? then
                 return maybe_result!;
@@ -333,16 +333,16 @@ namespace Ghul.Pipes is
     si
 
     only[T](source: Iterable[T]) -> T pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         if it.move_next() then
-            let result = it.current;
+            let result = it.current
 
             if it.move_next() then
                 throw InvalidOperationException("multiple elements found");
             fi
 
-            it.reset();
+            it.reset()
 
             return result;
         else
@@ -351,10 +351,10 @@ namespace Ghul.Pipes is
     si
 
     any[T](source: Iterable[T], predicate: (T) -> bool pure) -> bool pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
-            let element = it.current;
+            let element = it.current
 
             if predicate(element) then
                 return true;
@@ -365,10 +365,10 @@ namespace Ghul.Pipes is
     si
 
     all[T](source: Iterable[T], predicate: (T) -> bool pure) -> bool pure is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
-            let element = it.current;
+            let element = it.current
 
             if !predicate(element) then
                 return false;
@@ -379,7 +379,7 @@ namespace Ghul.Pipes is
     si
 
     each[T](source: Iterable[T], action: T -> void) is
-        let it = source.iterator;
+        let it = source.iterator
 
         while it.move_next() do
             action(it.current);
@@ -388,66 +388,66 @@ namespace Ghul.Pipes is
 
     reverse[T](source: Iterable[T]) -> Pipe[T] pure =>
         let list = collect_list(source) in
-        LIST_REVERSE_PIPE(list);
+        LIST_REVERSE_PIPE(list)
 
     sort[T: Ghul.Comparable[T]](source: Iterable[T]) -> Pipe[T] pure =>
-        _sort_ascending(source);
+        _sort_ascending(source)
 
     // Pipe[T].sort() cannot carry the bound, since T is the trait's own
     // unbounded parameter, so it forwards here instead. Calling the bounded
     // overload from there would emit a call that violates the constraint and
     // fail verification when the method is first reached.
     _sort_ascending[T](source: Iterable[T]) -> Pipe[T] pure is
-        let list = collect_list(source);
+        let list = collect_list(source)
 
-        list.sort();
-        source.iterator.reset();
+        list.sort()
+        source.iterator.reset()
 
         return pipe(list);
     si
 
     sort[T](source: Iterable[T], comparer: IComparer[T]) -> Pipe[T] pure is
-        let list = collect_list(source);
+        let list = collect_list(source)
 
-        list.sort(comparer);
-        source.iterator.reset();
+        list.sort(comparer)
+        source.iterator.reset()
 
         return pipe(list);
     si
 
     sort[T](source: Iterable[T], compare: (T, T) -> int pure) -> Pipe[T] pure =>
-        sort(source, FUNCTION_COMPARER[T](compare));
+        sort(source, FUNCTION_COMPARER[T](compare))
 
     sort_descending[T: Ghul.Comparable[T]](source: Iterable[T]) -> Pipe[T] pure =>
-        _sort_descending(source);
+        _sort_descending(source)
 
     _sort_descending[T](source: Iterable[T]) -> Pipe[T] pure is
-        let list = collect_list(source);
+        let list = collect_list(source)
 
-        list.sort();
-        source.iterator.reset();
+        list.sort()
+        source.iterator.reset()
 
         return LIST_REVERSE_PIPE(list);
     si
 
     sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
-        _sort_by(source, key_selector, false);
+        _sort_by(source, key_selector, false)
 
     sort_by_descending[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
-        _sort_by(source, key_selector, true);
+        _sort_by(source, key_selector, true)
 
     // Computes each element's key once (into `keyed`) rather than
     // re-deriving it on every comparison inside the sort.
     _sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure, descending: bool) -> Pipe[T] pure is
-        let keyed = LIST[(K,T)]();
+        let keyed = LIST[(K,T)]()
 
         for element in source do
             keyed.add((key_selector(element), element));
         od
 
-        keyed.sort(PAIR_KEY_COMPARER[K,T](descending));
+        keyed.sort(PAIR_KEY_COMPARER[K,T](descending))
 
-        let result = LIST[T]();
+        let result = LIST[T]()
 
         for pair in keyed do
             result.add(pair.`1);
@@ -457,34 +457,34 @@ namespace Ghul.Pipes is
     si
 
     append_to[T](source: Iterable[T], into: StringBuilder, separator: string) -> StringBuilder is
-        let it = source.iterator;
-        let seen_any mut = false;
+        let it = source.iterator
+        let seen_any mut = false
 
         while it.move_next() do
             if seen_any then
                 into.append(separator);
             fi
 
-            into.append("{it.current}");
+            into.append("{it.current}")
 
             seen_any = true;
         od
 
-        it.reset();
+        it.reset()
 
         return into;
     si
 
     append_to[T](source: Iterable[T], into: StringBuilder) -> StringBuilder =>
-        append_to(source, into, ", ");
+        append_to(source, into, ", ")
 
     join[T](source: Iterable[T], separator: string) -> string pure =>
         let result = StringBuilder() in
         append_to(source, result, separator)
-            .to_string();
+            .to_string()
 
     join[T](source: Iterable[T]) -> string pure =>
-        join(source, ", ");
+        join(source, ", ")
 
     // Part of an indexable source, taken with a range: `xs |> slice(1..4)`.
     // Nothing is copied, so the result is a view onto the source rather than
@@ -502,44 +502,44 @@ namespace Ghul.Pipes is
     // which is the same thing in the shape .NET already understands.
 
     slice[T](source: T[], r: INT_RANGE) -> List[T] pure =>
-        System.ArraySegment[T](source, r.from, r.to - r.from);
+        System.ArraySegment[T](source, r.from, r.to - r.from)
 
     slice[T](source: T[], r: INT_RANGE_INCLUSIVE) -> List[T] pure =>
-        System.ArraySegment[T](source, r.from, r.to - r.from + 1);
+        System.ArraySegment[T](source, r.from, r.to - r.from + 1)
 
     slice[T](source: List[T], r: INT_RANGE) -> List[T] pure =>
-        LIST_SLICE[T](source, r.from, r.to - r.from);
+        LIST_SLICE[T](source, r.from, r.to - r.from)
 
     slice[T](source: List[T], r: INT_RANGE_INCLUSIVE) -> List[T] pure =>
-        LIST_SLICE[T](source, r.from, r.to - r.from + 1);
+        LIST_SLICE[T](source, r.from, r.to - r.from + 1)
 
     // `string` is not a `List[char]`, so it takes its own overload, and
     // returns a string rather than a slice: a substring is what a caller
     // wants back, and .NET has no non-copying one to hand out.
     slice(source: string, r: INT_RANGE) -> string pure =>
-        source.substring(r.from, r.to - r.from);
+        source.substring(r.from, r.to - r.from)
 
     slice(source: string, r: INT_RANGE_INCLUSIVE) -> string pure =>
-        source.substring(r.from, r.to - r.from + 1);
+        source.substring(r.from, r.to - r.from + 1)
 
     // The from-the-end range operators (`a..<b`, `a..<<b`) carry a
     // `System.Range`, whose endpoints are only resolvable against a
     // length - which is here, where the source is known.
 
     slice[T](source: T[], r: System.Range) -> List[T] pure is
-        let (offset, count) = r.get_offset_and_length(source.count);
+        let (offset, count) = r.get_offset_and_length(source.count)
 
         return System.ArraySegment[T](source, offset, count);
     si
 
     slice[T](source: List[T], r: System.Range) -> List[T] pure is
-        let (offset, count) = r.get_offset_and_length(source.count);
+        let (offset, count) = r.get_offset_and_length(source.count)
 
         return LIST_SLICE[T](source, offset, count);
     si
 
     slice(source: string, r: System.Range) -> string pure is
-        let (offset, count) = r.get_offset_and_length(source.length);
+        let (offset, count) = r.get_offset_and_length(source.length)
 
         return source.substring(offset, count);
     si

@@ -1,5 +1,5 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     // A pipe that pulls its upstream once and replays what it pulled on
     // every later enumeration. The first pass drives the source and appends
@@ -8,45 +8,45 @@ namespace Ghul.Pipes is
     // iterator is dropped once the source is exhausted, since nothing will
     // ask it for more.
     class MEMO_PIPE[T]: Pipe[T] is
-        _source: Iterable[T];
-        _iterator: Iterator[T]?;
-        _cache: LIST[T];
-        _at: int;
+        _source: Iterable[T]
+        _iterator: Iterator[T]?
+        _cache: LIST[T]
+        _at: int
 
         init(source: Iterable[T]) is
-            assert source?;
+            assert source?
 
-            _source = source;
-            _iterator = source.iterator;
-            _cache = LIST[T]();
+            _source = source
+            _iterator = source.iterator
+            _cache = LIST[T]()
             _at = 0;
         si
 
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
-        current: T => _cache[_at - 1];
+        current: T => _cache[_at - 1]
 
         move_next() -> bool is
             if _at < _cache.count then
-                _at = _at + 1;
+                _at = _at + 1
                 return true;
             fi
 
             if !_iterator? then
-                reset();
+                reset()
                 return false;
             fi
 
-            let it = _iterator;
+            let it = _iterator
 
             if it.move_next() then
-                _cache.add(it.current);
-                _at = _at + 1;
+                _cache.add(it.current)
+                _at = _at + 1
                 return true;
             fi
 
-            _iterator = null;
-            reset();
+            _iterator = null
+            reset()
             return false;
         si
 
@@ -54,7 +54,7 @@ namespace Ghul.Pipes is
             _at = 0;
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

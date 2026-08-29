@@ -14,18 +14,18 @@ namespace Ghul is
     // declines `for i in 1..<1 do` rather than needing a rule.
 
     ..<(from: int, to: int) -> System.Range pure =>
-        System.Range(System.Index(from, false), System.Index(to, true));
+        System.Range(System.Index(from, false), System.Index(to, true))
 
     ..<<(from: int, to: int) -> System.Range pure =>
-        System.Range(System.Index(from, true), System.Index(to, true));
+        System.Range(System.Index(from, true), System.Index(to, true))
 
     // An inclusive end k back from the end is an exclusive end at k - 1
     // back, so the endpoint moves rather than the range growing.
     ::<(from: int, to: int) -> System.Range pure =>
-        System.Range(System.Index(from, false), _inclusive_end(to));
+        System.Range(System.Index(from, false), _inclusive_end(to))
 
     ::<<(from: int, to: int) -> System.Range pure =>
-        System.Range(System.Index(from, true), _inclusive_end(to));
+        System.Range(System.Index(from, true), _inclusive_end(to))
 
     // Rejected here rather than where the range meets a source, and named
     // for what was asked: shifting `to = 0` would build an index one past

@@ -2,25 +2,25 @@ namespace Ghul is
     // Open because a type declares itself option-shaped by implementing
     // this, which downstream assemblies have to be able to do.
     trait Maybe[T] open is
-        has_value: bool;
+        has_value: bool
         value: T;
     si
 
     struct MAYBE[T]: Maybe[T] is
-        _has_value: bool;
-        _value: T;
+        _has_value: bool
+        _value: T
 
-        has_value: bool pure => _has_value;
+        has_value: bool pure => _has_value
 
         value: T pure =>
             if _has_value then
                 _value
             else
                 throw System.InvalidOperationException("maybe has no value");
-            fi;
+            fi
 
         deconstruct(has_value: bool ref, value: T ref) is
-            has_value! = _has_value;
+            has_value! = _has_value
             value! = _value;
         si
 
@@ -28,7 +28,7 @@ namespace Ghul is
         si
 
         init(value: T) pure is
-            _has_value = true;
+            _has_value = true
             _value = value;
         si
 

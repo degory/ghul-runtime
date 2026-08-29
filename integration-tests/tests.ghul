@@ -1,20 +1,20 @@
 
-strings: Collections.LIST[string];
+strings: Collections.LIST[string]
 
 entry() is
-    strings = Collections.LIST[string]();
+    strings = Collections.LIST[string]()
 
     @IF.hello()
-    strings.add("Hello");
+    strings.add("Hello")
 
     @IF.broken()
-    strings.add("broken");
+    strings.add("broken")
 
     @IF.ghul()
-    strings.add("ghūl");
+    strings.add("ghūl")
 
     @IF.world()
-    strings.add("world!");
+    strings.add("world!")
 
     IO.Std.out.write_line(render(strings));
 si

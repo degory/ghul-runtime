@@ -1,16 +1,16 @@
 namespace Tests is
 
-    use Collections;
-    use NSubstitute;
+    use Collections
+    use NSubstitute
 
-    use NSubstitute.SubstituteExtensions.returns;
-    use NSubstitute.SubstituteExtensions.received;
+    use NSubstitute.SubstituteExtensions.returns
+    use NSubstitute.SubstituteExtensions.received
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
 
     @TestClass()
@@ -20,98 +20,98 @@ namespace Tests is
 
         @Test()
         Filter_ConsecutiveNonMatchingValues_AreRemoved() is
-            let pipe = 
-                Ghul.Pipes.Factory.from`[int]([3, 4, 5, 1, 2, 1, 2, 3, 4, 5]);
+            let pipe =
+                Ghul.Pipes.Factory.from`[int]([3, 4, 5, 1, 2, 1, 2, 3, 4, 5])
 
-
-            let result = 
-                pipe
-                    .filter(i => i > 2);
-
-            assert_are_equal([3, 4, 5, 3, 4, 5], result);
-        si
-        
-        @Test()
-        Filter_NonConsecutiveNonMatchingValues_AreRemoved() is
-            let pipe = 
-                Ghul.Pipes.Factory.from`[int]([3, 4, 1, 5, 2, 3, 1, 4, 5]);
 
             let result =
                 pipe
-                    .filter(i => i > 2);
+                    .filter(i => i > 2)
+
+            assert_are_equal([3, 4, 5, 3, 4, 5], result);
+        si
+
+        @Test()
+        Filter_NonConsecutiveNonMatchingValues_AreRemoved() is
+            let pipe =
+                Ghul.Pipes.Factory.from`[int]([3, 4, 1, 5, 2, 3, 1, 4, 5])
+
+            let result =
+                pipe
+                    .filter(i => i > 2)
 
             assert_are_equal([3, 4, 5, 3, 4, 5], result);
         si
 
         @Test()
         Filter_LeadingNonMatchingValues_AreRemoved() is
-            let pipe = 
-                Ghul.Pipes.Factory.from`[int]([1, 2, 1, 3, 4, 5, 6, 7]);
+            let pipe =
+                Ghul.Pipes.Factory.from`[int]([1, 2, 1, 3, 4, 5, 6, 7])
 
             let result =
                 pipe
-                    .filter(i => i > 2);
+                    .filter(i => i > 2)
 
             assert_are_equal([3, 4, 5, 6, 7], result);
         si
 
         @Test()
         Filter_TrailingNonMatchingValues_AreRemoved() is
-            let pipe = 
-                Ghul.Pipes.Factory.from`[int]([7, 6, 5, 4, 3, 2, 1]);
+            let pipe =
+                Ghul.Pipes.Factory.from`[int]([7, 6, 5, 4, 3, 2, 1])
 
             let result =
                 pipe
-                    .filter(i => i > 2);
+                    .filter(i => i > 2)
 
             assert_are_equal([7, 6, 5, 4, 3], result);
         si
 
         @Test()
         Filter_CalledTwice_ReturnsOnlyElementsThatMatchBothPredicates() is
-            let pipe = 
-                Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            let pipe =
+                Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
             let result =
                 pipe
                     .filter(i => i > 3 /\ i < 9)
-                    .filter(i => (i & 1) == 0);
+                    .filter(i => (i & 1) == 0)
 
             assert_are_equal([4, 6, 8], result);
         si
 
         @Test()
         Count_AlwaysTruePredicate_ReturnsElementCount() is
-            let input = ["a", "b", "c", "d"];
+            let input = ["a", "b", "c", "d"]
 
-            let pipe = FilterPipe[string](input.iterator, (e: string) => true);
+            let pipe = FilterPipe[string](input.iterator, (e: string) => true)
 
             are_equal(4, pipe.count());
         si
 
         @Test()
         Count_EmptyList_ReturnsZero() is
-            let input = empty`[int]();
+            let input = empty`[int]()
 
-            let pipe = FilterPipe[int](input.iterator, (e: int) => true);
+            let pipe = FilterPipe[int](input.iterator, (e: int) => true)
 
             are_equal(0, pipe.count());
         si
 
         @Test()
         Iterator_ReturnsSelf() is
-            let input = ["a", "b", "c"];
+            let input = ["a", "b", "c"]
 
-            let pipe = FilterPipe[string](input.iterator, (e: string) => true);
+            let pipe = FilterPipe[string](input.iterator, (e: string) => true)
 
             are_same(pipe, pipe.iterator);
         si
 
         @Test()
         Iterator_AlwaysTruePredicate_ResultEqualsInput() is
-            let input = ["a", "b", "c"];
+            let input = ["a", "b", "c"]
 
-            let pipe = FilterPipe[string](input.iterator, (e: string) => true);
+            let pipe = FilterPipe[string](input.iterator, (e: string) => true)
 
             assert_are_equal(["a", "b", "c"], pipe);
         si

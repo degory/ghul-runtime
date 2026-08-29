@@ -1,16 +1,16 @@
 namespace Tests is
 
-    use Collections;
-    use NSubstitute;
+    use Collections
+    use NSubstitute
 
-    use NSubstitute.SubstituteExtensions.returns;
-    use NSubstitute.SubstituteExtensions.received;
+    use NSubstitute.SubstituteExtensions.returns
+    use NSubstitute.SubstituteExtensions.received
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
     @TestClass()
     class MaybeShould is
@@ -19,76 +19,76 @@ namespace Tests is
 
         @Test()
         Maybe_NotInt_HasNoValue() is
-            let maybe = MAYBE[int]();
+            let maybe = MAYBE[int]()
 
             is_false(maybe.has_value);
         si
 
         @Test()
         Maybe_Int_HasExpectedValue() is
-            let maybe = MAYBE[int](42);
+            let maybe = MAYBE[int](42)
 
-            is_true(maybe.has_value);
+            is_true(maybe.has_value)
             are_equal(42, maybe.value);
         si
-        
+
         @Test()
         Maybe_NotInt_HasExpectedStringRepresentation() is
-            let maybe = MAYBE[int]();
+            let maybe = MAYBE[int]()
 
             are_equal("none", maybe.to_string());
         si
 
         @Test()
         Maybe_Int_HasExpectedStringRepresentation() is
-            let maybe = MAYBE[int](42);
+            let maybe = MAYBE[int](42)
 
             are_equal("42", maybe.to_string());
         si
-        
+
         @Test()
         Maybe_NotString_HasNoValue() is
-            let maybe = MAYBE[string]();
+            let maybe = MAYBE[string]()
 
             is_false(maybe.has_value);
         si
-        
+
         @Test()
         Maybe_String_HasExpectedValue() is
-            let maybe = MAYBE[string]("Hello, World!");
+            let maybe = MAYBE[string]("Hello, World!")
 
-            is_true(maybe.has_value);
+            is_true(maybe.has_value)
             are_equal("Hello, World!", maybe.value);
         si
 
         @Test()
         Maybe_Int_ReadsValueThroughTrait() is
-            let maybe: Maybe[int] = MAYBE[int](42);
+            let maybe: Maybe[int] = MAYBE[int](42)
 
-            is_true(maybe.has_value);
+            is_true(maybe.has_value)
             are_equal(42, maybe.value);
         si
 
         @Test()
         Maybe_NotInt_ReadsAbsenceThroughTrait() is
-            let maybe: Maybe[int] = MAYBE[int]();
+            let maybe: Maybe[int] = MAYBE[int]()
 
             is_false(maybe.has_value);
         si
 
         @Test()
         Maybe_String_ReadsValueThroughTrait() is
-            let maybe: Maybe[string] = MAYBE[string]("Hello, World!");
+            let maybe: Maybe[string] = MAYBE[string]("Hello, World!")
 
-            is_true(maybe.has_value);
+            is_true(maybe.has_value)
             are_equal("Hello, World!", maybe.value);
         si
 
         @Test()
         Maybe_NotInt_Value_ThrowsInvalidOperationException() is
-            let maybe = MAYBE[int]();
+            let maybe = MAYBE[int]()
 
-            let caught_expected mut = false;
+            let caught_expected mut = false
 
             try
                 let result = maybe.value;
@@ -102,9 +102,9 @@ namespace Tests is
 
         @Test()
         Maybe_NotString_Value_ThrowsThroughTrait() is
-            let maybe: Maybe[string] = MAYBE[string]();
+            let maybe: Maybe[string] = MAYBE[string]()
 
-            let caught_expected mut = false;
+            let caught_expected mut = false
 
             try
                 let result = maybe.value;
@@ -118,17 +118,17 @@ namespace Tests is
 
         @Test()
         Maybe_Int_DestructuresPositionally() is
-            let (has_value, value) = MAYBE[int](42);
+            let (has_value, value) = MAYBE[int](42)
 
-            is_true(has_value);
+            is_true(has_value)
             are_equal(42, value);
         si
 
         @Test()
         Maybe_NotInt_DestructuresPositionally() is
-            let (has_value, value) = MAYBE[int]();
+            let (has_value, value) = MAYBE[int]()
 
-            is_false(has_value);
+            is_false(has_value)
             are_equal(0, value);
         si
     si

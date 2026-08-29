@@ -5,7 +5,8 @@
 
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
-    <GhulOptions>--define ghul</GhulOptions>
+    <GhulOptions>--define ghul --warn redundant-semicolon</GhulOptions>
+    <GhulOptions Condition="'$(CI)' != ''">$(GhulOptions) --warn-as-error redundant-semicolon</GhulOptions>
 
     <!-- entry() in tests.ghul calls render() in render.ghul; with no
          namespace, that cross-file reference only resolves when the two

@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute emitted by the compiler on a ghūl function
     // declared `pure` — the function has no caller-observable side

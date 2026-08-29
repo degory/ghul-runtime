@@ -27,6 +27,11 @@
     <ProjectReference Include="../ghul-runtime.ghulproj" />
 
     <GhulSources Include="**/*.ghul" />
+
+    <!-- Terminator-free sources; error on CI so stray `;` cannot creep
+         back in, warning locally. -->
+    <GhulOptions Include="--warn redundant-semicolon" />
+    <GhulOptions Include="--warn-as-error redundant-semicolon" Condition="'$(CI)' != ''" />
   </ItemGroup>
 
   <Import Project="../build/ghul.runtime.targets" />

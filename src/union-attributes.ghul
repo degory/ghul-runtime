@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute emitted by the compiler on the .NET class
     // generated for a ghūl `union` type. Lets the reflection layer

@@ -1,22 +1,22 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class WINDOWS_PIPE[T]: Pipe[LIST[T]] is
-        iterator: Iterator[LIST[T]] => self;
+        iterator: Iterator[LIST[T]] => self
 
-        current: LIST[T];
+        current: LIST[T]
 
-        _iterator: Iterator[T];
+        _iterator: Iterator[T]
 
-        _size: int;
+        _size: int
 
-        _buffer: LIST[T];
+        _buffer: LIST[T]
 
         init(iterator: Iterator[T], size: int) is
-            assert size > 0 else "window size must be positive";
+            assert size > 0 else "window size must be positive"
 
-            _iterator = iterator;
-            _size = size;
+            _iterator = iterator
+            _size = size
             _buffer = LIST[T]();
         si
 
@@ -26,24 +26,24 @@ namespace Ghul.Pipes is
             od
 
             if _buffer.count < _size then
-                reset();
+                reset()
 
                 return false;
             fi
 
-            current = LIST[T](_buffer);
+            current = LIST[T](_buffer)
 
-            _buffer.remove_at(0);
+            _buffer.remove_at(0)
 
             return true;
         si
 
         reset() is
-            _iterator.reset();
+            _iterator.reset()
             _buffer = LIST[T]();
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

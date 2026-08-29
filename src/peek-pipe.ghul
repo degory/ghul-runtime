@@ -1,29 +1,29 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class PEEK_PIPE[T]: Pipe[T] is
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
-        current: T;
+        current: T
 
-        _iterator: Iterator[T];
+        _iterator: Iterator[T]
 
-        _action: (T) -> void;
+        _action: (T) -> void
 
         init(iterator: Iterator[T], action: (T) -> void) is
-            _iterator = iterator;
+            _iterator = iterator
             _action = action;
         si
 
         move_next() -> bool is
             if _iterator.move_next() then
-                current = _iterator.current;
-                _action(current);
+                current = _iterator.current
+                _action(current)
 
                 return true;
             fi
 
-            _iterator.reset();
+            _iterator.reset()
 
             return false;
         si
@@ -32,7 +32,7 @@ namespace Ghul.Pipes is
             _iterator.reset();
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

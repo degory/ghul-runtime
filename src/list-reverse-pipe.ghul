@@ -1,23 +1,23 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     class LIST_REVERSE_PIPE[T]: Pipe[T] is
-        _list: List[T];
-        _index: int;
+        _list: List[T]
+        _index: int
 
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
-        current: T => _list[_index];
+        current: T => _list[_index]
 
         init(list: List[T]) is
-            assert list?;
+            assert list?
 
-            _list = list;
+            _list = list
             reset();
         si
 
         move_next() -> bool is
-            let result = _index > 0;
+            let result = _index > 0
 
             if result then
                 _index = _index - 1;
@@ -32,9 +32,9 @@ namespace Ghul.Pipes is
             _index = _list.count;
         si
 
-        count() -> int => _list.count;
+        count() -> int => _list.count
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si

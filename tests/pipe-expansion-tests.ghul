@@ -1,12 +1,12 @@
 namespace Tests is
 
-    use Collections;
+    use Collections
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
     @TestClass()
     class PipeExpansionShould is
@@ -15,183 +15,183 @@ namespace Tests is
 
         @Test()
         Distinct_RepeatedElements_ReturnsEachOnce() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3, 1, 4, 3]);
+            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3, 1, 4, 3])
 
             assert_are_equal([1, 2, 3, 4], pipe.distinct());
         si
 
         @Test()
         Distinct_EnumeratedTwice_ReturnsSameResultBothTimes() is
-            let pipe = Pipes.Factory.from`[int]([1, 1, 2, 2, 3]);
-            let distinct = pipe.distinct();
+            let pipe = Pipes.Factory.from`[int]([1, 1, 2, 2, 3])
+            let distinct = pipe.distinct()
 
-            distinct.collect();
-            distinct.reset();
+            distinct.collect()
+            distinct.reset()
 
             assert_are_equal([1, 2, 3], distinct);
         si
 
         @Test()
         SkipWhile_LeadingMatchingElements_AreSkipped() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 1, 2]);
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 1, 2])
 
             assert_are_equal([3, 4, 1, 2], pipe.skip_while(i => i < 3));
         si
 
         @Test()
         SkipWhile_NoElementsMatch_ReturnsAllElements() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3]);
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3])
 
             assert_are_equal([1, 2, 3], pipe.skip_while(i => i > 10));
         si
 
         @Test()
         TakeWhile_LeadingMatchingElements_AreTaken() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 1, 2]);
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 1, 2])
 
             assert_are_equal([1, 2], pipe.take_while(i => i < 3));
         si
 
         @Test()
         TakeWhile_NoElementsMatch_ReturnsEmpty() is
-            let pipe = Pipes.Factory.from`[int]([5, 6, 7]);
+            let pipe = Pipes.Factory.from`[int]([5, 6, 7])
 
             assert_are_equal(empty[int](), pipe.take_while(i => i < 3));
         si
 
         @Test()
         Peek_EachElement_RunsActionAndPassesElementThrough() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3]);
-            let seen = LIST[int]();
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3])
+            let seen = LIST[int]()
 
-            let result = pipe.peek(i => seen.add(i)).collect_list();
+            let result = pipe.peek(i => seen.add(i)).collect_list()
 
-            assert_are_equal([1, 2, 3], Pipes.Factory.from(result));
+            assert_are_equal([1, 2, 3], Pipes.Factory.from(result))
             CollectionAssert.are_equal(LIST[int]([1, 2, 3]), seen);
         si
 
         @Test()
         Min_NonEmptySequence_ReturnsSmallestElement() is
-            let pipe = Pipes.Factory.from`[int]([5, 3, 8, 1, 9]);
+            let pipe = Pipes.Factory.from`[int]([5, 3, 8, 1, 9])
 
             are_equal(MAYBE[int](1), Pipes.min(pipe));
         si
 
         @Test()
         Min_EmptySequence_ReturnsMaybeNot() is
-            let pipe = Pipes.Factory.from`[int](empty`[int]());
+            let pipe = Pipes.Factory.from`[int](empty`[int]())
 
             are_equal(MAYBE[int](), Pipes.min(pipe));
         si
 
         @Test()
         Max_NonEmptySequence_ReturnsLargestElement() is
-            let pipe = Pipes.Factory.from`[int]([5, 3, 8, 1, 9]);
+            let pipe = Pipes.Factory.from`[int]([5, 3, 8, 1, 9])
 
             are_equal(MAYBE[int](9), Pipes.max(pipe));
         si
 
         @Test()
         Max_EmptySequence_ReturnsMaybeNot() is
-            let pipe = Pipes.Factory.from`[int](empty`[int]());
+            let pipe = Pipes.Factory.from`[int](empty`[int]())
 
             are_equal(MAYBE[int](), Pipes.max(pipe));
         si
 
         @Test()
         MinBy_NonEmptySequence_ReturnsElementWithSmallestKey() is
-            let pipe = Pipes.Factory.from(["ccc", "a", "bb"]);
+            let pipe = Pipes.Factory.from(["ccc", "a", "bb"])
 
             are_equal(MAYBE("a"), pipe.min_by(s => s.length));
         si
 
         @Test()
         MinBy_EmptySequence_ReturnsMaybeNot() is
-            let pipe = Pipes.Factory.from(empty[string]());
+            let pipe = Pipes.Factory.from(empty[string]())
 
             are_equal(MAYBE[string](), pipe.min_by(s => s.length));
         si
 
         @Test()
         MaxBy_NonEmptySequence_ReturnsElementWithLargestKey() is
-            let pipe = Pipes.Factory.from(["ccc", "a", "bb"]);
+            let pipe = Pipes.Factory.from(["ccc", "a", "bb"])
 
             are_equal(MAYBE("ccc"), pipe.max_by(s => s.length));
         si
 
         @Test()
         MaxBy_EmptySequence_ReturnsMaybeNot() is
-            let pipe = Pipes.Factory.from(empty[string]());
+            let pipe = Pipes.Factory.from(empty[string]())
 
             are_equal(MAYBE[string](), pipe.max_by(s => s.length));
         si
 
         @Test()
         SortDescending_UnsortedSequence_ReturnsElementsInDescendingOrder() is
-            let pipe = Pipes.Factory.from`[int]([2, 1, 4, 3, 6, 5]);
+            let pipe = Pipes.Factory.from`[int]([2, 1, 4, 3, 6, 5])
 
             assert_are_equal([6, 5, 4, 3, 2, 1], pipe.sort_descending());
         si
 
         @Test()
         SortBy_UnsortedSequence_ReturnsElementsOrderedByKey() is
-            let pipe = Pipes.Factory.from(["ccc", "a", "bb"]);
+            let pipe = Pipes.Factory.from(["ccc", "a", "bb"])
 
             assert_are_equal(["a", "bb", "ccc"], pipe.sort_by(s => s.length));
         si
 
         @Test()
         SortByDescending_UnsortedSequence_ReturnsElementsOrderedByKeyDescending() is
-            let pipe = Pipes.Factory.from(["a", "bb", "ccc"]);
+            let pipe = Pipes.Factory.from(["a", "bb", "ccc"])
 
             assert_are_equal(["ccc", "bb", "a"], pipe.sort_by_descending(s => s.length));
         si
 
         @Test()
         SortBy_CallsKeySelectorExactlyOncePerElement() is
-            let calls = LIST[string]();
-            let pipe = Pipes.Factory.from(["ccc", "a", "bb"]);
+            let calls = LIST[string]()
+            let pipe = Pipes.Factory.from(["ccc", "a", "bb"])
 
             let result = pipe.sort_by(s is
-                calls.add(s);
+                calls.add(s)
                 return s.length;
-            si);
+            si)
 
-            result.collect();
+            result.collect()
 
             are_equal(3, calls.count);
         si
 
         @Test()
         Partition_MixedElements_SplitsIntoMatchingAndNonMatching() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6]);
+            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6])
 
-            let (matching, non_matching) = pipe.partition(i => i % 2 == 0);
+            let (matching, non_matching) = pipe.partition(i => i % 2 == 0)
 
-            CollectionAssert.are_equal(LIST[int]([2, 4, 6]), matching);
+            CollectionAssert.are_equal(LIST[int]([2, 4, 6]), matching)
             CollectionAssert.are_equal(LIST[int]([1, 3, 5]), non_matching);
         si
 
         @Test()
         CollectSet_RepeatedElements_ReturnsDistinctSet() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3, 1]);
+            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3, 1])
 
-            let result = pipe.collect_set();
+            let result = pipe.collect_set()
 
-            is_true(result.contains(1));
-            is_true(result.contains(2));
-            is_true(result.contains(3));
+            is_true(result.contains(1))
+            is_true(result.contains(2))
+            is_true(result.contains(3))
             are_equal(3, result.count);
         si
 
         @Test()
         CollectMap_Elements_BuildsMapFromKeyAndValueSelectors() is
-            let pipe = Pipes.Factory.from(["a", "bb", "ccc"]);
+            let pipe = Pipes.Factory.from(["a", "bb", "ccc"])
 
-            let result = pipe.collect_map(s => s, s => s.length);
+            let result = pipe.collect_map(s => s, s => s.length)
 
-            are_equal(1, result["a"]);
-            are_equal(2, result["bb"]);
+            are_equal(1, result["a"])
+            are_equal(2, result["bb"])
             are_equal(3, result["ccc"]);
         si
     si

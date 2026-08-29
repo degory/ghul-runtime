@@ -1,5 +1,5 @@
 namespace Ghul.Internal is
-    use System;
+    use System
 
     // Marker attribute emitted by the compiler on every assembly it
     // builds. Lets the reflection layer that imports a .NET assembly

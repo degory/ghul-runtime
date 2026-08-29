@@ -1,29 +1,29 @@
 namespace Tests is
 
-    use Collections;
+    use Collections
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
     // A pipe holding per-pass state has to restore it when the pass ends,
     // or the second enumeration of the same pipe answers differently from
     // the first.
     @TestClass()
     class PipeReuseShould is
-        _values: List[int];
-        _other: List[int];
+        _values: List[int]
+        _other: List[int]
 
         init() is
-            _values = [1, 2, 3, 4, 5];
+            _values = [1, 2, 3, 4, 5]
             _other = [3, 4, 9];
         si
 
         _assert_repeatable[T](expected: string, pipe: Pipe[T]) is
-            are_equal(expected, "{$(pipe.collect())}", "first pass");
-            are_equal(expected, "{$(pipe.collect())}", "second pass");
+            are_equal(expected, "{$(pipe.collect())}", "first pass")
+            are_equal(expected, "{$(pipe.collect())}", "second pass")
             are_equal(expected, "{$(pipe.collect())}", "third pass");
         si
 
@@ -104,10 +104,10 @@ namespace Tests is
         // partition of the same tail into the values below and above a pivot.
         @Test()
         Skip_PartitionedTwice_SeesTheWholeTailBothTimes() is
-            let pivot = _values[0];
-            let rest = _values |> skip(1);
+            let pivot = _values[0]
+            let rest = _values |> skip(1)
 
-            are_equal("[]", "{$((rest |> filter(v => v < pivot)).collect())}");
+            are_equal("[]", "{$((rest |> filter(v => v < pivot)).collect())}")
             are_equal("[2, 3, 4, 5]", "{$((rest |> filter(v => v >= pivot)).collect())}");
         si
     si

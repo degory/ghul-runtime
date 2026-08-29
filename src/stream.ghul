@@ -1,5 +1,5 @@
 namespace Ghul.Pipes is
-    use Collections;
+    use Collections
 
     // One step of a state-stepping stream.
     //
@@ -12,7 +12,7 @@ namespace Ghul.Pipes is
     // index cursor, accumulator) and is never seen by callers of a
     // `stream`-produced `Pipe[T]`.
     union STREAM[T, S] is
-        DONE;
+        DONE
         YIELD(value: T, state: S);
     si
 
@@ -28,31 +28,31 @@ namespace Ghul.Pipes is
     // `advance` is a pure `S -> STREAM[T, S]` — no recursion, no
     // closure-per-step allocation.
     class STREAM_PIPE[T, S]: Pipe[T] is
-        _initial: S;
-        _state:   S;
-        _advance: S -> STREAM[T, S];
+        _initial: S
+        _state:   S
+        _advance: S -> STREAM[T, S]
 
-        current: T;
+        current: T
 
-        iterator: Iterator[T] => self;
+        iterator: Iterator[T] => self
 
         init(initial: S, advance: S -> STREAM[T, S]) is
-            assert advance?;
+            assert advance?
 
-            _initial = initial;
-            _state   = initial;
+            _initial = initial
+            _state   = initial
             _advance = advance;
         si
 
         move_next() -> bool is
-            let step = _advance(_state);
+            let step = _advance(_state)
 
             if let next: STREAM.YIELD[T, S] = step then
-                current = next.value;
-                _state  = next.state;
+                current = next.value
+                _state  = next.state
                 return true;
             else
-                reset();
+                reset()
 
                 return false;
             fi
@@ -62,7 +62,7 @@ namespace Ghul.Pipes is
             _state = _initial;
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
 
         dispose() is
         si
