@@ -1,13 +1,13 @@
 namespace Tests is
-    use Collections;
+    use Collections
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use STREAM.DONE;
-    use STREAM.YIELD;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use STREAM.DONE
+    use STREAM.YIELD
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
     @TestClass()
     class STREAM_PIPEShould is
@@ -20,18 +20,18 @@ namespace Tests is
                 3,
                 (s: int) =>
                     if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
-            );
+            )
 
-            is_true(p.move_next());
-            are_equal(3, p.current);
-            is_true(p.move_next());
-            are_equal(2, p.current);
-            is_true(p.move_next());
-            are_equal(1, p.current);
-            is_false(p.move_next());
+            is_true(p.move_next())
+            are_equal(3, p.current)
+            is_true(p.move_next())
+            are_equal(2, p.current)
+            is_true(p.move_next())
+            are_equal(1, p.current)
+            is_false(p.move_next())
 
             // Ending the pass resets the pipe, so asking again starts a new one.
-            is_true(p.move_next());
+            is_true(p.move_next())
             are_equal(3, p.current);
         si
 
@@ -41,7 +41,7 @@ namespace Tests is
                 0,
                 (s: int) =>
                     if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
-            );
+            )
 
             is_false(p.move_next());
         si
@@ -52,18 +52,18 @@ namespace Tests is
                 2,
                 (s: int) =>
                     if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
-            );
+            )
 
-            is_true(p.move_next());
-            is_true(p.move_next());
-            is_false(p.move_next());
+            is_true(p.move_next())
+            is_true(p.move_next())
+            is_false(p.move_next())
 
-            p.reset();
+            p.reset()
 
-            is_true(p.move_next());
-            are_equal(2, p.current);
-            is_true(p.move_next());
-            are_equal(1, p.current);
+            is_true(p.move_next())
+            are_equal(2, p.current)
+            is_true(p.move_next())
+            are_equal(1, p.current)
             is_false(p.move_next());
         si
 
@@ -72,12 +72,12 @@ namespace Tests is
             let evens =
                 STREAM_PIPE[int, int](0, (s: int) => YIELD(s, s + 1))
                     .filter(x => x % 2 == 0)
-                    .take(3);
+                    .take(3)
 
-            let actual = LIST[int]();
-            actual.add_range(evens);
+            let actual = LIST[int]()
+            actual.add_range(evens)
 
-            let expected = LIST[int]([0, 2, 4]);
+            let expected = LIST[int]([0, 2, 4])
 
             CollectionAssert.are_equal(expected, actual);
         si
@@ -86,12 +86,12 @@ namespace Tests is
         Take_TerminatesInfiniteStream() is
             let firsts =
                 STREAM_PIPE[int, int](10, (s: int) => YIELD(s, s + 1))
-                    .take(4);
+                    .take(4)
 
-            let actual = LIST[int]();
-            actual.add_range(firsts);
+            let actual = LIST[int]()
+            actual.add_range(firsts)
 
-            let expected = LIST[int]([10, 11, 12, 13]);
+            let expected = LIST[int]([10, 11, 12, 13])
 
             CollectionAssert.are_equal(expected, actual);
         si
@@ -112,12 +112,12 @@ namespace Tests is
                         else
                             YIELD("step {i}", i - 1)
                         fi
-                );
+                )
 
-            let actual = LIST[string]();
-            actual.add_range(labels);
+            let actual = LIST[string]()
+            actual.add_range(labels)
 
-            let expected = LIST[string](["step 3", "step 2", "step 1"]);
+            let expected = LIST[string](["step 3", "step 2", "step 1"])
 
             CollectionAssert.are_equal(expected, actual);
         si
@@ -130,19 +130,19 @@ namespace Tests is
 
         @Test()
         Stream_BuildsPipeFromStateStepper() is
-            let p = stream`[int, int](7, (s: int) => YIELD(s, s + 1));
+            let p = stream`[int, int](7, (s: int) => YIELD(s, s + 1))
 
             is_instance_of_type(p, typeof STREAM_PIPE[int, int]);
         si
 
         @Test()
         Stream_DriveSequence() is
-            let p = stream`[int, int](1, (s: int) => YIELD(s, s + 1)) | .take(5);
+            let p = stream`[int, int](1, (s: int) => YIELD(s, s + 1)) | .take(5)
 
-            let actual = LIST[int]();
-            actual.add_range(p);
+            let actual = LIST[int]()
+            actual.add_range(p)
 
-            let expected = LIST[int]([1, 2, 3, 4, 5]);
+            let expected = LIST[int]([1, 2, 3, 4, 5])
 
             CollectionAssert.are_equal(expected, actual);
         si

@@ -1,30 +1,30 @@
 namespace Tests is
-    use Collections;
-    use NSubstitute;
+    use Collections
+    use NSubstitute
 
-    use NSubstitute.SubstituteExtensions.returns;
-    use NSubstitute.SubstituteExtensions.received;
+    use NSubstitute.SubstituteExtensions.returns
+    use NSubstitute.SubstituteExtensions.received
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
-    empty[T]() -> T[] => System.Array.empty`[T]();
+    empty[T]() -> T[] => System.Array.empty`[T]()
 
-    iv[T](index: int, value: T) -> INDEXED_VALUE[T] => INDEXED_VALUE[T](index, value);
+    iv[T](index: int, value: T) -> INDEXED_VALUE[T] => INDEXED_VALUE[T](index, value)
 
     assert_are_equal[T](expected: Iterable[T], actual: Pipe[T]) is
-        let expected_elements = LIST[T]();
-        let actual_elements = LIST[T]();
+        let expected_elements = LIST[T]()
+        let actual_elements = LIST[T]()
 
-        expected_elements.add_range(expected);
-        actual_elements.add_range(actual);
+        expected_elements.add_range(expected)
+        actual_elements.add_range(actual)
 
         CollectionAssert.are_equal(expected_elements, actual_elements);
     si
-        
+
     @TestClass()
     class ADAPTOR_PIPEShould is
         init() is
@@ -32,21 +32,21 @@ namespace Tests is
 
         @Test()
         Pipe_FromArray_ReturnsInstanceOfADAPTOR_PIPE() is
-            let pipe = Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5]);
+            let pipe = Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
 
             is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int]);
         si
 
         @Test()
         Count_NonEmptyArray_ReturnsElementCount() is
-            let pipe = ADAPTOR_PIPE[int]([1, 2, 3, 4, 5]);
+            let pipe = ADAPTOR_PIPE[int]([1, 2, 3, 4, 5])
 
             are_equal(5, pipe.count());
         si
 
         @Test()
         Count_EmptyArray_ReturnsZero() is
-            let pipe = ADAPTOR_PIPE[int](empty`[int]());
+            let pipe = ADAPTOR_PIPE[int](empty`[int]())
 
             are_equal(0, pipe.count());
         si
@@ -56,14 +56,14 @@ namespace Tests is
         // the collection to count the elements.
         @Test()
         Count_MutableBag_CallsMutableBagCount() is
-            let collection = Substitute.`for`[MutableBag[int]](empty`[object]());
+            let collection = Substitute.`for`[MutableBag[int]](empty`[object]())
 
-            returns(collection.iterator, [1, 2, 3, 4].iterator, null);
-            returns(collection.count, 4, null);
+            returns(collection.iterator, [1, 2, 3, 4].iterator, null)
+            returns(collection.count, 4, null)
 
-            let pipe = ADAPTOR_PIPE[int](collection);
+            let pipe = ADAPTOR_PIPE[int](collection)
 
-            let count = pipe.count();
+            let count = pipe.count()
 
             let actual = received(collection, 1).count;
         si
@@ -73,28 +73,28 @@ namespace Tests is
         // iterating over the collection to count the elements.
         @Test()
         Count_Bag_CallsBagCount() is
-            let collection = Substitute.`for`[MutableBag[int]](empty`[object]());
+            let collection = Substitute.`for`[MutableBag[int]](empty`[object]())
 
-            returns(collection.iterator, [1, 2, 3, 4].iterator, null);
-            returns(collection.count, 4, null);
+            returns(collection.iterator, [1, 2, 3, 4].iterator, null)
+            returns(collection.count, 4, null)
 
-            let pipe = ADAPTOR_PIPE[int](collection);
+            let pipe = ADAPTOR_PIPE[int](collection)
 
-            let count = pipe.count();
+            let count = pipe.count()
 
             let actual = received(collection, 1).count;
         si
 
         @Test()
         Iterator_ReturnsSelf() is
-            let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
+            let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ])
 
             are_same(pipe, pipe.iterator);
         si
-        
+
         @Test()
         Iterator_ReturnsCorrectElements() is
-            let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ]);
+            let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ])
 
             assert_are_equal(
                 [ "a", "b", "c" ],

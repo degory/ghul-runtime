@@ -1,17 +1,17 @@
 namespace Tests is
-    use Collections;
+    use Collections
 
-    use System.Text.StringBuilder;
+    use System.Text.StringBuilder
 
-    use NSubstitute;
-    use NSubstitute.SubstituteExtensions.returns;
-    use NSubstitute.SubstituteExtensions.received;
+    use NSubstitute
+    use NSubstitute.SubstituteExtensions.returns
+    use NSubstitute.SubstituteExtensions.received
 
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
-    use Ghul.Pipes;
-    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
     @TestClass()
     class PipeOperatorShould is
@@ -22,195 +22,195 @@ namespace Tests is
 
         @Test()
         Pipe_SkipThenFirst_ReturnsCorrectElement() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .skip(5)
-                    .first();
+                    .first()
 
             are_equal(MAYBE[int](6), result);
         si
 
         @Test()
         Pipe_TakeThenFirst_ReturnsFirstElement() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .take(5)
-                    .first();
+                    .first()
 
             are_equal(MAYBE[int](1), result);
         si
 
         @Test()
         Pipe_FirstEmptySequence_ReturnsMaybeNot() is
-            let result = 
+            let result =
                 empty[int]() |
-                    .first();
+                    .first()
 
             are_equal(MAYBE[int](), result);
         si
 
         @Test()
         Pipe_FindEmptySequence_ReturnsMaybeNot() is
-            let result = 
-                empty[int]() | 
-                    .find(i => i > 10);
+            let result =
+                empty[int]() |
+                    .find(i => i > 10)
 
             are_equal(MAYBE[int](), result);
         si
 
         @Test()
         Pipe_FindNonEmptySequenceButNoMatch_ReturnsMaybeNot() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
-                    .find(i => i == 10);
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9] |
+                    .find(i => i == 10)
 
             are_equal(MAYBE[int](), result);
         si
 
         @Test()
         Pipe_FindSingleMatchingElement_ReturnsThatElement() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
-                    .find(i => i == 4);
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9] |
+                    .find(i => i == 4)
 
             are_equal(MAYBE[int](4), result);
         si
 
         @Test()
         Pipe_FindMultipleMatchingElement_ReturnsFirstMatchingElement() is
-            let array = [THING(1), THING(2), THING(3), THING(4), THING(3), THING(2), THING(3), THING(8), THING(9)];
+            let array = [THING(1), THING(2), THING(3), THING(4), THING(3), THING(2), THING(3), THING(8), THING(9)]
 
-            let result = 
+            let result =
                 array |
-                    .find(t => t.key == 3);
+                    .find(t => t.key == 3)
 
             are_equal(MAYBE[THING](array[2]), result);
         si
 
         @Test()
         Pipe_FindOrThrowEmptySequence_ThrowsInvalidOperationException() is
-            let caught_expected mut = false;
+            let caught_expected mut = false
 
             try
-                let result = 
-                    empty[int]() | 
+                let result =
+                    empty[int]() |
                         .find_or_throw(i => i > 10);
 
             catch ex: System.InvalidOperationException
                 caught_expected = true;
             yrt
-            
+
             is_true(caught_expected);
         si
 
         @Test()
         Pipe_FindOrThrowNonEmptySequenceButNoMatch_ThrowsInvalidOperationException() is
-            let caught_expected mut = false;
+            let caught_expected mut = false
 
             try
-                let result = 
+                let result =
                     [1, 2, 3, 4, 5, 6, 7, 8, 9] |
                         .find_or_throw(i => i > 10);
 
             catch ex: System.InvalidOperationException
                 caught_expected = true;
             yrt
-            
+
             is_true(caught_expected);
         si
 
         @Test()
         Pipe_FindOrThrowSingleMatchingElement_ReturnsThatElement() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
-                    .find(i => i == 4);
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9] |
+                    .find(i => i == 4)
 
             are_equal(MAYBE[int](4), result);
         si
 
         @Test()
         Pipe_FindOrThrowMultipleMatchingElement_ReturnsFirstMatchingElement() is
-            let array = [THING(1), THING(2), THING(3), THING(4), THING(3), THING(2), THING(3), THING(8), THING(9)];
+            let array = [THING(1), THING(2), THING(3), THING(4), THING(3), THING(2), THING(3), THING(8), THING(9)]
 
-            let result = 
+            let result =
                 array |
-                    .find(t => t.key == 3);
+                    .find(t => t.key == 3)
 
             are_equal(MAYBE[THING](array[2]), result);
         si
 
         @Test()
         Pipe_AnyNoElements_ReturnsFalse() is
-            let result = 
-                empty[int]() | 
-                    .any(i => i == 4);
+            let result =
+                empty[int]() |
+                    .any(i => i == 4)
 
             is_false(result);
         si
 
         @Test()
         Pipe_AnySomeElementsButNoneMatch_ReturnsFalse() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
-                    .any(i => i == 99);
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9] |
+                    .any(i => i == 99)
 
             is_false(result);
         si
 
         @Test()
         Pipe_AnySomeElementsOneMatches_ReturnsTrue() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
-                    .any(i => i == 4);
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9] |
+                    .any(i => i == 4)
 
             is_true(result);
         si
 
         @Test()
         Pipe_AnySomeElementsMultipleMatches_ReturnsTrue() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9] | 
-                    .any(i => i > 4);
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9] |
+                    .any(i => i > 4)
 
             is_true(result);
         si
 
         @Test()
         Pipe_SkipThenFilter_ReturnsFilteredTailSequence() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .skip(5)
-                    .filter(i => (i & 1) == 0);
+                    .filter(i => (i & 1) == 0)
 
             assert_are_equal([6, 8, 10], result);
         si
 
         @Test()
         Pipe_FilterThenSkip_ReturnsFilteredTailSequence() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .filter(i => (i & 1) == 0)
-                    .skip(1);
+                    .skip(1)
 
             assert_are_equal([4, 6, 8, 10], result);
         si
 
         @Test()
         Pipe_SkipThenIndex_StartsIndexingFromZero() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .skip(4)
-                    .index();
+                    .index()
 
             assert_are_equal([iv(0, 5), iv(1, 6), iv(2, 7), iv(3, 8), iv(4, 9), iv(5, 10)], result);
         si
 
         @Test()
         Pipe_IndexThenSkip_StartsIndexingFromCorrectOffset() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .index()
-                    .skip(6);
+                    .skip(6)
 
             assert_are_equal([iv(6, 7), iv(7, 8), iv(8, 9), iv(9, 10)], result);
         si
@@ -220,87 +220,87 @@ namespace Tests is
             let result =
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .take(5)
-                    .filter(i => (i & 1) == 0);
+                    .filter(i => (i & 1) == 0)
 
             assert_are_equal([2, 4], result);
         si
 
         @Test()
         Pipe_FilterThenTake_ReturnsFilteredHeadSequence() is
-            let result = 
+            let result =
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .filter(i => (i & 1) == 0)
-                    .take(3);
+                    .take(3)
 
             assert_are_equal([2, 4, 6], result);
         si
 
         @Test()
         Pipe_IndexThenFilter_RetainsOriginalIndexes() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .index()
-                    .filter(i => (i.value & 1) == 1);
+                    .filter(i => (i.value & 1) == 1)
 
             assert_are_equal([iv(0,1), iv(2,3), iv(4,5), iv(6,7), iv(8,9)], result);
         si
 
         @Test()
         Pipe_FilterThenIndex_AppliesNewIndexes() is
-            let result = 
-                [3, 4, 1, 5, 2, 3, 1, 4, 5] | 
+            let result =
+                [3, 4, 1, 5, 2, 3, 1, 4, 5] |
                     .filter(i => i > 2)
-                    .index();
+                    .index()
 
             assert_are_equal([iv(0,3), iv(1,4), iv(2,5), iv(3,3), iv(4,4), iv(5,5)], result);
         si
 
         @Test()
         Pipe_SkipThenMap_ReturnsMappedTailSequence() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .skip(5)
-                    .map(i => "X{i}");
+                    .map(i => "X{i}")
 
             assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result);
         si
 
         @Test()
         Pipe_MapThenSkip_ReturnsMappedTailSequence() is
-            let result = 
+            let result =
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .map(i => "X{i}")
-                    .skip(5);
+                    .skip(5)
 
             assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result);
         si
 
         @Test()
         Pipe_TakeThenMap_ReturnsMappedHeadSequence() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .take(4)
-                    .map(i => "X{i}");
+                    .map(i => "X{i}")
 
             assert_are_equal(["X1", "X2", "X3", "X4"], result);
         si
 
         @Test()
         Pipe_MapThenTake_ReturnsMappedHeadSequence() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .map(i => "X{i}")
-                    .take(6);
+                    .take(6)
 
             assert_are_equal(["X1", "X2", "X3", "X4", "X5", "X6"], result);
         si
 
         @Test()
         Pipe_TakeThenIndex_StartsIndexingFromZero() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .take(4)
-                    .index();
+                    .index()
 
             assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4)], result);
         si
@@ -308,158 +308,158 @@ namespace Tests is
         @Test()
         Pipe_IndexThenTake_StartsIndexingFromZero() is
             let result =
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .index()
-                    .take(6);
+                    .take(6)
 
             assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4), iv(4, 5), iv(5, 6)], result);
         si
 
         @Test()
         Pipe_FilterThenFilter_ReturnsOnlyElementsThatMatchBothPredicates() is
-            let result = 
-                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] | 
+            let result =
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
                     .filter(i => i > 3 /\ i < 9)
-                    .filter(i => (i & 1) == 0);
+                    .filter(i => (i & 1) == 0)
 
             assert_are_equal([4, 6, 8], result);
         si
 
         @Test()
         Pipe_MapThenMap_AppliesBothFunctionsToEveryElementInCorrectOrder() is
-            let result = 
-                [1, 2, 3, 4, 5, 6] | 
+            let result =
+                [1, 2, 3, 4, 5, 6] |
                     .map(i => "{i}-first")
-                    .map(i => "{i}-second");
+                    .map(i => "{i}-second")
 
             assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result);
         si
 
         @Test()
         Pipe_Running() is
-            let result = 
-                [1, 2, 3, 4, 5, 6] | 
-                    .reduce(0, (running, element) => running + element);
+            let result =
+                [1, 2, 3, 4, 5, 6] |
+                    .reduce(0, (running, element) => running + element)
 
             are_equal(1 + 2 + 3 + 4 + 5 + 6, result);
         si
 
         @Test()
         Pipe_Mapped_Running() is
-            let result = 
-                [1, 2, 3, 4, 5, 6] | 
-                    .reduce(0, (running, element) => running + element, total => "total: {total}");
+            let result =
+                [1, 2, 3, 4, 5, 6] |
+                    .reduce(0, (running, element) => running + element, total => "total: {total}")
 
             are_equal("total: {1 + 2 + 3 + 4 + 5 + 6}", result);
         si
 
         @Test()
         Sort_NoComparer_SortsInDefaultOrder() is
-            let result = 
-                [2, 1, 4, 3, 6, 5] | .sort();
+            let result =
+                [2, 1, 4, 3, 6, 5] | .sort()
 
             assert_are_equal([1, 2, 3, 4, 5, 6], result);
         si
 
         @Test()
         Sort_GivenComparer_SortsInComparerOrder() is
-            let result = 
-                [2, 1, 4, 3, 6, 5] | 
-                    .sort(ReverseIntComparer());
+            let result =
+                [2, 1, 4, 3, 6, 5] |
+                    .sort(ReverseIntComparer())
 
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
         @Test()
         Sort_GivenCompareFunction_SortsInCompareFunctionOrder() is
-            let result = 
+            let result =
                 [2, 1, 4, 3, 6, 5] |
-                    .sort((x, y) => y - x);
+                    .sort((x, y) => y - x)
 
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
         @Test()
         Sort_CalledTwice_SortsInLastComparerOrder() is
-            let result = 
-                [2, 1, 4, 3, 6, 5] | 
+            let result =
+                [2, 1, 4, 3, 6, 5] |
                     .sort()
-                    .sort(ReverseIntComparer());
+                    .sort(ReverseIntComparer())
 
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
         @Test()
         Sort_EnumeratedTwice_ReturnsSameResultBothTimes() is
-            let result = 
-                [2, 1, 4, 3, 6, 5] | 
-                    .sort(ReverseIntComparer());
+            let result =
+                [2, 1, 4, 3, 6, 5] |
+                    .sort(ReverseIntComparer())
 
-            result.collect();
+            result.collect()
 
             assert_are_equal([6, 5, 4, 3, 2, 1], result);
         si
 
         @Test()
         ToString_WithNoSeparatorArgument_ReturnsStringRepresentationOfAllElementsSeparatedWithACommaAndSpace() is
-            let result = 
-                [2, 1, 4, 3, 6, 5] | 
-                    .to_string();
+            let result =
+                [2, 1, 4, 3, 6, 5] |
+                    .to_string()
 
             are_equal("2, 1, 4, 3, 6, 5", result);
         si
 
         @Test()
         ToString_WithSeparatorArgument_ReturnsStringRepresentationOfAllElementsSeparatedWithThatSeparator() is
-            let result = 
-                [2, 1, 4, 3, 6, 5] | 
-                    .to_string("///");
+            let result =
+                [2, 1, 4, 3, 6, 5] |
+                    .to_string("///")
 
             are_equal("2///1///4///3///6///5", result);
         si
 
         @Test()
         ToString_CalledTwice_ReturnsStringRepresentationOfAllElements() is
-            let pipe = ([2, 1, 4, 3, 6, 5] |);
+            let pipe = ([2, 1, 4, 3, 6, 5] |)
 
-            pipe.to_string();
+            pipe.to_string()
 
-            let result = pipe.to_string("\t");
+            let result = pipe.to_string("\t")
 
             are_equal("2\t1\t4\t3\t6\t5", result);
         si
 
         @Test()
         AppendTo_WithNoSeparatorArgument_AppendsStringRepresentationOfAllElementsSeparatedWithACommaAndSpace() is
-            let result = StringBuilder("XX");
+            let result = StringBuilder("XX")
 
-            [2, 1, 4, 3, 6, 5] | .append_to(result);
+            [2, 1, 4, 3, 6, 5] | .append_to(result)
 
             are_equal("XX2, 1, 4, 3, 6, 5", result.to_string());
         si
 
         @Test()
         AppendTo_WithSeparatorArgument_AppendsStringRepresentationOfAllElementsSeparatedWithThatSeparator() is
-            let result = StringBuilder("XX");
+            let result = StringBuilder("XX")
 
-            let pipe = [2, 1, 4, 3, 6, 5] | .append_to(result, "///");
+            let pipe = [2, 1, 4, 3, 6, 5] | .append_to(result, "///")
 
             are_equal("XX2///1///4///3///6///5", result.to_string());
         si
 
         @Test()
         AppendTo_CalledTwice_AppendsStringRepresentationOfAllElementsTwice() is
-            let result = StringBuilder("XX");
+            let result = StringBuilder("XX")
 
-            let pipe = ([2, 1, 4, 3, 6, 5] |);
-            
-            pipe.append_to(result, "-");
+            let pipe = ([2, 1, 4, 3, 6, 5] |)
 
-            result.append("YY");
+            pipe.append_to(result, "-")
 
-            pipe.append_to(result, "_");
+            result.append("YY")
+
+            pipe.append_to(result, "_")
 
             are_equal("XX2-1-4-3-6-5YY2_1_4_3_6_5", result.to_string());
         si
-    si    
+    si
 si

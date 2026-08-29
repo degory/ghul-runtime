@@ -1,6 +1,6 @@
 namespace Tests is
-    use Collections;
-    use Microsoft.VisualStudio.TestTools.UnitTesting;
+    use Collections
+    use Microsoft.VisualStudio.TestTools.UnitTesting
 
     entry() is
     si
@@ -10,17 +10,17 @@ namespace Tests is
         // not sure if this is a change from .NET 6 to .NET 8 or if it's
         // a compiler bug:
 
-        let la: Collections.LIST[T] = Collections.LIST[T]();
-        let lb: Collections.LIST[T] = Collections.LIST[T]();
+        let la: Collections.LIST[T] = Collections.LIST[T]()
+        let lb: Collections.LIST[T] = Collections.LIST[T]()
 
-        la.add_range(a);
-        lb.add_range(b);
+        la.add_range(a)
+        lb.add_range(b)
 
-        CollectionAssert.are_equal(la, lb);            
+        CollectionAssert.are_equal(la, lb);
     si
 
     collect[T](iterator: Iterator[T]) -> Iterable[T] is
-        let result = LIST[T]();
+        let result = LIST[T]()
 
         while iterator.move_next() do
             result.add(iterator.current);
