@@ -1,0 +1,144 @@
+namespace Tests is
+    use Collections;
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    use Ghul.Pipes;
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+
+    drain[T](pipe: Pipe[T]) -> LIST[T] is
+        let elements = LIST[T]();
+
+        while pipe.move_next() do
+            elements.add(pipe.current);
+        od
+
+        return elements;
+    si
+
+    // A source that counts how many elements it has handed out, so a test
+    // can tell a replay of the cache from a second pass over the source.
+    class COUNTING_SOURCE[T]: Pipe[T] is
+        values: T[];
+        handed_out: int public;
+
+        init(values: T[]) is
+            self.values = values;
+            handed_out = 0;
+        si
+
+        _at: int;
+
+        iterator: Iterator[T] => self;
+
+        current: T => values[_at - 1];
+
+        move_next() -> bool is
+            if _at < values.count then
+                _at = _at + 1;
+                handed_out = handed_out + 1;
+                return true;
+            fi
+
+            _at = 0;
+            return false;
+        si
+
+        reset() is
+            _at = 0;
+        si
+
+        dispose() is
+        si
+    si
+
+    // Coverage for `memo`: the first pass caches, later passes replay the
+    // cache without asking the source again, a pass that runs past the
+    // cached prefix extends it, and infinite sources stay lazy.
+    @TestClass()
+    class MEMO_PIPEShould is
+        init() is
+        si
+
+        @Test()
+        MoveNext_ReplaysCachedElementsWithoutRereadingSource() is
+            let source = COUNTING_SOURCE[int]([1, 2, 3]);
+            let p = MEMO_PIPE[int](source);
+
+            assert_elements([1, 2, 3], drain(p));
+            are_equal(3, source.handed_out);
+
+            assert_elements([1, 2, 3], drain(p));
+            assert_elements([1, 2, 3], drain(p));
+            are_equal(3, source.handed_out);
+        si
+
+        @Test()
+        MoveNext_EmptySource_ReturnsFalseOnEveryPass() is
+            let empty: int[] = [];
+            let p = MEMO_PIPE[int](COUNTING_SOURCE[int](empty));
+
+            is_false(p.move_next());
+            is_false(p.move_next());
+        si
+
+        @Test()
+        MoveNext_PartialPass_ExtendsCacheWhenALaterPassRunsFurther() is
+            let source = COUNTING_SOURCE[string](["a", "b", "c", "d"]);
+            let p = MEMO_PIPE[string](source);
+
+            is_true(p.move_next());
+            are_equal("a", p.current);
+            is_true(p.move_next());
+            are_equal("b", p.current);
+            are_equal(2, source.handed_out);
+
+            // A partially-drained pipe resumes where it left off, so
+            // finishing this pass pulls only the remaining two elements
+            // into the cache.
+            assert_elements(["c", "d"], drain(p));
+            are_equal(4, source.handed_out);
+
+            // The next pass replays all four without the source.
+            assert_elements(["a", "b", "c", "d"], drain(p));
+            are_equal(4, source.handed_out);
+        si
+
+        @Test()
+        Join_Twice_ProducesTheSameElementsAndReadsSourceOnce() is
+            let source = COUNTING_SOURCE[int]([1, 2, 3]);
+            let p = memo(source);
+
+            are_equal("1, 2, 3", p.join(", "));
+            are_equal("1, 2, 3", p.join(", "));
+            are_equal(3, source.handed_out);
+        si
+
+        @Test()
+        Memo_OverInfiniteStream_PullsOnlyWhatIsConsumed() is
+            let naturals = stream(0, n => n || n + 1);
+            let p = memo(naturals);
+
+            is_true(p.move_next());
+            are_equal(0, p.current);
+            is_true(p.move_next());
+            are_equal(1, p.current);
+            is_true(p.move_next());
+            are_equal(2, p.current);
+
+            // A later pass that runs past the cached three elements asks
+            // the stream for more.
+            is_true(p.move_next());
+            are_equal(3, p.current);
+        si
+
+        @Test()
+        MemoMethod_ForwardsToTheFreeFunction() is
+            let p = stream(0, n => n || n + 1).take(3).memo();
+
+            assert_elements([0, 1, 2], drain(p));
+            assert_elements([0, 1, 2], drain(p));
+        si
+    si
+si
