@@ -26,7 +26,7 @@ namespace Tests is
                 Ghul.Pipes.Factory.from`[int](empty`[int]())
                     .cat(empty`[int]())
 
-            are_equal(0, pipe.count());
+            are_equal(0, pipe.count())
         si
 
         @Test()
@@ -35,7 +35,7 @@ namespace Tests is
                 Ghul.Pipes.Factory.from`[int](empty`[int]())
                     .cat([1, 2, 3, 4, 5])
 
-            assert_are_equal([1, 2, 3, 4, 5], pipe);
+            assert_are_equal([1, 2, 3, 4, 5], pipe)
         si
 
         @Test()
@@ -44,7 +44,7 @@ namespace Tests is
                 Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
                     .cat(empty`[int]())
 
-            assert_are_equal([1, 2, 3, 4, 5], pipe);
+            assert_are_equal([1, 2, 3, 4, 5], pipe)
         si
 
         @Test()
@@ -53,7 +53,7 @@ namespace Tests is
                 Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
                     .cat([6, 7, 8, 9, 10])
 
-            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], pipe);
+            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], pipe)
         si
 
         @Test()
@@ -65,7 +65,7 @@ namespace Tests is
                     .cat([2, 3, 4])
                     .cat([5])
 
-            assert_are_equal([3, 4, 5, 1, 2, 1, 2, 3, 4, 5], pipe);
+            assert_are_equal([3, 4, 5, 1, 2, 1, 2, 3, 4, 5], pipe)
         si
 
         @Test()
@@ -77,7 +77,7 @@ namespace Tests is
                     .cat([2, 3, 4])
                     .cat([5])
 
-            are_equal(10, pipe.count());
+            are_equal(10, pipe.count())
         si
     si
 si

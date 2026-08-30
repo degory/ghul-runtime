@@ -12,7 +12,7 @@ namespace Ghul.Pipes is
 
         init(iterator: Iterator[T], action: (T) -> void) is
             _iterator = iterator
-            _action = action;
+            _action = action
         si
 
         move_next() -> bool is
@@ -20,16 +20,16 @@ namespace Ghul.Pipes is
                 current = _iterator.current
                 _action(current)
 
-                return true;
+                return true
             fi
 
             _iterator.reset()
 
-            return false;
+            return false
         si
 
         reset() is
-            _iterator.reset();
+            _iterator.reset()
         si
 
         to_string() -> string => self.join(", ")

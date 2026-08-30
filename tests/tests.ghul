@@ -16,16 +16,16 @@ namespace Tests is
         la.add_range(a)
         lb.add_range(b)
 
-        CollectionAssert.are_equal(la, lb);
+        CollectionAssert.are_equal(la, lb)
     si
 
     collect[T](iterator: Iterator[T]) -> Iterable[T] is
         let result = LIST[T]()
 
         while iterator.move_next() do
-            result.add(iterator.current);
+            result.add(iterator.current)
         od
 
-        return result;
+        return result
     si
 si

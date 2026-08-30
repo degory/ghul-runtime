@@ -9,7 +9,7 @@ namespace Ghul.Pipes is
         current: T => _iterator.current
 
         init(iterator: Iterator[T]) is
-            _iterator = iterator;
+            _iterator = iterator
         si
 
         move_next() -> bool is
@@ -17,17 +17,17 @@ namespace Ghul.Pipes is
                 have_moved()
 
                 if !should_continue() then
-                    break;
+                    break
                 fi
 
                 if should_include() then
-                    return true;
+                    return true
                 fi
             od
 
             reset()
 
-            return false;
+            return false
         si
 
         have_moved() is si
@@ -40,12 +40,12 @@ namespace Ghul.Pipes is
             let result mut = 0
 
             while move_next() do
-                result = result + 1;
+                result = result + 1
             od
 
             reset()
 
-            return result;
+            return result
         si
 
         reset() => _iterator.reset()

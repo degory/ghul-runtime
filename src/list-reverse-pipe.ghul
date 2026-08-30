@@ -13,23 +13,23 @@ namespace Ghul.Pipes is
             assert list?
 
             _list = list
-            reset();
+            reset()
         si
 
         move_next() -> bool is
             let result = _index > 0
 
             if result then
-                _index = _index - 1;
+                _index = _index - 1
             else
-                reset();
+                reset()
             fi
 
-            return result;
+            return result
         si
 
         reset() is
-            _index = _list.count;
+            _index = _list.count
         si
 
         count() -> int => _list.count

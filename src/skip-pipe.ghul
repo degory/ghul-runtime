@@ -8,11 +8,11 @@ namespace Ghul.Pipes is
         init(enumerator: Iterator[T], skip_count: int) is
             super.init(enumerator)
             _initial_skip_count = skip_count
-            _skip_count = skip_count;
+            _skip_count = skip_count
         si
 
         have_moved() is
-            _skip_count = _skip_count - 1;
+            _skip_count = _skip_count - 1
         si
 
         should_continue() -> bool => true
@@ -21,7 +21,7 @@ namespace Ghul.Pipes is
 
         reset() is
             super.reset()
-            _skip_count = _initial_skip_count;
+            _skip_count = _initial_skip_count
         si
     si
 si

@@ -26,7 +26,7 @@ namespace Tests is
                 pipe
                     .map(i => i.to_string())
 
-            assert_are_equal(empty`[string](), result);
+            assert_are_equal(empty`[string](), result)
         si
 
         @Test()
@@ -38,7 +38,7 @@ namespace Tests is
                 pipe
                     .map(i => i.to_string())
 
-            assert_are_equal(["3", "4", "1", "5", "2", "3", "1", "4", "5"], result);
+            assert_are_equal(["3", "4", "1", "5", "2", "3", "1", "4", "5"], result)
         si
 
         @Test()
@@ -51,7 +51,7 @@ namespace Tests is
                     .map(i => "{i}-first")
                     .map(i => "{i}-second")
 
-            assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result);
+            assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result)
         si
     si
 si

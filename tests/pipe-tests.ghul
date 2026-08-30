@@ -23,14 +23,14 @@ namespace Tests is
         Pipe_SkipThenFirst_ReturnsCorrectElement() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
-            are_equal(MAYBE[int](6), pipe.skip(5).first());
+            are_equal(MAYBE[int](6), pipe.skip(5).first())
         si
 
         @Test()
         Pipe_TakeThenFirst_ReturnsFirstElement() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
-            are_equal(MAYBE[int](1), pipe.take(5).first());
+            are_equal(MAYBE[int](1), pipe.take(5).first())
         si
 
         @Test()
@@ -40,7 +40,7 @@ namespace Tests is
             let first = pipe.first()
             let expected = MAYBE[int]()
 
-            are_equal(expected, first);
+            are_equal(expected, first)
         si
 
         @Test()
@@ -50,7 +50,7 @@ namespace Tests is
 
             let expected = MAYBE("A")
 
-            are_equal(expected, first);
+            are_equal(expected, first)
         si
 
         @Test()
@@ -60,12 +60,12 @@ namespace Tests is
             let caught_expected mut = false
 
             try
-                pipe.first_or_throw();
+                pipe.first_or_throw()
             catch ex: System.InvalidOperationException
-                caught_expected = true;
+                caught_expected = true
             yrt
 
-            is_true(caught_expected);
+            is_true(caught_expected)
         si
 
         @Test()
@@ -75,7 +75,7 @@ namespace Tests is
 
             let expected = "A"
 
-            are_equal(expected, first);
+            are_equal(expected, first)
         si
 
         @Test()
@@ -85,7 +85,7 @@ namespace Tests is
             let first = pipe.first_map(element => MAYBE(element * 2))
             let expected = MAYBE[int]()
 
-            are_equal(expected, first);
+            are_equal(expected, first)
         si
 
         @Test()
@@ -95,7 +95,7 @@ namespace Tests is
 
             let expected = MAYBE(10)
 
-            are_equal(expected, first);
+            are_equal(expected, first)
         si
 
         @Test()
@@ -105,7 +105,7 @@ namespace Tests is
             let found = pipe.find(i => i > 10)
             let expected = MAYBE[int]()
 
-            are_equal(expected, found);
+            are_equal(expected, found)
         si
 
         @Test()
@@ -115,7 +115,7 @@ namespace Tests is
             let found = pipe.find(i => i == 10)
             let expected = MAYBE[int]()
 
-            are_equal(expected, found);
+            are_equal(expected, found)
         si
 
         @Test()
@@ -125,7 +125,7 @@ namespace Tests is
             let found = pipe.find(i => i == 4)
             let expected = MAYBE[int](4)
 
-            are_equal(expected, found);
+            are_equal(expected, found)
         si
 
         @Test()
@@ -137,7 +137,7 @@ namespace Tests is
             let found = pipe.find(t => t.key == 3)
             let expected = MAYBE[THING](array[2])
 
-            are_equal(expected, found);
+            are_equal(expected, found)
         si
 
         @Test()
@@ -147,12 +147,12 @@ namespace Tests is
             let caught_expected mut = false
 
             try
-                pipe.find_or_throw(i => i > 10);
+                pipe.find_or_throw(i => i > 10)
             catch ex: System.InvalidOperationException
-                caught_expected = true;
+                caught_expected = true
             yrt
 
-            is_true(caught_expected);
+            is_true(caught_expected)
         si
 
         @Test()
@@ -162,12 +162,12 @@ namespace Tests is
             let caught_expected mut = false
 
             try
-                pipe.find_or_throw(i => i == 10);
+                pipe.find_or_throw(i => i == 10)
             catch ex: System.InvalidOperationException
-                caught_expected = true;
+                caught_expected = true
             yrt
 
-            is_true(caught_expected);
+            is_true(caught_expected)
         si
 
         @Test()
@@ -177,7 +177,7 @@ namespace Tests is
             let found = pipe.find_or_throw(i => i == 4)
             let expected = 4
 
-            are_equal(expected, found);
+            are_equal(expected, found)
         si
 
         @Test()
@@ -189,35 +189,35 @@ namespace Tests is
             let found = pipe.find_or_throw(t => t.key == 3)
             let expected = array[2]
 
-            are_equal(expected, found);
+            are_equal(expected, found)
         si
 
         @Test()
         Pipe_HasNoElements_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int](empty`[int]())
 
-            is_false(pipe.has(i => i == 4));
+            is_false(pipe.has(i => i == 4))
         si
 
         @Test()
         Pipe_HasSomeElementsButNoneMatch_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_false(pipe.has(i => i == 99));
+            is_false(pipe.has(i => i == 99))
         si
 
         @Test()
         Pipe_HasSomeElementsOneMatches_ReturnsTrue() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_true(pipe.has(i => i == 4));
+            is_true(pipe.has(i => i == 4))
         si
 
         @Test()
         Pipe_HasSomeElementsMultipleMatches_ReturnsTrue() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_true(pipe.has(i => i > 4));
+            is_true(pipe.has(i => i > 4))
         si
 
         //
@@ -226,28 +226,28 @@ namespace Tests is
         Pipe_AnyNoElements_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int](empty`[int]())
 
-            is_false(pipe.any(i => i == 4));
+            is_false(pipe.any(i => i == 4))
         si
 
         @Test()
         Pipe_AnySomeElementsButNoneMatch_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_false(pipe.has(i => i == 99));
+            is_false(pipe.has(i => i == 99))
         si
 
         @Test()
         Pipe_AnySomeElementsOneMatches_ReturnsTrue() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_true(pipe.has(i => i == 4));
+            is_true(pipe.has(i => i == 4))
         si
 
         @Test()
         Pipe_AnySomeElementsMultipleMatches_ReturnsTrue() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_true(pipe.has(i => i > 4));
+            is_true(pipe.has(i => i > 4))
         si
 
         //
@@ -256,42 +256,42 @@ namespace Tests is
         Pipe_AllSomeElementsButNotAllMatch_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_false(pipe.all(i => i > 4));
+            is_false(pipe.all(i => i > 4))
         si
 
         @Test()
         Pipe_AllSomeElementsAllMatch_ReturnsTrue() is
             let pipe = Pipes.Factory.from`[int]([5, 6, 7, 8, 9])
 
-            is_true(pipe.all(i => i > 4));
+            is_true(pipe.all(i => i > 4))
         si
 
         @Test()
         Pipe_AllNoElements_ReturnsTrue() is
             let pipe = Pipes.Factory.from`[int](empty`[int]())
 
-            is_true(pipe.all(i => i > 4));
+            is_true(pipe.all(i => i > 4))
         si
 
         @Test()
         Pipe_AllSomeElementsNoneMatch_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_false(pipe.all(i => i > 99));
+            is_false(pipe.all(i => i > 99))
         si
 
         @Test()
         Pipe_FirstThreeElementsMatchButRestDoNot_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_false(pipe.all(i => i < 4));
+            is_false(pipe.all(i => i < 4))
         si
 
         @Test()
         Pipe_ElementsInTheMiddleMatchButNotTheFirstOrLast_ReturnsFalse() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
-            is_false(pipe.all(i => i > 2 /\ i < 8));
+            is_false(pipe.all(i => i > 2 /\ i < 8))
         si
 
         @Test()
@@ -300,7 +300,7 @@ namespace Tests is
 
             let result = pipe.skip(5).filter(i => (i & 1) == 0)
 
-            assert_are_equal([6, 8, 10], result);
+            assert_are_equal([6, 8, 10], result)
         si
 
         @Test()
@@ -309,7 +309,7 @@ namespace Tests is
 
             let result = pipe.filter(i => (i & 1) == 0).skip(1)
 
-            assert_are_equal([4, 6, 8, 10], result);
+            assert_are_equal([4, 6, 8, 10], result)
         si
 
         @Test()
@@ -318,7 +318,7 @@ namespace Tests is
 
             let result = pipe.skip(4).index()
 
-            assert_are_equal([iv(0, 5), iv(1, 6), iv(2, 7), iv(3, 8), iv(4, 9), iv(5, 10)], result);
+            assert_are_equal([iv(0, 5), iv(1, 6), iv(2, 7), iv(3, 8), iv(4, 9), iv(5, 10)], result)
         si
 
         @Test()
@@ -327,7 +327,7 @@ namespace Tests is
 
             let result = pipe.index().skip(6)
 
-            assert_are_equal([iv(6, 7), iv(7, 8), iv(8, 9), iv(9, 10)], result);
+            assert_are_equal([iv(6, 7), iv(7, 8), iv(8, 9), iv(9, 10)], result)
         si
 
         @Test()
@@ -336,7 +336,7 @@ namespace Tests is
 
             let result = pipe.take(5).filter(i => (i & 1) == 0)
 
-            assert_are_equal([2, 4], result);
+            assert_are_equal([2, 4], result)
         si
 
         @Test()
@@ -345,7 +345,7 @@ namespace Tests is
 
             let result = pipe.filter(i => (i & 1) == 0).take(3)
 
-            assert_are_equal([2, 4, 6], result);
+            assert_are_equal([2, 4, 6], result)
         si
 
         @Test()
@@ -354,7 +354,7 @@ namespace Tests is
 
             let result = pipe.index().filter(i => (i.value & 1) == 1)
 
-            assert_are_equal([iv(0,1), iv(2,3), iv(4,5), iv(6,7), iv(8,9)], result);
+            assert_are_equal([iv(0,1), iv(2,3), iv(4,5), iv(6,7), iv(8,9)], result)
         si
 
         @Test()
@@ -363,7 +363,7 @@ namespace Tests is
 
             let result = pipe.filter(i => i > 2).index()
 
-            assert_are_equal([iv(0,3), iv(1,4), iv(2,5), iv(3,3), iv(4,4), iv(5,5)], result);
+            assert_are_equal([iv(0,3), iv(1,4), iv(2,5), iv(3,3), iv(4,4), iv(5,5)], result)
         si
 
         @Test()
@@ -372,7 +372,7 @@ namespace Tests is
 
             let result = pipe.skip(5).map(i => "X{i}")
 
-            assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result);
+            assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result)
         si
 
         @Test()
@@ -381,7 +381,7 @@ namespace Tests is
 
             let result = pipe.map(i => "X{i}").skip(5)
 
-            assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result);
+            assert_are_equal(["X6", "X7", "X8", "X9", "X10"], result)
         si
 
         @Test()
@@ -390,7 +390,7 @@ namespace Tests is
 
             let result = pipe.take(4).map(i => "X{i}")
 
-            assert_are_equal(["X1", "X2", "X3", "X4"], result);
+            assert_are_equal(["X1", "X2", "X3", "X4"], result)
         si
 
         @Test()
@@ -399,7 +399,7 @@ namespace Tests is
 
             let result = pipe.map(i => "X{i}").take(6)
 
-            assert_are_equal(["X1", "X2", "X3", "X4", "X5", "X6"], result);
+            assert_are_equal(["X1", "X2", "X3", "X4", "X5", "X6"], result)
         si
 
         @Test()
@@ -408,7 +408,7 @@ namespace Tests is
 
             let result = pipe.take(4).index()
 
-            assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4)], result);
+            assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4)], result)
         si
 
         @Test()
@@ -417,7 +417,7 @@ namespace Tests is
 
             let result = pipe.index().take(6)
 
-            assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4), iv(4, 5), iv(5, 6)], result);
+            assert_are_equal([iv(0, 1), iv(1, 2), iv(2, 3), iv(3, 4), iv(4, 5), iv(5, 6)], result)
         si
 
         @Test()
@@ -426,7 +426,7 @@ namespace Tests is
 
             let result = pipe.filter(i => i > 3 /\ i < 9).filter(i => (i & 1) == 0)
 
-            assert_are_equal([4, 6, 8], result);
+            assert_are_equal([4, 6, 8], result)
         si
 
         @Test()
@@ -435,7 +435,7 @@ namespace Tests is
 
             let result = pipe.map(i => "{i}-first").map(i => "{i}-second")
 
-            assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result);
+            assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result)
         si
 
         @Test()
@@ -444,7 +444,7 @@ namespace Tests is
 
             let result = pipe.reduce(0, (running, element) => running + element)
 
-            are_equal(1 + 2 + 3 + 4 + 5 + 6, result);
+            are_equal(1 + 2 + 3 + 4 + 5 + 6, result)
         si
 
         @Test()
@@ -453,7 +453,7 @@ namespace Tests is
 
             let result = pipe.reduce(0, (running, element) => running + element, total => "total: {total}")
 
-            are_equal("total: {1 + 2 + 3 + 4 + 5 + 6}", result);
+            are_equal("total: {1 + 2 + 3 + 4 + 5 + 6}", result)
         si
 
         @Test()
@@ -462,7 +462,7 @@ namespace Tests is
 
             let result = pipe.reverse()
 
-            assert_are_equal(empty[int](), result);
+            assert_are_equal(empty[int](), result)
         si
 
         @Test()
@@ -471,7 +471,7 @@ namespace Tests is
 
             let result = pipe.reverse()
 
-            assert_are_equal([6, 5, 4, 3, 2, 1], result);
+            assert_are_equal([6, 5, 4, 3, 2, 1], result)
         si
 
         @Test()
@@ -481,10 +481,10 @@ namespace Tests is
             let action_was_called = BOX(false)
 
             pipe.each(element is
-                action_was_called.value = true;
+                action_was_called.value = true
             si)
 
-            is_false(action_was_called.value);
+            is_false(action_was_called.value)
         si
 
         @Test()
@@ -497,7 +497,7 @@ namespace Tests is
                 result.add(element)
             si)
 
-            assert_are_equal([1, 2, 3, 4, 5, 6], Pipes.Factory.from(result));
+            assert_are_equal([1, 2, 3, 4, 5, 6], Pipes.Factory.from(result))
         si
 
         @Test()
@@ -506,7 +506,7 @@ namespace Tests is
 
             let result = pipe.sort()
 
-            assert_are_equal([1, 2, 3, 4, 5, 6], result);
+            assert_are_equal([1, 2, 3, 4, 5, 6], result)
         si
 
         @Test()
@@ -515,7 +515,7 @@ namespace Tests is
 
             let result = pipe.sort(ReverseIntComparer())
 
-            assert_are_equal([6, 5, 4, 3, 2, 1], result);
+            assert_are_equal([6, 5, 4, 3, 2, 1], result)
         si
 
         @Test()
@@ -524,7 +524,7 @@ namespace Tests is
 
             let result = pipe.sort((x, y) => y - x)
 
-            assert_are_equal([6, 5, 4, 3, 2, 1], result);
+            assert_are_equal([6, 5, 4, 3, 2, 1], result)
         si
 
         @Test()
@@ -533,7 +533,7 @@ namespace Tests is
 
             let result = pipe.sort().sort(ReverseIntComparer())
 
-            assert_are_equal([6, 5, 4, 3, 2, 1], result);
+            assert_are_equal([6, 5, 4, 3, 2, 1], result)
         si
 
         @Test()
@@ -544,7 +544,7 @@ namespace Tests is
 
             sorted.collect()
 
-            assert_are_equal([6, 5, 4, 3, 2, 1], sorted);
+            assert_are_equal([6, 5, 4, 3, 2, 1], sorted)
         si
 
         @Test()
@@ -553,7 +553,7 @@ namespace Tests is
 
             let result = pipe.to_string()
 
-            are_equal("2, 1, 4, 3, 6, 5", result);
+            are_equal("2, 1, 4, 3, 6, 5", result)
         si
 
         @Test()
@@ -562,7 +562,7 @@ namespace Tests is
 
             let result = pipe.to_string("///")
 
-            are_equal("2///1///4///3///6///5", result);
+            are_equal("2///1///4///3///6///5", result)
         si
 
         @Test()
@@ -573,7 +573,7 @@ namespace Tests is
 
             let result = pipe.to_string("\t")
 
-            are_equal("2\t1\t4\t3\t6\t5", result);
+            are_equal("2\t1\t4\t3\t6\t5", result)
         si
 
         @Test()
@@ -584,7 +584,7 @@ namespace Tests is
 
             pipe.append_to(result)
 
-            are_equal("XX2, 1, 4, 3, 6, 5", result.to_string());
+            are_equal("XX2, 1, 4, 3, 6, 5", result.to_string())
         si
 
         @Test()
@@ -595,7 +595,7 @@ namespace Tests is
 
             pipe.append_to(result, "///")
 
-            are_equal("XX2///1///4///3///6///5", result.to_string());
+            are_equal("XX2///1///4///3///6///5", result.to_string())
         si
 
         @Test()
@@ -610,7 +610,7 @@ namespace Tests is
 
             pipe.append_to(result, "_")
 
-            are_equal("XX2-1-4-3-6-5YY2_1_4_3_6_5", result.to_string());
+            are_equal("XX2-1-4-3-6-5YY2_1_4_3_6_5", result.to_string())
         si
     si
 
@@ -618,13 +618,13 @@ namespace Tests is
         key: int
 
         init(key: int) is
-            self.key = key;
+            self.key = key
         si
     si
 
     class ReverseIntComparer: IComparer[int] is
         init() is si
-        compare(x: int, y: int) -> int => y - x;
+        compare(x: int, y: int) -> int => y - x
     si
 si
 

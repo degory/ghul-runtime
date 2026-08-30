@@ -9,7 +9,7 @@ namespace Ghul.Pipes is
             assert iterable?
 
             _source = iterable
-            _iterator = iterable.iterator;
+            _iterator = iterable.iterator
         si
 
         iterator: Iterator[T] => self
@@ -20,10 +20,10 @@ namespace Ghul.Pipes is
             let result = _iterator.move_next()
 
             if !result then
-                _iterator.reset();
+                _iterator.reset()
             fi
 
-            return result;
+            return result
         si
 
         reset() => _iterator.reset()
@@ -35,16 +35,16 @@ namespace Ghul.Pipes is
 
         count() -> int pure is
             if isa MutableBag[T](_source) then
-                return cast MutableBag[T](_source).count;
+                return cast MutableBag[T](_source).count
             fi
 
             let result mut = 0
 
             while move_next() do
-                result = result + 1;
+                result = result + 1
             od
 
-            return result;
+            return result
         si
     si
 si

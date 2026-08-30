@@ -13,7 +13,7 @@ namespace Ghul.Pipes is
     // `stream`-produced `Pipe[T]`.
     union STREAM[T, S] is
         DONE
-        YIELD(value: T, state: S);
+        YIELD(value: T, state: S)
     si
 
     // Drives a state-stepping `advance` function through the `Pipe[T]`
@@ -41,7 +41,7 @@ namespace Ghul.Pipes is
 
             _initial = initial
             _state   = initial
-            _advance = advance;
+            _advance = advance
         si
 
         move_next() -> bool is
@@ -50,16 +50,16 @@ namespace Ghul.Pipes is
             if let next: STREAM.YIELD[T, S] = step then
                 current = next.value
                 _state  = next.state
-                return true;
+                return true
             else
                 reset()
 
-                return false;
+                return false
             fi
         si
 
         reset() is
-            _state = _initial;
+            _state = _initial
         si
 
         to_string() -> string => self.join(", ")
@@ -73,6 +73,6 @@ namespace Ghul.Pipes is
     // `YIELD(value, next_state)` (which the `||` infix produces) to
     // yield a value and advance.
     stream[T, S](initial: S, advance: S -> STREAM[T, S]) -> Pipe[T] is
-        return STREAM_PIPE[T, S](initial, advance);
+        return STREAM_PIPE[T, S](initial, advance)
     si
 si

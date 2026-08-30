@@ -18,12 +18,12 @@ namespace Tests is
 
         @Test()
         Filter_DirectCall_ReturnsMatchingElements() is
-            assert_are_equal([2, 4], Ghul.Pipes.filter([1, 2, 3, 4, 5], i => i % 2 == 0));
+            assert_are_equal([2, 4], Ghul.Pipes.filter([1, 2, 3, 4, 5], i => i % 2 == 0))
         si
 
         @Test()
         Map_DirectCall_ReturnsMappedElements() is
-            assert_are_equal([2, 4, 6], Ghul.Pipes.map([1, 2, 3], i => i * 2));
+            assert_are_equal([2, 4, 6], Ghul.Pipes.map([1, 2, 3], i => i * 2))
         si
 
         @Test()
@@ -35,28 +35,28 @@ namespace Tests is
 
             let via_methods = source | .filter(i => i % 2 == 0).map(i => i * 10)
 
-            assert_are_equal(via_methods.collect_list(), via_thread_first);
+            assert_are_equal(via_methods.collect_list(), via_thread_first)
         si
 
         @Test()
         Min_ChainedWithThreadFirst_NoPipeWrapNeeded() is
             let result = [5, 3, 9, 1, 7] |> filter(i => i > 2) |> min()
 
-            are_equal(MAYBE[int](3), result);
+            are_equal(MAYBE[int](3), result)
         si
 
         @Test()
         Max_ChainedWithThreadFirst_NoPipeWrapNeeded() is
             let result = [5, 3, 9, 1, 7] |> filter(i => i > 2) |> max()
 
-            are_equal(MAYBE[int](9), result);
+            are_equal(MAYBE[int](9), result)
         si
 
         @Test()
         Min_EmptySource_ReturnsMaybeNot() is
             let result: int[] = []
 
-            are_equal(MAYBE[int](), Ghul.Pipes.min(result));
+            are_equal(MAYBE[int](), Ghul.Pipes.min(result))
         si
 
         @Test()
@@ -64,14 +64,14 @@ namespace Tests is
             let result = Ghul.Pipes.collect_list([1, 2, 3])
 
             are_equal(3, result.count)
-            CollectionAssert.are_equal(LIST[int]([1, 2, 3]), result);
+            CollectionAssert.are_equal(LIST[int]([1, 2, 3]), result)
         si
 
         @Test()
         Count_ThreadFirstChain_ReturnsElementCount() is
             let result = [1, 2, 3, 4, 5] |> filter(i => i % 2 == 0) |> count()
 
-            are_equal(2, result);
+            are_equal(2, result)
         si
 
         @Test()
@@ -80,14 +80,14 @@ namespace Tests is
 
             are_equal(
                 source | .any(i => i > 3),
-                source |> any(i => i > 3));
+                source |> any(i => i > 3))
         si
 
         @Test()
         Join_ThreadFirstChain_MatchesMethodResult() is
             let source = ["a", "b", "c"]
 
-            are_equal(source | .join("-"), source |> join("-"));
+            are_equal(source | .join("-"), source |> join("-"))
         si
 
         @Test()
@@ -98,7 +98,7 @@ namespace Tests is
             let via_method = pipe1.filter(i => i > 2).collect_list()
             let via_function = Ghul.Pipes.collect_list(Ghul.Pipes.filter(pipe2, i => i > 2))
 
-            CollectionAssert.are_equal(via_method, via_function);
+            CollectionAssert.are_equal(via_method, via_function)
         si
 
         @Test()
@@ -107,28 +107,28 @@ namespace Tests is
 
             let result = source |> sort_by(s => s.length) |> collect_list()
 
-            CollectionAssert.are_equal(LIST[string](["a", "bb", "ccc"]), result);
+            CollectionAssert.are_equal(LIST[string](["a", "bb", "ccc"]), result)
         si
 
         @Test()
         Sort_ThreadFirstChain_ReturnsAscending() is
             let result = [2, 1, 4, 3] |> sort() |> collect_list()
 
-            CollectionAssert.are_equal(LIST[int]([1, 2, 3, 4]), result);
+            CollectionAssert.are_equal(LIST[int]([1, 2, 3, 4]), result)
         si
 
         @Test()
         SortDescending_ThreadFirstChain_ReturnsDescending() is
             let result = [2, 1, 4, 3] |> sort_descending() |> collect_list()
 
-            CollectionAssert.are_equal(LIST[int]([4, 3, 2, 1]), result);
+            CollectionAssert.are_equal(LIST[int]([4, 3, 2, 1]), result)
         si
 
         @Test()
         Reduce_ThreadFirstChain_AccumulatesElements() is
             let result = [1, 2, 3, 4] |> reduce(0, (acc, i) => acc + i)
 
-            are_equal(10, result);
+            are_equal(10, result)
         si
     si
 si

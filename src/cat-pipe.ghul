@@ -11,16 +11,16 @@ namespace Ghul.Pipes is
 
         current: T is
             if _take_from_left then
-                return _left.current;
+                return _left.current
             else
-                return _right.current;
+                return _right.current
             fi
         si
 
         init(left: Iterator[T], right: Iterator[T]) is
             _left = left
             _right = right
-            _take_from_left = true;
+            _take_from_left = true
         si
 
         move_next() -> bool is
@@ -28,29 +28,29 @@ namespace Ghul.Pipes is
                 _take_from_left = _left.move_next()
 
                 if _take_from_left then
-                    return true;
+                    return true
                 fi
 
-                _left.reset();
+                _left.reset()
             fi
 
             let result = _right.move_next()
 
             if result then
-                return true;
+                return true
             fi
 
             _take_from_left = true
             _right.reset()
 
-            return false;
+            return false
         si
 
         reset() is
             _left.reset()
             _right.reset()
 
-            _take_from_left = true;
+            _take_from_left = true
         si
 
         to_string() -> string => self.join(", ")

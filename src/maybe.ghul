@@ -3,7 +3,7 @@ namespace Ghul is
     // this, which downstream assemblies have to be able to do.
     trait Maybe[T] open is
         has_value: bool
-        value: T;
+        value: T
     si
 
     struct MAYBE[T]: Maybe[T] is
@@ -16,12 +16,12 @@ namespace Ghul is
             if _has_value then
                 _value
             else
-                throw System.InvalidOperationException("maybe has no value");
+                throw System.InvalidOperationException("maybe has no value")
             fi
 
         deconstruct(has_value: bool ref, value: T ref) is
             has_value! = _has_value
-            value! = _value;
+            value! = _value
         si
 
         init() pure is
@@ -29,14 +29,14 @@ namespace Ghul is
 
         init(value: T) pure is
             _has_value = true
-            _value = value;
+            _value = value
         si
 
         to_string() -> string =>
             if _has_value then
-                "{_value}";
+                "{_value}"
             else
-                "none";
-            fi;
+                "none"
+            fi
     si
 si

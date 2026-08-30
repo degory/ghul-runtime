@@ -8,9 +8,9 @@ namespace Ghul.Pipes is
 
         init(index: int, value: T) pure is
             `0 = index
-            `1 = value;
+            `1 = value
         si
 
-        to_string() -> string => "({`0},{`1})";
+        to_string() -> string => "({`0},{`1})"
     si
 si

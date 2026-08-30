@@ -16,5 +16,5 @@ entry() is
     @IF.world()
     strings.add("world!")
 
-    IO.Std.out.write_line(render(strings));
+    IO.Std.out.write_line(render(strings))
 si

@@ -28,7 +28,7 @@ namespace Tests is
                 pipe
                     .filter(i => i > 2)
 
-            assert_are_equal([3, 4, 5, 3, 4, 5], result);
+            assert_are_equal([3, 4, 5, 3, 4, 5], result)
         si
 
         @Test()
@@ -40,7 +40,7 @@ namespace Tests is
                 pipe
                     .filter(i => i > 2)
 
-            assert_are_equal([3, 4, 5, 3, 4, 5], result);
+            assert_are_equal([3, 4, 5, 3, 4, 5], result)
         si
 
         @Test()
@@ -52,7 +52,7 @@ namespace Tests is
                 pipe
                     .filter(i => i > 2)
 
-            assert_are_equal([3, 4, 5, 6, 7], result);
+            assert_are_equal([3, 4, 5, 6, 7], result)
         si
 
         @Test()
@@ -64,7 +64,7 @@ namespace Tests is
                 pipe
                     .filter(i => i > 2)
 
-            assert_are_equal([7, 6, 5, 4, 3], result);
+            assert_are_equal([7, 6, 5, 4, 3], result)
         si
 
         @Test()
@@ -77,7 +77,7 @@ namespace Tests is
                     .filter(i => i > 3 /\ i < 9)
                     .filter(i => (i & 1) == 0)
 
-            assert_are_equal([4, 6, 8], result);
+            assert_are_equal([4, 6, 8], result)
         si
 
         @Test()
@@ -86,7 +86,7 @@ namespace Tests is
 
             let pipe = FilterPipe[string](input.iterator, (e: string) => true)
 
-            are_equal(4, pipe.count());
+            are_equal(4, pipe.count())
         si
 
         @Test()
@@ -95,7 +95,7 @@ namespace Tests is
 
             let pipe = FilterPipe[int](input.iterator, (e: int) => true)
 
-            are_equal(0, pipe.count());
+            are_equal(0, pipe.count())
         si
 
         @Test()
@@ -104,7 +104,7 @@ namespace Tests is
 
             let pipe = FilterPipe[string](input.iterator, (e: string) => true)
 
-            are_same(pipe, pipe.iterator);
+            are_same(pipe, pipe.iterator)
         si
 
         @Test()
@@ -113,7 +113,7 @@ namespace Tests is
 
             let pipe = FilterPipe[string](input.iterator, (e: string) => true)
 
-            assert_are_equal(["a", "b", "c"], pipe);
+            assert_are_equal(["a", "b", "c"], pipe)
         si
     si
 si

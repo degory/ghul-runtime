@@ -15,7 +15,7 @@ namespace Ghul.Pipes is
 
         init(iterator: Iterator[TFrom], mapper: (TFrom) -> Iterable[TTo]) is
             _iterator = iterator
-            _mapper = mapper;
+            _mapper = mapper
         si
 
         move_next() -> bool is
@@ -28,24 +28,24 @@ namespace Ghul.Pipes is
                 if flat? /\ flat.move_next() then
                     current = flat.current
 
-                    return true;
+                    return true
                 fi
 
                 if !_iterator.move_next() then
                     reset()
 
-                    return false;
+                    return false
                 fi
 
                 let flat_iterable = _mapper(_iterator.current)
 
-                _flat_iterator = flat_iterable.iterator;
+                _flat_iterator = flat_iterable.iterator
             od
         si
 
         reset() is
             _iterator.reset()
-            _flat_iterator = null;
+            _flat_iterator = null
         si
 
         to_string() -> string => self.join(", ")

@@ -18,25 +18,25 @@ namespace Ghul.Pipes is
                 throw
                     System.ArgumentOutOfRangeException(
                         "from",
-                        "{from} for {count} is not within a source of {source.count}");
+                        "{from} for {count} is not within a source of {source.count}")
             fi
 
             _source = source
             _from = from
-            _count = count;
+            _count = count
         si
 
         [i: int]: T is
             if i < 0 \/ i >= _count then
-                throw System.ArgumentOutOfRangeException("i", "{i} is not within a slice of {_count}");
+                throw System.ArgumentOutOfRangeException("i", "{i} is not within a slice of {_count}")
             fi
 
-            return _source[_from + i];
+            return _source[_from + i]
         si
 
         count: int => _count
 
-        iterator: Iterator[T] => LIST_SLICE_ITERATOR[T](_source, _from, _count);
+        iterator: Iterator[T] => LIST_SLICE_ITERATOR[T](_source, _from, _count)
     si
 
     class LIST_SLICE_ITERATOR[T]: Iterator[T] is
@@ -50,7 +50,7 @@ namespace Ghul.Pipes is
             _from = from
             _count = count
 
-            reset();
+            reset()
         si
 
         current: T => _source[_from + _index]
@@ -58,11 +58,11 @@ namespace Ghul.Pipes is
         move_next() -> bool is
             _index = _index + 1
 
-            return _index < _count;
+            return _index < _count
         si
 
         reset() is
-            _index = -1;
+            _index = -1
         si
 
         dispose() is

@@ -17,18 +17,18 @@ namespace Ghul.Pipes is
 
     pipe[T](source: Iterable[T]) -> Pipe[T] pure is
         if isa Pipe[T](source) then
-            return cast Pipe[T](source);
+            return cast Pipe[T](source)
         else
-            return ADAPTOR_PIPE[T](source);
+            return ADAPTOR_PIPE[T](source)
         fi
     si
 
     class Factory is
         from[T](source: Iterable[T]) -> Pipe[T] pure static is
             if isa Pipe[T](source) then
-                return cast Pipe[T](source);
+                return cast Pipe[T](source)
             else
-                return ADAPTOR_PIPE[T](source);
+                return ADAPTOR_PIPE[T](source)
             fi
         si
     si
@@ -44,14 +44,14 @@ namespace Ghul.Pipes is
 
             while it.move_next() do
                 if it.current < result then
-                    result = it.current;
+                    result = it.current
                 fi
             od
 
-            return MAYBE(result);
+            return MAYBE(result)
         fi
 
-        return MAYBE[T]();
+        return MAYBE[T]()
     si
 
     max[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
@@ -62,14 +62,14 @@ namespace Ghul.Pipes is
 
             while it.move_next() do
                 if it.current > result then
-                    result = it.current;
+                    result = it.current
                 fi
             od
 
-            return MAYBE(result);
+            return MAYBE(result)
         fi
 
-        return MAYBE[T]();
+        return MAYBE[T]()
     si
 
     // Pipe members are declared pure: they store nothing a caller
@@ -219,13 +219,13 @@ namespace Ghul.Pipes is
                 let element = current
 
                 if predicate(element) then
-                    return true;
+                    return true
                 fi
             od
 
             reset()
 
-            return false;
+            return false
         si
 
         any(predicate: (T) -> bool pure) -> bool pure =>

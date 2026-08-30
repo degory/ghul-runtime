@@ -7,9 +7,9 @@ namespace Ghul.Pipes is
         init(iterator: Iterator[T], predicate: T -> bool) is
             super.init(iterator)
 
-            _predicate = predicate;
+            _predicate = predicate
         si
 
-        should_include() -> bool => _predicate(current);
+        should_include() -> bool => _predicate(current)
     si
 si

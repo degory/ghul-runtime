@@ -11,42 +11,42 @@ namespace Tests is
         INT_RANGE_INCLUSIVE__init__given_0_to_10__constructs_range_with_11_elements() is
             let range = Ghul.INT_RANGE_INCLUSIVE(0, 10)
 
-            are_equal(Pipes.Factory.from`[int](range) .count(), 11);
+            are_equal(Pipes.Factory.from`[int](range) .count(), 11)
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__init__given_0_to_10__constructs_range_with_11_elements_consecutive_elements_0_through_10() is
             let range = Ghul.INT_RANGE_INCLUSIVE(0, 10)
 
-            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__init__given_10_to_0__constructs_range_with_0_elements() is
             let range = Ghul.INT_RANGE_INCLUSIVE(10, 0)
 
-            are_equal(Pipes.Factory.from`[int](range) .count(), 0);
+            are_equal(Pipes.Factory.from`[int](range) .count(), 0)
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__init__given_50_to_50__constructs_range_with_1_elements() is
             let range = Ghul.INT_RANGE_INCLUSIVE(50, 50)
 
-            are_equal(Pipes.Factory.from`[int](range) .count(), 1);
+            are_equal(Pipes.Factory.from`[int](range) .count(), 1)
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__colon_colon__given_0_to_10__constructs_range_with_consecutive_elements_0_through_10() is
             let range = 0::10
 
-            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__colon_colon__minus_5_to_5__constructs_range_with_consecutive_elements_minus_5_through_5() is
             let range = -5::5
 
-            assert_equal(range, [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]);
+            assert_equal(range, [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
         si
 
         @Test()
@@ -55,42 +55,42 @@ namespace Tests is
 
             Pipes.Factory.from`[int](range) .take(5)
 
-            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__from__given_0_to_10__is_0() is
             let range = 0::10
 
-            are_equal(range.from, 0);
+            are_equal(range.from, 0)
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__to__given_0_to_10__is_10() is
             let range = 0::10
 
-            are_equal(range.to, 10);
+            are_equal(range.to, 10)
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__move_next__given_0_to_10__returns_true() is
             let range = 0::10
 
-            is_true(range.move_next());
+            is_true(range.move_next())
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__move_next__given_10_to_0__returns_true() is
             let range = 10::0
 
-            is_false(range.move_next());
+            is_false(range.move_next())
         si
 
         @Test()
         INT_RANGE_INCLUSIVE__to_string__given_new_0_to_10__returns_0_colon_colon_10() is
             let range = 0::10
 
-            are_equal("0::10", range.to_string());
+            are_equal("0::10", range.to_string())
         si
 
         @Test()
@@ -99,7 +99,7 @@ namespace Tests is
 
             range.reset()
 
-            are_equal("0::10", range.to_string());
+            are_equal("0::10", range.to_string())
         si
 
         @Test()
@@ -108,7 +108,7 @@ namespace Tests is
 
             range.move_next()
 
-            are_equal("0::10 @ 0", range.to_string());
+            are_equal("0::10 @ 0", range.to_string())
         si
 
         @Test()
@@ -119,7 +119,7 @@ namespace Tests is
             range.move_next()
             range.move_next()
 
-            are_equal("0::10 @ 2", range.to_string());
+            are_equal("0::10 @ 2", range.to_string())
         si
     si
 si

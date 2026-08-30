@@ -8,11 +8,11 @@ namespace Ghul.Pipes is
         init(iterator: Iterator[T], take_count: int) is
             super.init(iterator)
             _initial_take_count = take_count
-            _take_count = take_count;
+            _take_count = take_count
         si
 
         have_moved() is
-            _take_count = _take_count - 1;
+            _take_count = _take_count - 1
         si
 
         should_continue() -> bool => _take_count >= 0
@@ -21,7 +21,7 @@ namespace Ghul.Pipes is
 
         reset() is
             super.reset()
-            _take_count = _initial_take_count;
+            _take_count = _initial_take_count
         si
     si
 si
