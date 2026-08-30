@@ -35,13 +35,13 @@ namespace Tests is
                 let candidate = Path.combine(d, "build/ghul.runtime.targets")
 
                 if File.exists(candidate) then
-                    return candidate;
+                    return candidate
                 fi
 
-                dir = Path.get_directory_name(d);
+                dir = Path.get_directory_name(d)
             od
 
-            throw Exception("could not find build/ghul.runtime.targets above the test assembly");
+            throw Exception("could not find build/ghul.runtime.targets above the test assembly")
         si
 
         // A project declaring src/**/*.ghul (which matches the file written
@@ -63,7 +63,7 @@ namespace Tests is
                 "<EnableDefaultCompileItems>false</EnableDefaultCompileItems>"
                 "<TargetFramework>net10.0</TargetFramework></PropertyGroup>"
                 "<ItemGroup><GhulSources Include=\"src/**/*.ghul\" /></ItemGroup>"
-                "<Import Project=\"{repo_targets_path()}\" /></Project>");
+                "<Import Project=\"{repo_targets_path()}\" /></Project>")
         si
 
         // A project whose every pattern matches nothing yet, both patterns in
@@ -77,7 +77,7 @@ namespace Tests is
                 "<EnableDefaultCompileItems>false</EnableDefaultCompileItems>"
                 "<TargetFramework>net10.0</TargetFramework></PropertyGroup>"
                 "<ItemGroup><GhulSources Include=\"src/**/*.ghul;tools/**/*.ghul\" /></ItemGroup>"
-                "<Import Project=\"{repo_targets_path()}\" /></Project>");
+                "<Import Project=\"{repo_targets_path()}\" /></Project>")
         si
 
         // Run the response-file target over the fixture and return the
@@ -110,13 +110,13 @@ namespace Tests is
                 Exception("dotnet msbuild timed out:\n{out}\n{err}")
 
             if process.exit_code != 0 then
-                throw Exception("dotnet msbuild failed with {process.exit_code}:\n{out}\n{err}");
+                throw Exception("dotnet msbuild failed with {process.exit_code}:\n{out}\n{err}")
             fi
 
             let globs_path = Path.combine(directory, "globs.txt")
 
             if !File.exists(globs_path) then
-                throw Exception("no globs file was written:\n{out}\n{err}");
+                throw Exception("no globs file was written:\n{out}\n{err}")
             fi
 
             let lines = LIST[string]()
@@ -125,12 +125,12 @@ namespace Tests is
                 let trimmed = line.trim()
 
                 if trimmed.length > 0 then
-                    lines.add(trimmed);
+                    lines.add(trimmed)
                 fi
             od
 
             lines.sort()
-            return lines;
+            return lines
         si
 
         @Test()
@@ -143,9 +143,9 @@ namespace Tests is
 
                 are_equal[int](2, globs.count)
                 are_equal("generated/*.ghul", globs[0])
-                are_equal("src/**/*.ghul", globs[1]);
+                are_equal("src/**/*.ghul", globs[1])
             finally
-                Directory.delete(directory, true);
+                Directory.delete(directory, true)
             yrt
         si
 
@@ -159,9 +159,9 @@ namespace Tests is
 
                 are_equal[int](2, globs.count)
                 are_equal("src/**/*.ghul", globs[0])
-                are_equal("tools/**/*.ghul", globs[1]);
+                are_equal("tools/**/*.ghul", globs[1])
             finally
-                Directory.delete(directory, true);
+                Directory.delete(directory, true)
             yrt
         si
     si

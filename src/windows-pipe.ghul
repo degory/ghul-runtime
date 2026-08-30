@@ -17,30 +17,30 @@ namespace Ghul.Pipes is
 
             _iterator = iterator
             _size = size
-            _buffer = LIST[T]();
+            _buffer = LIST[T]()
         si
 
         move_next() -> bool is
             while _buffer.count < _size /\ _iterator.move_next() do
-                _buffer.add(_iterator.current);
+                _buffer.add(_iterator.current)
             od
 
             if _buffer.count < _size then
                 reset()
 
-                return false;
+                return false
             fi
 
             current = LIST[T](_buffer)
 
             _buffer.remove_at(0)
 
-            return true;
+            return true
         si
 
         reset() is
             _iterator.reset()
-            _buffer = LIST[T]();
+            _buffer = LIST[T]()
         si
 
         to_string() -> string => self.join(", ")

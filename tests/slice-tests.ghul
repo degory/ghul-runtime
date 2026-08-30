@@ -16,7 +16,7 @@ namespace Tests is
         expected_elements.add_range(expected)
         actual_elements.add_range(actual)
 
-        CollectionAssert.are_equal(expected_elements, actual_elements);
+        CollectionAssert.are_equal(expected_elements, actual_elements)
     si
 
     // Coverage for `slice`: which overload each source type reaches, that a
@@ -29,36 +29,36 @@ namespace Tests is
 
         @Test()
         Array_ExclusiveRange_ReturnsTheSlice() is
-            assert_elements([2, 3, 4], [1, 2, 3, 4, 5] |> slice(1..4));
+            assert_elements([2, 3, 4], [1, 2, 3, 4, 5] |> slice(1..4))
         si
 
         @Test()
         Array_InclusiveRange_IncludesTheEnd() is
-            assert_elements([2, 3, 4], [1, 2, 3, 4, 5] |> slice(1::3));
+            assert_elements([2, 3, 4], [1, 2, 3, 4, 5] |> slice(1::3))
         si
 
         @Test()
         Array_ReachesTheArraySegmentOverload() is
             let result = [1, 2, 3, 4, 5] |> slice(1..4)
 
-            is_true(isa System.ArraySegment[int](result));
+            is_true(isa System.ArraySegment[int](result))
         si
 
         @Test()
         List_ExclusiveRange_ReturnsTheSlice() is
-            assert_elements([2, 3, 4], LIST[int]([1, 2, 3, 4, 5]) |> slice(1..4));
+            assert_elements([2, 3, 4], LIST[int]([1, 2, 3, 4, 5]) |> slice(1..4))
         si
 
         @Test()
         List_InclusiveRange_IncludesTheEnd() is
-            assert_elements([2, 3, 4], LIST[int]([1, 2, 3, 4, 5]) |> slice(1::3));
+            assert_elements([2, 3, 4], LIST[int]([1, 2, 3, 4, 5]) |> slice(1::3))
         si
 
         @Test()
         List_ReachesTheListSliceOverload() is
             let result = LIST[int]([1, 2, 3, 4, 5]) |> slice(1..4)
 
-            is_true(isa LIST_SLICE[int](result));
+            is_true(isa LIST_SLICE[int](result))
         si
 
         @Test()
@@ -67,17 +67,17 @@ namespace Tests is
 
             let result = source |> slice(1..4)
 
-            is_true(isa LIST_SLICE[int](result));
+            is_true(isa LIST_SLICE[int](result))
         si
 
         @Test()
         String_ExclusiveRange_ReturnsTheSubstring() is
-            are_equal("hello", "hello world" |> slice(0..5));
+            are_equal("hello", "hello world" |> slice(0..5))
         si
 
         @Test()
         String_InclusiveRange_IncludesTheEnd() is
-            are_equal("hello", "hello world" |> slice(0::4));
+            are_equal("hello", "hello world" |> slice(0::4))
         si
 
         @Test()
@@ -86,7 +86,7 @@ namespace Tests is
 
             are_equal(3, result.count)
             are_equal(2, result[0])
-            are_equal(4, result[2]);
+            are_equal(4, result[2])
         si
 
         @Test()
@@ -94,21 +94,21 @@ namespace Tests is
             let result = LIST[int]([1, 2, 3, 4, 5]) |> slice(1..4)
 
             assert_elements([2, 3, 4], result)
-            assert_elements([2, 3, 4], result);
+            assert_elements([2, 3, 4], result)
         si
 
         @Test()
         Slice_OfASlice_SlicesTheSameSource() is
             let outer = LIST[int]([1, 2, 3, 4, 5]) |> slice(1..5)
 
-            assert_elements([3, 4], outer |> slice(1..3));
+            assert_elements([3, 4], outer |> slice(1..3))
         si
 
         @Test()
         Slice_OfAnArraySlice_SlicesTheSameSource() is
             let outer = [1, 2, 3, 4, 5] |> slice(1..5)
 
-            assert_elements([3, 4], outer |> slice(1..3));
+            assert_elements([3, 4], outer |> slice(1..3))
         si
 
         @Test()
@@ -119,7 +119,7 @@ namespace Tests is
 
             source[2] = 30
 
-            assert_elements([2, 30, 4], result);
+            assert_elements([2, 30, 4], result)
         si
 
         @Test()
@@ -127,12 +127,12 @@ namespace Tests is
             let result = LIST[int]([1, 2, 3]) |> slice(1..1)
 
             are_equal(0, result.count)
-            assert_elements(LIST[int](), result);
+            assert_elements(LIST[int](), result)
         si
 
         @Test()
         WholeRange_ReturnsEveryElement() is
-            assert_elements([1, 2, 3], LIST[int]([1, 2, 3]) |> slice(0..3));
+            assert_elements([1, 2, 3], LIST[int]([1, 2, 3]) |> slice(0..3))
         si
 
         @Test()
@@ -142,7 +142,7 @@ namespace Tests is
             try
                 source |> slice(1..5)
 
-                fail("should have thrown");
+                fail("should have thrown")
             catch ex: System.ArgumentOutOfRangeException
             yrt
         si
@@ -154,7 +154,7 @@ namespace Tests is
             try
                 source |> slice(-1..2)
 
-                fail("should have thrown");
+                fail("should have thrown")
             catch ex: System.ArgumentOutOfRangeException
             yrt
         si
@@ -166,7 +166,7 @@ namespace Tests is
             try
                 result[3]
 
-                fail("should have thrown");
+                fail("should have thrown")
             catch ex: System.ArgumentOutOfRangeException
             yrt
         si
@@ -175,7 +175,7 @@ namespace Tests is
         Slice_ComposesWithThePipeCombinators() is
             let result = LIST[int]([1, 2, 3, 4, 5]) |> slice(1..4) |> map(i => i * 10)
 
-            assert_are_equal([20, 30, 40], result);
+            assert_are_equal([20, 30, 40], result)
         si
     si
 si

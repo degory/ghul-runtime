@@ -21,7 +21,7 @@ namespace Tests is
         Maybe_NotInt_HasNoValue() is
             let maybe = MAYBE[int]()
 
-            is_false(maybe.has_value);
+            is_false(maybe.has_value)
         si
 
         @Test()
@@ -29,28 +29,28 @@ namespace Tests is
             let maybe = MAYBE[int](42)
 
             is_true(maybe.has_value)
-            are_equal(42, maybe.value);
+            are_equal(42, maybe.value)
         si
 
         @Test()
         Maybe_NotInt_HasExpectedStringRepresentation() is
             let maybe = MAYBE[int]()
 
-            are_equal("none", maybe.to_string());
+            are_equal("none", maybe.to_string())
         si
 
         @Test()
         Maybe_Int_HasExpectedStringRepresentation() is
             let maybe = MAYBE[int](42)
 
-            are_equal("42", maybe.to_string());
+            are_equal("42", maybe.to_string())
         si
 
         @Test()
         Maybe_NotString_HasNoValue() is
             let maybe = MAYBE[string]()
 
-            is_false(maybe.has_value);
+            is_false(maybe.has_value)
         si
 
         @Test()
@@ -58,7 +58,7 @@ namespace Tests is
             let maybe = MAYBE[string]("Hello, World!")
 
             is_true(maybe.has_value)
-            are_equal("Hello, World!", maybe.value);
+            are_equal("Hello, World!", maybe.value)
         si
 
         @Test()
@@ -66,14 +66,14 @@ namespace Tests is
             let maybe: Maybe[int] = MAYBE[int](42)
 
             is_true(maybe.has_value)
-            are_equal(42, maybe.value);
+            are_equal(42, maybe.value)
         si
 
         @Test()
         Maybe_NotInt_ReadsAbsenceThroughTrait() is
             let maybe: Maybe[int] = MAYBE[int]()
 
-            is_false(maybe.has_value);
+            is_false(maybe.has_value)
         si
 
         @Test()
@@ -81,7 +81,7 @@ namespace Tests is
             let maybe: Maybe[string] = MAYBE[string]("Hello, World!")
 
             is_true(maybe.has_value)
-            are_equal("Hello, World!", maybe.value);
+            are_equal("Hello, World!", maybe.value)
         si
 
         @Test()
@@ -91,13 +91,13 @@ namespace Tests is
             let caught_expected mut = false
 
             try
-                let result = maybe.value;
+                let result = maybe.value
 
             catch ex: System.InvalidOperationException
-                caught_expected = true;
+                caught_expected = true
             yrt
 
-            is_true(caught_expected);
+            is_true(caught_expected)
         si
 
         @Test()
@@ -107,13 +107,13 @@ namespace Tests is
             let caught_expected mut = false
 
             try
-                let result = maybe.value;
+                let result = maybe.value
 
             catch ex: System.InvalidOperationException
-                caught_expected = true;
+                caught_expected = true
             yrt
 
-            is_true(caught_expected);
+            is_true(caught_expected)
         si
 
         @Test()
@@ -121,7 +121,7 @@ namespace Tests is
             let (has_value, value) = MAYBE[int](42)
 
             is_true(has_value)
-            are_equal(42, value);
+            are_equal(42, value)
         si
 
         @Test()
@@ -129,7 +129,7 @@ namespace Tests is
             let (has_value, value) = MAYBE[int]()
 
             is_false(has_value)
-            are_equal(0, value);
+            are_equal(0, value)
         si
     si
 si

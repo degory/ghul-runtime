@@ -19,7 +19,7 @@ namespace Ghul.Pipes is
             _source = source
             _iterator = source.iterator
             _cache = LIST[T]()
-            _at = 0;
+            _at = 0
         si
 
         iterator: Iterator[T] => self
@@ -29,12 +29,12 @@ namespace Ghul.Pipes is
         move_next() -> bool is
             if _at < _cache.count then
                 _at = _at + 1
-                return true;
+                return true
             fi
 
             if !_iterator? then
                 reset()
-                return false;
+                return false
             fi
 
             let it = _iterator
@@ -42,16 +42,16 @@ namespace Ghul.Pipes is
             if it.move_next() then
                 _cache.add(it.current)
                 _at = _at + 1
-                return true;
+                return true
             fi
 
             _iterator = null
             reset()
-            return false;
+            return false
         si
 
         reset() is
-            _at = 0;
+            _at = 0
         si
 
         to_string() -> string => self.join(", ")

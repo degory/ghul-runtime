@@ -3,12 +3,12 @@ namespace Ghul is
 
     trait Range[T] is
         from: T
-        to: T;
+        to: T
     si
 
     trait Resettable is
         @IL.name("Reset")
-        reset();
+        reset()
     si
 
     struct INT_RANGE: Range[int], Iterable[int], Iterator[int], Resettable is
@@ -23,16 +23,16 @@ namespace Ghul is
             self.from = from
             self.to = to
 
-            current = from - 1;
+            current = from - 1
         si
 
         move_next() -> bool is
             current = current + 1
-            return current < to;
+            return current < to
         si
 
         reset() is
-            current = from - 1;
+            current = from - 1
         si
 
         to_string() -> string =>
@@ -69,16 +69,16 @@ namespace Ghul is
             self.from = from
             self.to = to
 
-            current = from - 1;
+            current = from - 1
         si
 
         move_next() -> bool is
             current = current + 1
-            return current <= to;
+            return current <= to
         si
 
         reset() is
-            current = from - 1;
+            current = from - 1
         si
 
         to_string() -> string =>
@@ -92,7 +92,7 @@ namespace Ghul is
                     if current != from -1 then
                         result
                             .append(" @ ")
-                            .append(current);
+                            .append(current)
                     else
                         result
                     fi

@@ -7,21 +7,21 @@ namespace Collections is
 
         init(list: List[T]) is
             _list = list
-            reset();
+            reset()
         si
 
         move_next() -> bool is
             let result = _index > 0
 
             if result then
-                _index = _index - 1;
+                _index = _index - 1
             fi
 
-            return result;
+            return result
         si
 
         reset() is
-            _index = _list.count;
+            _index = _list.count
         si
 
         dispose() is
@@ -34,7 +34,7 @@ namespace Collections is
         iterator: Iterator[T] => LIST_REVERSE_ITERATOR(_list)
 
         init(list: List[T]) is
-            _list = list;
+            _list = list
         si
     si
 si

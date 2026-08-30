@@ -13,7 +13,7 @@ namespace Ghul.Internal is
         operation: string public
 
         init(operation: string) is
-            self.operation = operation;
+            self.operation = operation
         si
     si
 si

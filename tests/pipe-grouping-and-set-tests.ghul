@@ -22,7 +22,7 @@ namespace Tests is
             are_equal(3, chunks.count)
             CollectionAssert.are_equal(LIST[int]([1, 2]), chunks[0])
             CollectionAssert.are_equal(LIST[int]([3, 4]), chunks[1])
-            CollectionAssert.are_equal(LIST[int]([5, 6]), chunks[2]);
+            CollectionAssert.are_equal(LIST[int]([5, 6]), chunks[2])
         si
 
         @Test()
@@ -34,14 +34,14 @@ namespace Tests is
             are_equal(3, chunks.count)
             CollectionAssert.are_equal(LIST[int]([1, 2]), chunks[0])
             CollectionAssert.are_equal(LIST[int]([3, 4]), chunks[1])
-            CollectionAssert.are_equal(LIST[int]([5]), chunks[2]);
+            CollectionAssert.are_equal(LIST[int]([5]), chunks[2])
         si
 
         @Test()
         Chunk_EmptySequence_ReturnsNoChunks() is
             let pipe = Pipes.Factory.from`[int](empty`[int]())
 
-            are_equal(0, pipe.chunk(3).collect_list().count);
+            are_equal(0, pipe.chunk(3).collect_list().count)
         si
 
         @Test()
@@ -53,14 +53,14 @@ namespace Tests is
             are_equal(3, windows.count)
             CollectionAssert.are_equal(LIST[int]([1, 2]), windows[0])
             CollectionAssert.are_equal(LIST[int]([2, 3]), windows[1])
-            CollectionAssert.are_equal(LIST[int]([3, 4]), windows[2]);
+            CollectionAssert.are_equal(LIST[int]([3, 4]), windows[2])
         si
 
         @Test()
         Windows_FewerElementsThanSize_ReturnsNoWindows() is
             let pipe = Pipes.Factory.from`[int]([1, 2])
 
-            are_equal(0, pipe.windows(3).collect_list().count);
+            are_equal(0, pipe.windows(3).collect_list().count)
         si
 
         @Test()
@@ -71,28 +71,28 @@ namespace Tests is
 
             CollectionAssert.are_equal(LIST[string](["a", "e"]), groups[1])
             CollectionAssert.are_equal(LIST[string](["bb", "dd"]), groups[2])
-            CollectionAssert.are_equal(LIST[string](["ccc"]), groups[3]);
+            CollectionAssert.are_equal(LIST[string](["ccc"]), groups[3])
         si
 
         @Test()
         UnionWith_OverlappingSequences_ReturnsDistinctElementsFromBoth() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 3])
 
-            assert_are_equal([1, 2, 3, 4], pipe.union_with([3, 4]));
+            assert_are_equal([1, 2, 3, 4], pipe.union_with([3, 4]))
         si
 
         @Test()
         IntersectWith_OverlappingSequences_ReturnsDistinctCommonElements() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3])
 
-            assert_are_equal([2, 3], pipe.intersect_with([2, 3, 4]));
+            assert_are_equal([2, 3], pipe.intersect_with([2, 3, 4]))
         si
 
         @Test()
         Except_OverlappingSequences_ReturnsDistinctElementsNotInOther() is
             let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3])
 
-            assert_are_equal([1], pipe.except([2, 3, 4]));
+            assert_are_equal([1], pipe.except([2, 3, 4]))
         si
     si
 si

@@ -234,5 +234,5 @@ namespace Ghul.Internal is
     // are declared here rather than beside the rest: the type they name
     // has to be in scope.
     @INTRINSIC_ATTRIBUTE("range.exclusive") ..(from: int, to: int) -> INT_RANGE pure
-    @INTRINSIC_ATTRIBUTE("range.inclusive") ::(from: int, to: int) -> INT_RANGE_INCLUSIVE pure;
+    @INTRINSIC_ATTRIBUTE("range.inclusive") ::(from: int, to: int) -> INT_RANGE_INCLUSIVE pure
 si

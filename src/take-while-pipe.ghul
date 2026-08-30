@@ -8,28 +8,28 @@ namespace Ghul.Pipes is
         init(iterator: Iterator[T], predicate: (T) -> bool) is
             super.init(iterator)
             _predicate = predicate
-            _done = false;
+            _done = false
         si
 
         should_continue() -> bool is
             if _done then
-                return false;
+                return false
             fi
 
             if !_predicate(current) then
                 _done = true
 
-                return false;
+                return false
             fi
 
-            return true;
+            return true
         si
 
         should_include() -> bool => true
 
         reset() is
             super.reset()
-            _done = false;
+            _done = false
         si
     si
 si

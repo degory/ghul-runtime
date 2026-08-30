@@ -7,7 +7,7 @@ namespace Tests is
     use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
     class POINT(x: int, y: int) is
-        to_string() -> string => "({x},{y})";
+        to_string() -> string => "({x},{y})"
     si
 
     // Reflection finds a GetEnumerator, but what it hands back cannot be
@@ -18,7 +18,7 @@ namespace Tests is
 
         GetEnumerator() -> object => object()
 
-        to_string() -> string => "unreadable";
+        to_string() -> string => "unreadable"
     si
 
     // Says how it looks displayed, and separately how it reads as text,
@@ -27,7 +27,7 @@ namespace Tests is
         to_string() -> string => "TAG"
 
         display(state: Ghul.DISPLAY_STATE) is
-            state.append("<{label}>");
+            state.append("<{label}>")
         si
     si
 
@@ -41,15 +41,15 @@ namespace Tests is
 
             for child in children do
                 if count > 0 then
-                    state.append(" ");
+                    state.append(" ")
                 fi
 
                 state.render(child)
 
-                count = count + 1;
+                count = count + 1
             od
 
-            state.append(')');
+            state.append(')')
         si
     si
 
@@ -63,7 +63,7 @@ namespace Tests is
             throw System.Exception("should have been displayed, not enumerated")
 
         display(state: Ghul.DISPLAY_STATE) is
-            state.append("spelled out");
+            state.append("spelled out")
         si
     si
 
@@ -74,65 +74,65 @@ namespace Tests is
 
         @Test()
         Render_a_string_as_itself_rather_than_its_characters() is
-            are_equal("hello", $("hello"));
+            are_equal("hello", $("hello"))
         si
 
         @Test()
         Render_an_array() is
-            are_equal("[1, 2, 3]", $([1, 2, 3]));
+            are_equal("[1, 2, 3]", $([1, 2, 3]))
         si
 
         // The element type is a value type, so this is not an
         // Iterable[object] and only the sequence overload reaches it.
         @Test()
         Render_a_list_of_a_value_type() is
-            are_equal("[1, 2]", $(LIST[int]([1, 2])));
+            are_equal("[1, 2]", $(LIST[int]([1, 2])))
         si
 
         @Test()
         Render_a_nested_sequence() is
-            are_equal("[[1, 2], [3]]", $([[1, 2], [3]]));
+            are_equal("[[1, 2], [3]]", $([[1, 2], [3]]))
         si
 
         @Test()
         Render_a_pipe() is
-            are_equal("[1, 2, 3]", $(Ghul.Pipes.pipe([1, 2, 3])));
+            are_equal("[1, 2, 3]", $(Ghul.Pipes.pipe([1, 2, 3])))
         si
 
         @Test()
         Render_a_scalar_as_its_own_to_string() is
-            are_equal("42", $(42));
+            are_equal("42", $(42))
         si
 
         @Test()
         Render_a_type_that_declares_to_string_using_it() is
-            are_equal("(1,2)", $(POINT(1, 2)));
+            are_equal("(1,2)", $(POINT(1, 2)))
         si
 
         @Test()
         Render_a_sequence_of_such_a_type_elementwise() is
-            are_equal("[(1,2)]", $(LIST[POINT]([POINT(1, 2)])));
+            are_equal("[(1,2)]", $(LIST[POINT]([POINT(1, 2)])))
         si
 
         @Test()
         Render_a_present_optional_string_as_itself() is
             let present: string? = "hello"
 
-            are_equal("hello", $(present));
+            are_equal("hello", $(present))
         si
 
         @Test()
         Render_an_absent_sequence_as_null() is
             let absent: Collections.LIST[int]? = null
 
-            are_equal("null", $(absent));
+            are_equal("null", $(absent))
         si
 
         @Test()
         Render_an_absent_value_as_null() is
             let absent: string? = null
 
-            are_equal("null", $(absent));
+            are_equal("null", $(absent))
         si
 
         // Held at object, an element's static type says nothing, so the
@@ -142,7 +142,7 @@ namespace Tests is
         Render_a_heterogeneous_object_array() is
             let mixed: object[] = ["a", [1, 2], 42]
 
-            are_equal("[a, [1, 2], 42]", $(mixed));
+            are_equal("[a, [1, 2], 42]", $(mixed))
         si
 
         @Test()
@@ -151,7 +151,7 @@ namespace Tests is
 
             map.add("a", 1)
 
-            are_equal("[[a, 1]]", $(map));
+            are_equal("[[a, 1]]", $(map))
         si
 
         // Beyond the limit an ellipsis stands for the rest, so an
@@ -161,21 +161,21 @@ namespace Tests is
             let rendered = $(0..1000)
 
             is_true(rendered.ends_with(", ...]"))
-            is_true(rendered.starts_with("[0, 1, 2, "));
+            is_true(rendered.starts_with("[0, 1, 2, "))
         si
 
         @Test()
         Render_an_unbounded_generator_without_hanging() is
             let rendered = $(Ghul.Pipes.stream(0, i => i || i + 1))
 
-            is_true(rendered.ends_with(", ...]"));
+            is_true(rendered.ends_with(", ...]"))
         si
 
         // Being unable to read a value is not the same as the value being
         // empty, so it renders as itself rather than as `[]`.
         @Test()
         Render_a_value_whose_enumerator_cannot_be_driven_as_itself() is
-            are_equal("unreadable", $(UNREADABLE()));
+            are_equal("unreadable", $(UNREADABLE()))
         si
 
         @Test()
@@ -184,7 +184,7 @@ namespace Tests is
 
             outer.add(outer)
 
-            are_equal("[<cycle>]", $(outer));
+            are_equal("[<cycle>]", $(outer))
         si
 
         @Test()
@@ -195,7 +195,7 @@ namespace Tests is
             a.add(b)
             b.add(a)
 
-            are_equal("[[<cycle>]]", $(a));
+            are_equal("[[<cycle>]]", $(a))
         si
 
         // The same collection in two branches is not a cycle, so it
@@ -209,43 +209,43 @@ namespace Tests is
             outer.add(shared)
             outer.add(shared)
 
-            are_equal("[[1, 2], [1, 2]]", $(outer));
+            are_equal("[[1, 2], [1, 2]]", $(outer))
         si
 
         @Test()
         Render_an_empty_sequence() is
-            are_equal("[]", $(LIST[int]()));
+            are_equal("[]", $(LIST[int]()))
         si
 
         @Test()
         Render_a_type_that_says_how_it_is_displayed_using_that() is
-            are_equal("<a>", $(TAG("a")));
+            are_equal("<a>", $(TAG("a")))
         si
 
         @Test()
         Render_such_a_type_held_at_object_the_same_way() is
             let held: object = TAG("a")
 
-            are_equal("<a>", $(held));
+            are_equal("<a>", $(held))
         si
 
         @Test()
         Render_such_a_type_as_an_element() is
-            are_equal("[<a>, <b>]", $([TAG("a"), TAG("b")]));
+            are_equal("[<a>, <b>]", $([TAG("a"), TAG("b")]))
         si
 
         // The sequence overload catches it on its static type, and the
         // type's own account of how it looks still wins.
         @Test()
         Render_a_displayable_sequence_as_it_says_rather_than_elementwise() is
-            are_equal("spelled out", $(SPELLED_OUT()));
+            are_equal("spelled out", $(SPELLED_OUT()))
         si
 
         @Test()
         Render_children_of_a_displayable_type() is
             let children = Collections.LIST[object]([1, "two", [3, 4]])
 
-            are_equal("(1 two [3, 4])", $(NODE(children)));
+            are_equal("(1 two [3, 4])", $(NODE(children)))
         si
 
         // The child is rendered through the state, so the cycle is seen
@@ -257,7 +257,7 @@ namespace Tests is
 
             children.add(node)
 
-            are_equal("(<cycle>)", $(node));
+            are_equal("(<cycle>)", $(node))
         si
     si
 si

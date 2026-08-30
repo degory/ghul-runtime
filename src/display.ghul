@@ -42,7 +42,7 @@ namespace Ghul is
     // Open because a type controls how it is rendered by implementing
     // this, which downstream assemblies have to be able to do.
     trait Displayable open is
-        display(state: DISPLAY_STATE);
+        display(state: DISPLAY_STATE)
     si
 
     $(value: object?) -> string is
@@ -50,7 +50,7 @@ namespace Ghul is
 
         state.render(value)
 
-        return state.to_string();
+        return state.to_string()
     si
 
     // Non-optional deliberately. A plain string prefers the sequence
@@ -66,7 +66,7 @@ namespace Ghul is
 
         state.render_sequence(values)
 
-        return state.to_string();
+        return state.to_string()
     si
 
     // What an implementation of `Displayable` is handed. The buffer, the
@@ -87,15 +87,15 @@ namespace Ghul is
 
         init() is
             _into = StringBuilder()
-            _open = Collections.LIST[object]();
+            _open = Collections.LIST[object]()
         si
 
         append(text: string) is
-            _into.append(text);
+            _into.append(text)
         si
 
         append(c: char) is
-            _into.append(c);
+            _into.append(c)
         si
 
         to_string() -> string => _into.to_string()
@@ -106,7 +106,7 @@ namespace Ghul is
             if !value? then
                 append("null")
 
-                return;
+                return
             fi
 
             // A string is a sequence of characters, and rendering it as
@@ -114,13 +114,13 @@ namespace Ghul is
             if isa string(value) then
                 append(value)
 
-                return;
+                return
             fi
 
             if _is_open(value) then
                 append(_cycle_marker)
 
-                return;
+                return
             fi
 
             if isa Displayable(value) then
@@ -128,7 +128,7 @@ namespace Ghul is
                 value.display(self)
                 _release(value)
 
-                return;
+                return
             fi
 
             let enumerator = _try_get_enumerator(value)
@@ -136,7 +136,7 @@ namespace Ghul is
             if !enumerator? then
                 append(value.to_string() ?? "null")
 
-                return;
+                return
             fi
 
             _mark(value)
@@ -146,7 +146,7 @@ namespace Ghul is
             _release(value)
 
             if !rendered then
-                append(value.to_string() ?? "null");
+                append(value.to_string() ?? "null")
             fi
         si
 
@@ -159,13 +159,13 @@ namespace Ghul is
             if isa Displayable(values) then
                 render(values)
 
-                return;
+                return
             fi
 
             if _is_open(values) then
                 append(_cycle_marker)
 
-                return;
+                return
             fi
 
             _mark(values)
@@ -178,21 +178,21 @@ namespace Ghul is
                 if count >= _max_elements then
                     append(", ...")
 
-                    break;
+                    break
                 fi
 
                 if count > 0 then
-                    append(", ");
+                    append(", ")
                 fi
 
                 render(value)
 
-                count = count + 1;
+                count = count + 1
             od
 
             append(']')
 
-            _release(values);
+            _release(values)
         si
 
         // Only a reference is worth remembering. A cycle cannot be made of
@@ -213,13 +213,13 @@ namespace Ghul is
         // cycle.
         _mark(value: object) is
             if _is_trackable(value) then
-                _open.add(value);
+                _open.add(value)
             fi
         si
 
         _release(value: object) is
             if _is_trackable(value) /\ _open.count > 0 then
-                _open.remove_at(_open.count - 1);
+                _open.remove_at(_open.count - 1)
             fi
         si
 
@@ -229,11 +229,11 @@ namespace Ghul is
         _is_open(value: object) -> bool is
             for entry in _open do
                 if entry == value then
-                    return true;
+                    return true
                 fi
             od
 
-            return false;
+            return false
         si
 
         // Enumerate a value whose static type says nothing about whether
@@ -246,10 +246,10 @@ namespace Ghul is
             let get_enumerator = value.get_type().get_method("GetEnumerator")
 
             if !get_enumerator? then
-                return null;
+                return null
             fi
 
-            return get_enumerator.invoke(value, null);
+            return get_enumerator.invoke(value, null)
         si
 
         // Returns false, having appended nothing, when the enumerator
@@ -264,7 +264,7 @@ namespace Ghul is
             let current = enumerator_type.get_property("Current")
 
             if !move_next? \/ !current? then
-                return false;
+                return false
             fi
 
             append('[')
@@ -275,21 +275,21 @@ namespace Ghul is
                 if count >= _max_elements then
                     append(", ...")
 
-                    break;
+                    break
                 fi
 
                 if count > 0 then
-                    append(", ");
+                    append(", ")
                 fi
 
                 render(current.get_value(enumerator))
 
-                count = count + 1;
+                count = count + 1
             od
 
             append(']')
 
-            return true;
+            return true
         si
     si
 si

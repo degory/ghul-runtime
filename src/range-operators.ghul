@@ -35,9 +35,9 @@ namespace Ghul is
             throw
                 System.ArgumentOutOfRangeException(
                     "to",
-                    "{to} from the end is not an element to include: to run through the last element, use ::<1");
+                    "{to} from the end is not an element to include: to run through the last element, use ::<1")
         fi
 
-        return System.Index(to - 1, true);
+        return System.Index(to - 1, true)
     si
 si

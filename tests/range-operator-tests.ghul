@@ -29,7 +29,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 1
 
-            assert_elements([2, 3, 4], slice_of(source, from..<1));
+            assert_elements([2, 3, 4], slice_of(source, from..<1))
         si
 
         @Test()
@@ -37,7 +37,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 1
 
-            assert_elements([2, 3, 4, 5], slice_of(source, from..<0));
+            assert_elements([2, 3, 4, 5], slice_of(source, from..<0))
         si
 
         @Test()
@@ -45,7 +45,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 1
 
-            assert_elements([2, 3, 4, 5], slice_of(source, from::<1));
+            assert_elements([2, 3, 4, 5], slice_of(source, from::<1))
         si
 
         @Test()
@@ -53,7 +53,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 3
 
-            assert_elements([3, 4, 5], slice_of(source, from..<<0));
+            assert_elements([3, 4, 5], slice_of(source, from..<<0))
         si
 
         @Test()
@@ -61,7 +61,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 3
 
-            assert_elements([3, 4], slice_of(source, from::<<2));
+            assert_elements([3, 4], slice_of(source, from::<<2))
         si
 
         @Test()
@@ -69,7 +69,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 3
 
-            assert_elements([4, 5], slice_of(source, from::<1));
+            assert_elements([4, 5], slice_of(source, from::<1))
         si
 
         @Test()
@@ -80,7 +80,7 @@ namespace Tests is
             try
                 slice_of(source, from::<0)
 
-                fail("should have thrown");
+                fail("should have thrown")
             catch ex: System.ArgumentOutOfRangeException
             yrt
         si
@@ -93,7 +93,7 @@ namespace Tests is
             try
                 slice_of(source, from::<<0)
 
-                fail("should have thrown");
+                fail("should have thrown")
             catch ex: System.ArgumentOutOfRangeException
             yrt
         si
@@ -103,7 +103,7 @@ namespace Tests is
             let source = [1, 2, 3, 4, 5]
             let from = 0
 
-            assert_elements([1, 2, 3, 4, 5], slice_of(source, from..<0));
+            assert_elements([1, 2, 3, 4, 5], slice_of(source, from..<0))
         si
     si
 si

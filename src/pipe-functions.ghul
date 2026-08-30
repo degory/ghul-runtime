@@ -84,20 +84,20 @@ namespace Ghul.Pipes is
         let running mut = seed
 
         for element in source do
-            running = accumulator(running, element);
+            running = accumulator(running, element)
         od
 
-        return running;
+        return running
     si
 
     reduce[T,TRunning,TOut](source: Iterable[T], seed: TRunning, accumulator: (TRunning,T) -> TRunning pure, mapper: (TRunning) -> TOut pure) -> TOut pure is
         let running mut = seed
 
         for element in source do
-            running = accumulator(running, element);
+            running = accumulator(running, element)
         od
 
-        return mapper(running);
+        return mapper(running)
     si
 
     collect[T](source: Iterable[T]) -> List[T] pure =>
@@ -110,30 +110,30 @@ namespace Ghul.Pipes is
         let result = LIST[T]()
 
         for element in source do
-            result.add(element);
+            result.add(element)
         od
 
-        return result;
+        return result
     si
 
     collect_set[T](source: Iterable[T]) -> SET[T] pure is
         let result = SET[T]()
 
         for element in source do
-            result.add(element);
+            result.add(element)
         od
 
-        return result;
+        return result
     si
 
     collect_map[T,K,V](source: Iterable[T], key_selector: (T) -> K pure, value_selector: (T) -> V pure) -> MAP[K,V] pure is
         let result = MAP[K,V]()
 
         for element in source do
-            result.add(key_selector(element), value_selector(element));
+            result.add(key_selector(element), value_selector(element))
         od
 
-        return result;
+        return result
     si
 
     partition[T](source: Iterable[T], predicate: (T) -> bool pure) -> (LIST[T], LIST[T]) pure is
@@ -142,13 +142,13 @@ namespace Ghul.Pipes is
 
         for element in source do
             if predicate(element) then
-                matching.add(element);
+                matching.add(element)
             else
-                non_matching.add(element);
+                non_matching.add(element)
             fi
         od
 
-        return (matching, non_matching);
+        return (matching, non_matching)
     si
 
     group_by[T,K](source: Iterable[T], key_selector: (T) -> K pure) -> MAP[K, LIST[T]] pure is
@@ -160,13 +160,13 @@ namespace Ghul.Pipes is
 
             if !result.try_get_value(key, group ref) then
                 group = LIST[T]()
-                result.add(key, group);
+                result.add(key, group)
             fi
 
-            group.add(element);
+            group.add(element)
         od
 
-        return result;
+        return result
     si
 
     min_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
@@ -181,14 +181,14 @@ namespace Ghul.Pipes is
 
                 if candidate_key < result_key then
                     result = it.current
-                    result_key = candidate_key;
+                    result_key = candidate_key
                 fi
             od
 
-            return MAYBE(result);
+            return MAYBE(result)
         fi
 
-        return MAYBE[T]();
+        return MAYBE[T]()
     si
 
     max_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
@@ -203,14 +203,14 @@ namespace Ghul.Pipes is
 
                 if candidate_key > result_key then
                     result = it.current
-                    result_key = candidate_key;
+                    result_key = candidate_key
                 fi
             od
 
-            return MAYBE(result);
+            return MAYBE(result)
         fi
 
-        return MAYBE[T]();
+        return MAYBE[T]()
     si
 
     count[T](source: Iterable[T]) -> int pure is
@@ -218,10 +218,10 @@ namespace Ghul.Pipes is
         let result mut = 0
 
         while it.move_next() do
-            result = result + 1;
+            result = result + 1
         od
 
-        return result;
+        return result
     si
 
     find[T](source: Iterable[T], predicate: (T) -> bool pure) -> MAYBE[T] pure is
@@ -231,11 +231,11 @@ namespace Ghul.Pipes is
             let element = it.current
 
             if predicate(element) then
-                return MAYBE(element);
+                return MAYBE(element)
             fi
         od
 
-        return MAYBE[T]();
+        return MAYBE[T]()
     si
 
     find_map[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
@@ -246,11 +246,11 @@ namespace Ghul.Pipes is
             let maybe_result = mapper(element)
 
             if maybe_result? then
-                return maybe_result;
+                return maybe_result
             fi
         od
 
-        return MAYBE[U]();
+        return MAYBE[U]()
     si
 
     find_or_throw[T](source: Iterable[T], predicate: T -> bool pure) -> T pure is
@@ -260,11 +260,11 @@ namespace Ghul.Pipes is
             let element = it.current
 
             if predicate(element) then
-                return element;
+                return element
             fi
         od
 
-        throw InvalidOperationException("no matching element found");
+        throw InvalidOperationException("no matching element found")
     si
 
     find_map_or_throw[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> U pure is
@@ -275,21 +275,21 @@ namespace Ghul.Pipes is
             let maybe_result = mapper(element)
 
             if maybe_result? then
-                return maybe_result!;
+                return maybe_result!
             fi
         od
 
-        throw InvalidOperationException("no matching element found");
+        throw InvalidOperationException("no matching element found")
     si
 
     first[T](source: Iterable[T]) -> MAYBE[T] pure is
         let it = source.iterator
 
         if it.move_next() then
-            return MAYBE(it.current);
+            return MAYBE(it.current)
         fi
 
-        return MAYBE[T]();
+        return MAYBE[T]()
     si
 
     first_map[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
@@ -300,21 +300,21 @@ namespace Ghul.Pipes is
             let maybe_result = mapper(element)
 
             if maybe_result? then
-                return maybe_result;
+                return maybe_result
             fi
         fi
 
-        return MAYBE[U]();
+        return MAYBE[U]()
     si
 
     first_or_throw[T](source: Iterable[T]) -> T pure is
         let it = source.iterator
 
         if it.move_next() then
-            return it.current;
+            return it.current
         fi
 
-        throw InvalidOperationException("no element found");
+        throw InvalidOperationException("no element found")
     si
 
     first_map_or_throw[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> U pure is
@@ -325,11 +325,11 @@ namespace Ghul.Pipes is
             let maybe_result = mapper(element)
 
             if maybe_result? then
-                return maybe_result!;
+                return maybe_result!
             fi
         fi
 
-        throw InvalidOperationException("no matching element found");
+        throw InvalidOperationException("no matching element found")
     si
 
     only[T](source: Iterable[T]) -> T pure is
@@ -339,14 +339,14 @@ namespace Ghul.Pipes is
             let result = it.current
 
             if it.move_next() then
-                throw InvalidOperationException("multiple elements found");
+                throw InvalidOperationException("multiple elements found")
             fi
 
             it.reset()
 
-            return result;
+            return result
         else
-            throw InvalidOperationException("no element found");
+            throw InvalidOperationException("no element found")
         fi
     si
 
@@ -357,11 +357,11 @@ namespace Ghul.Pipes is
             let element = it.current
 
             if predicate(element) then
-                return true;
+                return true
             fi
         od
 
-        return false;
+        return false
     si
 
     all[T](source: Iterable[T], predicate: (T) -> bool pure) -> bool pure is
@@ -371,18 +371,18 @@ namespace Ghul.Pipes is
             let element = it.current
 
             if !predicate(element) then
-                return false;
+                return false
             fi
         od
 
-        return true;
+        return true
     si
 
     each[T](source: Iterable[T], action: T -> void) is
         let it = source.iterator
 
         while it.move_next() do
-            action(it.current);
+            action(it.current)
         od
     si
 
@@ -403,7 +403,7 @@ namespace Ghul.Pipes is
         list.sort()
         source.iterator.reset()
 
-        return pipe(list);
+        return pipe(list)
     si
 
     sort[T](source: Iterable[T], comparer: IComparer[T]) -> Pipe[T] pure is
@@ -412,7 +412,7 @@ namespace Ghul.Pipes is
         list.sort(comparer)
         source.iterator.reset()
 
-        return pipe(list);
+        return pipe(list)
     si
 
     sort[T](source: Iterable[T], compare: (T, T) -> int pure) -> Pipe[T] pure =>
@@ -427,7 +427,7 @@ namespace Ghul.Pipes is
         list.sort()
         source.iterator.reset()
 
-        return LIST_REVERSE_PIPE(list);
+        return LIST_REVERSE_PIPE(list)
     si
 
     sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
@@ -442,7 +442,7 @@ namespace Ghul.Pipes is
         let keyed = LIST[(K,T)]()
 
         for element in source do
-            keyed.add((key_selector(element), element));
+            keyed.add((key_selector(element), element))
         od
 
         keyed.sort(PAIR_KEY_COMPARER[K,T](descending))
@@ -450,10 +450,10 @@ namespace Ghul.Pipes is
         let result = LIST[T]()
 
         for pair in keyed do
-            result.add(pair.`1);
+            result.add(pair.`1)
         od
 
-        return pipe(result);
+        return pipe(result)
     si
 
     append_to[T](source: Iterable[T], into: StringBuilder, separator: string) -> StringBuilder is
@@ -462,17 +462,17 @@ namespace Ghul.Pipes is
 
         while it.move_next() do
             if seen_any then
-                into.append(separator);
+                into.append(separator)
             fi
 
             into.append("{it.current}")
 
-            seen_any = true;
+            seen_any = true
         od
 
         it.reset()
 
-        return into;
+        return into
     si
 
     append_to[T](source: Iterable[T], into: StringBuilder) -> StringBuilder =>
@@ -529,18 +529,18 @@ namespace Ghul.Pipes is
     slice[T](source: T[], r: System.Range) -> List[T] pure is
         let (offset, count) = r.get_offset_and_length(source.count)
 
-        return System.ArraySegment[T](source, offset, count);
+        return System.ArraySegment[T](source, offset, count)
     si
 
     slice[T](source: List[T], r: System.Range) -> List[T] pure is
         let (offset, count) = r.get_offset_and_length(source.count)
 
-        return LIST_SLICE[T](source, offset, count);
+        return LIST_SLICE[T](source, offset, count)
     si
 
     slice(source: string, r: System.Range) -> string pure is
         let (offset, count) = r.get_offset_and_length(source.length)
 
-        return source.substring(offset, count);
+        return source.substring(offset, count)
     si
 si

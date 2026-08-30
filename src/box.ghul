@@ -6,9 +6,9 @@ namespace Ghul is
         si
 
         init(value: T) is
-            self.value = value;
+            self.value = value
         si
 
-        to_string() -> string => "{value}";
+        to_string() -> string => "{value}"
     si
 si

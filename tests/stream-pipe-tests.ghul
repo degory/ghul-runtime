@@ -32,7 +32,7 @@ namespace Tests is
 
             // Ending the pass resets the pipe, so asking again starts a new one.
             is_true(p.move_next())
-            are_equal(3, p.current);
+            are_equal(3, p.current)
         si
 
         @Test()
@@ -43,7 +43,7 @@ namespace Tests is
                     if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
             )
 
-            is_false(p.move_next());
+            is_false(p.move_next())
         si
 
         @Test()
@@ -64,7 +64,7 @@ namespace Tests is
             are_equal(2, p.current)
             is_true(p.move_next())
             are_equal(1, p.current)
-            is_false(p.move_next());
+            is_false(p.move_next())
         si
 
         @Test()
@@ -79,7 +79,7 @@ namespace Tests is
 
             let expected = LIST[int]([0, 2, 4])
 
-            CollectionAssert.are_equal(expected, actual);
+            CollectionAssert.are_equal(expected, actual)
         si
 
         @Test()
@@ -93,7 +93,7 @@ namespace Tests is
 
             let expected = LIST[int]([10, 11, 12, 13])
 
-            CollectionAssert.are_equal(expected, actual);
+            CollectionAssert.are_equal(expected, actual)
         si
 
         @Test()
@@ -119,7 +119,7 @@ namespace Tests is
 
             let expected = LIST[string](["step 3", "step 2", "step 1"])
 
-            CollectionAssert.are_equal(expected, actual);
+            CollectionAssert.are_equal(expected, actual)
         si
     si
 
@@ -132,7 +132,7 @@ namespace Tests is
         Stream_BuildsPipeFromStateStepper() is
             let p = stream`[int, int](7, (s: int) => YIELD(s, s + 1))
 
-            is_instance_of_type(p, typeof STREAM_PIPE[int, int]);
+            is_instance_of_type(p, typeof STREAM_PIPE[int, int])
         si
 
         @Test()
@@ -144,7 +144,7 @@ namespace Tests is
 
             let expected = LIST[int]([1, 2, 3, 4, 5])
 
-            CollectionAssert.are_equal(expected, actual);
+            CollectionAssert.are_equal(expected, actual)
         si
 
     si

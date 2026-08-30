@@ -8,22 +8,22 @@ namespace Ghul.Pipes is
         init(iterator: Iterator[T], excluded: Iterable[T]) is
             super.init(iterator)
             _excluded = SET[T](excluded)
-            _seen = SET[T]();
+            _seen = SET[T]()
         si
 
         should_include() -> bool is
             if _excluded.contains(current) \/ _seen.contains(current) then
-                return false;
+                return false
             fi
 
             _seen.add(current)
 
-            return true;
+            return true
         si
 
         reset() is
             super.reset()
-            _seen.clear();
+            _seen.clear()
         si
     si
 si

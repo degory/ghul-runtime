@@ -14,29 +14,29 @@ namespace Ghul.Pipes is
         init(enumerator: Iterator[T], index: int) is
             _iterator = enumerator
             _initial_index = index
-            _index = index - 1;
+            _index = index - 1
         si
 
         move_next() -> bool is
             if _iterator.move_next() then
                 _index = _index + 1
-                return true;
+                return true
             fi
 
             reset()
 
-            return false;
+            return false
         si
 
         reset() is
             _index = _initial_index - 1
-            _iterator.reset();
+            _iterator.reset()
         si
 
         dispose() is
-            _iterator.dispose();
+            _iterator.dispose()
         si
 
-        to_string() -> string => self.join(", ");
+        to_string() -> string => self.join(", ")
     si
 si

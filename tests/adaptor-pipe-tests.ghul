@@ -22,7 +22,7 @@ namespace Tests is
         expected_elements.add_range(expected)
         actual_elements.add_range(actual)
 
-        CollectionAssert.are_equal(expected_elements, actual_elements);
+        CollectionAssert.are_equal(expected_elements, actual_elements)
     si
 
     @TestClass()
@@ -34,21 +34,21 @@ namespace Tests is
         Pipe_FromArray_ReturnsInstanceOfADAPTOR_PIPE() is
             let pipe = Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
 
-            is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int]);
+            is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int])
         si
 
         @Test()
         Count_NonEmptyArray_ReturnsElementCount() is
             let pipe = ADAPTOR_PIPE[int]([1, 2, 3, 4, 5])
 
-            are_equal(5, pipe.count());
+            are_equal(5, pipe.count())
         si
 
         @Test()
         Count_EmptyArray_ReturnsZero() is
             let pipe = ADAPTOR_PIPE[int](empty`[int]())
 
-            are_equal(0, pipe.count());
+            are_equal(0, pipe.count())
         si
 
         // If the collection is a MutableBag (ICollection) then the count method should
@@ -65,7 +65,7 @@ namespace Tests is
 
             let count = pipe.count()
 
-            let actual = received(collection, 1).count;
+            let actual = received(collection, 1).count
         si
 
         // If the collection is a MutableBag (IReadOnlyCollection) then the count
@@ -82,14 +82,14 @@ namespace Tests is
 
             let count = pipe.count()
 
-            let actual = received(collection, 1).count;
+            let actual = received(collection, 1).count
         si
 
         @Test()
         Iterator_ReturnsSelf() is
             let pipe = ADAPTOR_PIPE[string]([ "a", "b", "c" ])
 
-            are_same(pipe, pipe.iterator);
+            are_same(pipe, pipe.iterator)
         si
 
         @Test()
@@ -99,7 +99,7 @@ namespace Tests is
             assert_are_equal(
                 [ "a", "b", "c" ],
                 pipe
-            );
+            )
         si
     si
 si
