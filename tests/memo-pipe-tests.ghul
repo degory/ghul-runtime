@@ -110,8 +110,8 @@ namespace Tests is
             let source = COUNTING_SOURCE[int]([1, 2, 3])
             let p = memo(source)
 
-            are_equal("1, 2, 3", p.join(", "))
-            are_equal("1, 2, 3", p.join(", "))
+            are_equal("1, 2, 3", p |> join(", "))
+            are_equal("1, 2, 3", p |> join(", "))
             are_equal(3, source.handed_out)
         si
 

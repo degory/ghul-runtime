@@ -23,17 +23,17 @@ namespace Tests is
         @Test()
         Cat_EmptySequences_ReturnsEmptySequence() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int](empty`[int]())
-                    .cat(empty`[int]())
+                empty`[int]()
+                    |> cat(empty`[int]())
 
-            are_equal(0, pipe.count())
+            are_equal(0, pipe |> count())
         si
 
         @Test()
         Cat_EmptyPlusNonEmpty_ReturnsSecondSequence() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int](empty`[int]())
-                    .cat([1, 2, 3, 4, 5])
+                empty`[int]()
+                    |> cat([1, 2, 3, 4, 5])
 
             assert_are_equal([1, 2, 3, 4, 5], pipe)
         si
@@ -41,8 +41,8 @@ namespace Tests is
         @Test()
         Cat_NonEmptyPlusEmpty_ReturnsFirstSequence() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
-                    .cat(empty`[int]())
+                [1, 2, 3, 4, 5]
+                    |> cat(empty`[int]())
 
             assert_are_equal([1, 2, 3, 4, 5], pipe)
         si
@@ -50,8 +50,8 @@ namespace Tests is
         @Test()
         Cat_NonEmptyPlusNonEmpty_ReturnsBothSequencesInOrder() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
-                    .cat([6, 7, 8, 9, 10])
+                [1, 2, 3, 4, 5]
+                    |> cat([6, 7, 8, 9, 10])
 
             assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], pipe)
         si
@@ -59,11 +59,11 @@ namespace Tests is
         @Test()
         Cat_ChainedCalls_ReturnsConcatenationOfAllInputs() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int]([3, 4, 5])
-                    .cat([1, 2, 1])
-                    .cat(empty`[int]())
-                    .cat([2, 3, 4])
-                    .cat([5])
+                [3, 4, 5]
+                    |> cat([1, 2, 1])
+                    |> cat(empty`[int]())
+                    |> cat([2, 3, 4])
+                    |> cat([5])
 
             assert_are_equal([3, 4, 5, 1, 2, 1, 2, 3, 4, 5], pipe)
         si
@@ -71,13 +71,13 @@ namespace Tests is
         @Test()
         Cat_ChainedCalls_CountReturnsSumOfAllCounts() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int]([3, 4, 5])
-                    .cat([1, 2, 1])
-                    .cat(empty`[int]())
-                    .cat([2, 3, 4])
-                    .cat([5])
+                [3, 4, 5]
+                    |> cat([1, 2, 1])
+                    |> cat(empty`[int]())
+                    |> cat([2, 3, 4])
+                    |> cat([5])
 
-            are_equal(10, pipe.count())
+            are_equal(10, pipe |> count())
         si
     si
 si

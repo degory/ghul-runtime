@@ -15,9 +15,9 @@ namespace Tests is
 
         @Test()
         Chunk_SizeDividesEvenly_ReturnsEqualSizedChunks() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6])
+            let pipe = [1, 2, 3, 4, 5, 6]
 
-            let chunks = pipe.chunk(2).collect_list()
+            let chunks = pipe |> chunk(2) |> collect_list()
 
             are_equal(3, chunks.count)
             CollectionAssert.are_equal(LIST[int]([1, 2]), chunks[0])
@@ -27,9 +27,9 @@ namespace Tests is
 
         @Test()
         Chunk_SizeDoesNotDivideEvenly_ReturnsShorterFinalChunk() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
+            let pipe = [1, 2, 3, 4, 5]
 
-            let chunks = pipe.chunk(2).collect_list()
+            let chunks = pipe |> chunk(2) |> collect_list()
 
             are_equal(3, chunks.count)
             CollectionAssert.are_equal(LIST[int]([1, 2]), chunks[0])
@@ -39,16 +39,16 @@ namespace Tests is
 
         @Test()
         Chunk_EmptySequence_ReturnsNoChunks() is
-            let pipe = Pipes.Factory.from`[int](empty`[int]())
+            let pipe = empty`[int]()
 
-            are_equal(0, pipe.chunk(3).collect_list().count)
+            are_equal(0, (pipe |> chunk(3) |> collect_list()).count)
         si
 
         @Test()
         Windows_MoreElementsThanSize_ReturnsEachSlidingWindow() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3, 4])
+            let pipe = [1, 2, 3, 4]
 
-            let windows = pipe.windows(2).collect_list()
+            let windows = pipe |> windows(2) |> collect_list()
 
             are_equal(3, windows.count)
             CollectionAssert.are_equal(LIST[int]([1, 2]), windows[0])
@@ -58,16 +58,16 @@ namespace Tests is
 
         @Test()
         Windows_FewerElementsThanSize_ReturnsNoWindows() is
-            let pipe = Pipes.Factory.from`[int]([1, 2])
+            let pipe = [1, 2]
 
-            are_equal(0, pipe.windows(3).collect_list().count)
+            are_equal(0, (pipe |> windows(3) |> collect_list()).count)
         si
 
         @Test()
         GroupBy_Elements_BucketsByKey() is
-            let pipe = Pipes.Factory.from(["a", "bb", "ccc", "dd", "e"])
+            let pipe = ["a", "bb", "ccc", "dd", "e"]
 
-            let groups = pipe.group_by(s => s.length)
+            let groups = pipe |> group_by(s => s.length)
 
             CollectionAssert.are_equal(LIST[string](["a", "e"]), groups[1])
             CollectionAssert.are_equal(LIST[string](["bb", "dd"]), groups[2])
@@ -76,23 +76,23 @@ namespace Tests is
 
         @Test()
         UnionWith_OverlappingSequences_ReturnsDistinctElementsFromBoth() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 3])
+            let pipe = [1, 2, 3]
 
-            assert_are_equal([1, 2, 3, 4], pipe.union_with([3, 4]))
+            assert_are_equal([1, 2, 3, 4], pipe |> union_with([3, 4]))
         si
 
         @Test()
         IntersectWith_OverlappingSequences_ReturnsDistinctCommonElements() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3])
+            let pipe = [1, 2, 2, 3]
 
-            assert_are_equal([2, 3], pipe.intersect_with([2, 3, 4]))
+            assert_are_equal([2, 3], pipe |> intersect_with([2, 3, 4]))
         si
 
         @Test()
         Except_OverlappingSequences_ReturnsDistinctElementsNotInOther() is
-            let pipe = Pipes.Factory.from`[int]([1, 2, 2, 3])
+            let pipe = [1, 2, 2, 3]
 
-            assert_are_equal([1], pipe.except([2, 3, 4]))
+            assert_are_equal([1], pipe |> except([2, 3, 4]))
         si
     si
 si

@@ -1,5 +1,6 @@
 namespace Tests is
     use Microsoft.VisualStudio.TestTools.UnitTesting
+    use Ghul.Pipes
     use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
     use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
@@ -11,7 +12,7 @@ namespace Tests is
         INT_RANGE__init__given_0_to_10__constructs_range_with_10_elements() is
             let range = Ghul.INT_RANGE(0, 10)
 
-            are_equal(Pipes.Factory.from`[int](range) .count(), 10)
+            are_equal(range |> count(), 10)
         si
 
         @Test()
@@ -25,14 +26,14 @@ namespace Tests is
         INT_RANGE__init__given_10_to_0__constructs_range_with_0_elements() is
             let range = Ghul.INT_RANGE(10, 0)
 
-            are_equal(Pipes.Factory.from`[int](range) .count(), 0)
+            are_equal(range |> count(), 0)
         si
 
         @Test()
         INT_RANGE__init__given_50_to_50__constructs_range_with_0_elements() is
             let range = Ghul.INT_RANGE(50, 50)
 
-            are_equal(Pipes.Factory.from`[int](range) .count(), 0)
+            are_equal(range |> count(), 0)
         si
 
         @Test()
@@ -53,7 +54,7 @@ namespace Tests is
         INT_RANGE__reset__given_partially_enumerated_range__starts_from_beginning_again() is
             let range = 0..10
 
-            Pipes.Factory.from`[int](range) .take(5)
+            range |> take(5)
 
             assert_equal(range, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         si
