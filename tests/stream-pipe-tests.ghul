@@ -71,8 +71,8 @@ namespace Tests is
         Filter_ComposesOverStream() is
             let evens =
                 STREAM_PIPE[int, int](0, (s: int) => YIELD(s, s + 1))
-                    .filter(x => x % 2 == 0)
-                    .take(3)
+                    |> filter(x => x % 2 == 0)
+                    |> take(3)
 
             let actual = LIST[int]()
             actual.add_range(evens)
@@ -86,7 +86,7 @@ namespace Tests is
         Take_TerminatesInfiniteStream() is
             let firsts =
                 STREAM_PIPE[int, int](10, (s: int) => YIELD(s, s + 1))
-                    .take(4)
+                    |> take(4)
 
             let actual = LIST[int]()
             actual.add_range(firsts)

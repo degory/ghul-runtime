@@ -20,11 +20,11 @@ namespace Tests is
         @Test()
         Map_EmptyArray_ReturnsEmptySequence() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int](empty`[int]())
+                empty`[int]()
 
             let result =
                 pipe
-                    .map(i => i.to_string())
+                    |> map(i => i.to_string())
 
             assert_are_equal(empty`[string](), result)
         si
@@ -32,11 +32,11 @@ namespace Tests is
         @Test()
         Map_IntsToStrings_ReturnsExpectedSequence() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int]([3, 4, 1, 5, 2, 3, 1, 4, 5])
+                [3, 4, 1, 5, 2, 3, 1, 4, 5]
 
             let result =
                 pipe
-                    .map(i => i.to_string())
+                    |> map(i => i.to_string())
 
             assert_are_equal(["3", "4", "1", "5", "2", "3", "1", "4", "5"], result)
         si
@@ -44,12 +44,12 @@ namespace Tests is
         @Test()
         Map_CalledTwice_AppliesBothFunctionsToEveryElementInCorrectOrder() is
             let pipe =
-                Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5, 6])
+                [1, 2, 3, 4, 5, 6]
 
             let result =
                 pipe
-                    .map(i => "{i}-first")
-                    .map(i => "{i}-second")
+                    |> map(i => "{i}-first")
+                    |> map(i => "{i}-second")
 
             assert_are_equal(["1-first-second", "2-first-second", "3-first-second", "4-first-second", "5-first-second", "6-first-second"], result)
         si
