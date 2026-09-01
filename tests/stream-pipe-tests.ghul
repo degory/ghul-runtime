@@ -137,7 +137,7 @@ namespace Tests is
 
         @Test()
         Stream_DriveSequence() is
-            let p = stream`[int, int](1, (s: int) => YIELD(s, s + 1)) | .take(5)
+            let p = stream`[int, int](1, (s: int) => YIELD(s, s + 1)) |> take(5)
 
             let actual = LIST[int]()
             actual.add_range(p)
