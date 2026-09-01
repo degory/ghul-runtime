@@ -75,4 +75,40 @@ namespace Ghul.Pipes is
     stream[T, S](initial: S, advance: S -> STREAM[T, S]) -> Pipe[T] is
         return STREAM_PIPE[T, S](initial, advance)
     si
+
+    // An unbounded arithmetic sequence: `start`, `start + step`, and so on.
+    // The step defaults to 1 and may be negative; a step of 0 repeats
+    // `start` forever, which `repeat` says more directly.
+    //
+    // Unbounded, so a chain over one has to be bounded by a stage that
+    // stops pulling - `take`, `take_while`, or a terminal that stops at
+    // the first match like `find` or `first`. Collecting one does not
+    // return.
+    from(start: int) -> Pipe[int] =>
+        from(start, 1)
+
+    from(start: int, step: int) -> Pipe[int] =>
+        stream[int, int](start, n => n || n + step)
+
+    from(start: long) -> Pipe[long] =>
+        from(start, 1L)
+
+    from(start: long, step: long) -> Pipe[long] =>
+        stream[long, long](start, n => n || n + step)
+
+    // `value`, forever. Bound it as any other unbounded pipe.
+    repeat[T](value: T) -> Pipe[T] =>
+        stream[T, bool](true, _ => value || true)
+
+    // `value`, `count` times. A count of zero or less yields nothing.
+    repeat[T](value: T, count: int) -> Pipe[T] =>
+        stream[T, int](
+            count,
+            remaining =>
+                if remaining > 0 then
+                    value || remaining - 1
+                else
+                    STREAM.DONE[T, int]
+                fi
+        )
 si
