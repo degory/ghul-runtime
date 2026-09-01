@@ -107,8 +107,8 @@ namespace Tests is
             let pivot = _values[0]
             let rest = _values |> skip(1)
 
-            are_equal("[]", "{$((rest |> filter(v => v < pivot)).collect())}")
-            are_equal("[2, 3, 4, 5]", "{$((rest |> filter(v => v >= pivot)).collect())}")
+            are_equal("[]", "{$(rest |> filter(v => v < pivot) |> Ghul.Pipes.collect())}")
+            are_equal("[2, 3, 4, 5]", "{$(rest |> filter(v => v >= pivot) |> Ghul.Pipes.collect())}")
         si
     si
 si

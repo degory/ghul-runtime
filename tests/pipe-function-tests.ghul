@@ -88,14 +88,12 @@ namespace Tests is
         si
 
         @Test()
-        FreeFunctionOnExistingPipe_MatchesMethodResult() is
-            let pipe1 = Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
-            let pipe2 = Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
+        FreeFunctionOnExistingPipe_FiltersIt() is
+            let source = pipe([1, 2, 3, 4, 5])
 
-            let via_method = pipe1.filter(i => i > 2).collect_list()
-            let via_function = Ghul.Pipes.collect_list(Ghul.Pipes.filter(pipe2, i => i > 2))
+            let result = source |> filter(i => i > 2) |> collect_list()
 
-            CollectionAssert.are_equal(via_method, via_function)
+            CollectionAssert.are_equal(LIST[int]([3, 4, 5]), result)
         si
 
         @Test()

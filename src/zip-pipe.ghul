@@ -36,6 +36,6 @@ namespace Ghul.Pipes is
             _iterator_2.dispose()
         si
 
-        to_string() -> string => self.join(", ")
+        to_string() -> string => Ghul.Pipes.join(self)
     si
 si

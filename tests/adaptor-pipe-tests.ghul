@@ -32,7 +32,7 @@ namespace Tests is
 
         @Test()
         Pipe_FromArray_ReturnsInstanceOfADAPTOR_PIPE() is
-            let pipe = Ghul.Pipes.Factory.from`[int]([1, 2, 3, 4, 5])
+            let pipe = Ghul.Pipes.pipe([1, 2, 3, 4, 5])
 
             is_instance_of_type(pipe, typeof ADAPTOR_PIPE[int])
         si
