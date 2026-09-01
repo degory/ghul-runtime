@@ -72,5 +72,15 @@ namespace Tests is
         Repeat_WithANegativeCount_YieldsNothing() is
             are_equal(0, repeat("x", -1) |> count())
         si
+
+        // A counted repeat exhausts, and a pipe resets itself when it
+        // does, so reading one twice reads the same elements.
+        @Test()
+        Repeat_Counted_ReadTwice_YieldsTheSameElements() is
+            let three = repeat("x", 3)
+
+            are_equal(3, three |> count())
+            are_equal(3, three |> count())
+        si
     si
 si

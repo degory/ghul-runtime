@@ -1,0 +1,48 @@
+namespace Ghul.Pipes is
+    use Collections
+
+    // One value, yielded `count` times, or without end when `count` is
+    // negative. A count of zero yields nothing.
+    class REPEAT_PIPE[T]: Pipe[T] is
+        _value: T
+        _count: int
+        _remaining: int
+
+        current: T => _value
+
+        iterator: Iterator[T] => self
+
+        init(value: T, count: int) is
+            _value = value
+            _count = count
+            _remaining = count
+        si
+
+        move_next() -> bool is
+            if _remaining < 0 then
+                return true
+            fi
+
+            if _remaining == 0 then
+                // Exhausting resets, as every other pipe does, so a second
+                // pass over the same value reads the same elements.
+                reset()
+
+                return false
+            fi
+
+            _remaining = _remaining - 1
+
+            return true
+        si
+
+        reset() is
+            _remaining = _count
+        si
+
+        to_string() -> string => Ghul.Pipes.join(self)
+
+        dispose() is
+        si
+    si
+si

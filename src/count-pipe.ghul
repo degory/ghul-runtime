@@ -1,0 +1,80 @@
+namespace Ghul.Pipes is
+    use Collections
+
+    // An unbounded arithmetic sequence: `start`, `start + step`, and so on.
+    // Nothing bounds it, so a chain over one is bounded by a stage that
+    // stops pulling.
+    class COUNT_PIPE: Pipe[int] is
+        _start: int
+        _step: int
+        _started: bool
+
+        current: int
+
+        iterator: Iterator[int] => self
+
+        init(start: int, step: int) is
+            _start = start
+            _step = step
+            _started = false
+            current = start
+        si
+
+        move_next() -> bool is
+            if _started then
+                current = current + _step
+            else
+                _started = true
+            fi
+
+            return true
+        si
+
+        reset() is
+            _started = false
+            current = _start
+        si
+
+        to_string() -> string => Ghul.Pipes.join(self)
+
+        dispose() is
+        si
+    si
+
+    class LONG_COUNT_PIPE: Pipe[long] is
+        _start: long
+        _step: long
+        _started: bool
+
+        current: long
+
+        iterator: Iterator[long] => self
+
+        init(start: long, step: long) is
+            _start = start
+            _step = step
+            _started = false
+            current = start
+        si
+
+        move_next() -> bool is
+            if _started then
+                current = current + _step
+            else
+                _started = true
+            fi
+
+            return true
+        si
+
+        reset() is
+            _started = false
+            current = _start
+        si
+
+        to_string() -> string => Ghul.Pipes.join(self)
+
+        dispose() is
+        si
+    si
+si

@@ -543,4 +543,33 @@ namespace Ghul.Pipes is
 
         return source.substring(offset, count)
     si
+
+    // Seeds: a chain has to start somewhere, and these start one without a
+    // source to draw from. Each is unbounded unless given a count, so the
+    // chain is bounded by a stage that stops pulling - `take`,
+    // `take_while`, or a terminal that stops at the first match like
+    // `find` or `first`. Collecting an unbounded one does not return.
+
+    // `start`, `start + step`, and so on. The step defaults to 1 and may
+    // be negative; a step of 0 repeats `start`, which `repeat` says more
+    // directly.
+    from(start: int) -> Pipe[int] pure =>
+        COUNT_PIPE(start, 1)
+
+    from(start: int, step: int) -> Pipe[int] pure =>
+        COUNT_PIPE(start, step)
+
+    from(start: long) -> Pipe[long] pure =>
+        LONG_COUNT_PIPE(start, 1L)
+
+    from(start: long, step: long) -> Pipe[long] pure =>
+        LONG_COUNT_PIPE(start, step)
+
+    // `value`, without end.
+    repeat[T](value: T) -> Pipe[T] pure =>
+        REPEAT_PIPE[T](value, -1)
+
+    // `value`, `count` times. A count of zero or less yields nothing.
+    repeat[T](value: T, count: int) -> Pipe[T] pure =>
+        REPEAT_PIPE[T](value, if count < 0 then 0 else count fi)
 si
