@@ -1,0 +1,76 @@
+namespace Tests is
+    use Collections
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    // The seeds are unbounded, so every test bounds what it pulls.
+    @TestClass()
+    class PipeSeedsShould is
+        init() is
+        si
+
+        @Test()
+        From_WithNoStep_CountsUpByOne() is
+            assert_are_equal([1, 2, 3, 4, 5], from(1) |> take(5))
+        si
+
+        @Test()
+        From_WithAStep_AdvancesByIt() is
+            assert_are_equal([10, 15, 20, 25], from(10, 5) |> take(4))
+        si
+
+        @Test()
+        From_WithANegativeStep_CountsDown() is
+            assert_are_equal([0, -2, -4, -6], from(0, -2) |> take(4))
+        si
+
+        @Test()
+        From_OverLong_CountsUpByOne() is
+            assert_are_equal([1L, 2L, 3L], from(1L) |> take(3))
+        si
+
+        @Test()
+        From_OverLongWithAStep_AdvancesByIt() is
+            assert_are_equal([100L, 90L, 80L], from(100L, -10L) |> take(3))
+        si
+
+        // What a seed is for: search an unbounded sequence and stop at the
+        // first answer, rather than build a range large enough to hold it.
+        @Test()
+        From_FilteredToAFirstMatch_StopsThere() is
+            are_equal(MAYBE(9), from(2) |> filter(n => n % 9 == 0) |> first())
+        si
+
+        @Test()
+        From_ReadTwice_StartsOverEachTime() is
+            let counting = from(1)
+
+            assert_are_equal([1, 2, 3], counting |> take(3))
+            assert_are_equal([1, 2, 3], counting |> take(3))
+        si
+
+        @Test()
+        Repeat_Unbounded_YieldsTheValueForever() is
+            assert_are_equal([7, 7, 7, 7], repeat(7) |> take(4))
+        si
+
+        @Test()
+        Repeat_WithACount_YieldsThatMany() is
+            assert_are_equal(["x", "x", "x"], repeat("x", 3))
+        si
+
+        @Test()
+        Repeat_WithACountOfZero_YieldsNothing() is
+            are_equal(0, repeat("x", 0) |> count())
+        si
+
+        @Test()
+        Repeat_WithANegativeCount_YieldsNothing() is
+            are_equal(0, repeat("x", -1) |> count())
+        si
+    si
+si
