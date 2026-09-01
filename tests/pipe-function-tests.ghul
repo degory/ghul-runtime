@@ -27,15 +27,13 @@ namespace Tests is
         si
 
         @Test()
-        FilterThenMap_ChainedWithThreadFirst_MatchesMethodChainResult() is
+        FilterThenMap_ChainedWithThreadFirst_AppliesBothStagesInOrder() is
             let source = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-            let via_thread_first =
+            let result =
                 source |> filter(i => i % 2 == 0) |> map(i => i * 10)
 
-            let via_methods = source | .filter(i => i % 2 == 0).map(i => i * 10)
-
-            assert_are_equal(via_methods.collect_list(), via_thread_first)
+            assert_are_equal([20, 40, 60, 80, 100], result)
         si
 
         @Test()
@@ -75,19 +73,18 @@ namespace Tests is
         si
 
         @Test()
-        Any_ThreadFirstChain_MatchesMethodResult() is
+        Any_ThreadFirstChain_ReportsAMatch() is
             let source = [1, 2, 3, 4, 5]
 
-            are_equal(
-                source | .any(i => i > 3),
-                source |> any(i => i > 3))
+            is_true(source |> any(i => i > 3))
+            is_false(source |> any(i => i > 9))
         si
 
         @Test()
-        Join_ThreadFirstChain_MatchesMethodResult() is
+        Join_ThreadFirstChain_SeparatesWithTheSeparator() is
             let source = ["a", "b", "c"]
 
-            are_equal(source | .join("-"), source |> join("-"))
+            are_equal("a-b-c", source |> join("-"))
         si
 
         @Test()
