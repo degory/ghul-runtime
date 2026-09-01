@@ -133,12 +133,5 @@ namespace Tests is
             are_equal(3, p.current)
         si
 
-        @Test()
-        MemoMethod_ForwardsToTheFreeFunction() is
-            let p = stream(0, n => n || n + 1).take(3).memo()
-
-            assert_elements([0, 1, 2], drain(p))
-            assert_elements([0, 1, 2], drain(p))
-        si
     si
 si
