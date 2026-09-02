@@ -25,6 +25,14 @@ namespace Ghul.Coroutines is
         // gives it its next turn.
         pause() -> PAUSE => PAUSE(_ready)
 
+        // Queues a continuation to run from the next `run`. A channel
+        // reaches this when a send wakes a parked receiver, so the
+        // receiver resumes from `run` rather than nested inside the
+        // sender's call.
+        schedule(continuation: () -> void) is
+            _ready.enqueue(continuation)
+        si
+
         // Starts a coroutine and returns its handle. The body has
         // already run to its first suspension when this returns.
         spawn[T](body: SCHEDULER -> COROUTINE[T]) -> COROUTINE[T] => body(self)
@@ -71,8 +79,8 @@ namespace Ghul.Coroutines is
     // coroutine, is an error.
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER))
     class COROUTINE[T] is
-        exception: System.Exception? public
-        completed: bool public
+        exception: System.Exception?
+        completed: bool
         _value: Ghul.MAYBE[T]
 
         init() is
@@ -105,8 +113,8 @@ namespace Ghul.Coroutines is
     // The handle to a coroutine producing nothing.
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(JOB_BUILDER))
     class JOB is
-        exception: System.Exception? public
-        completed: bool public
+        exception: System.Exception?
+        completed: bool
 
         init() is
         si
@@ -254,21 +262,24 @@ namespace Ghul.Coroutines is
     // channel parks the calling coroutine until a send arrives, and
     // is the usual way coroutines hand work to one another.
     class CHANNEL[T] is
+        _scheduler: SCHEDULER
         _values: Collections.Queue[T]
         _waiters: Collections.Queue[() -> void]
 
-        init() is
+        init(scheduler: SCHEDULER) is
+            _scheduler = scheduler
             _values = Collections.Queue[T]()
             _waiters = Collections.Queue[() -> void]()
         si
 
-        // Delivers a value. A parked receiver, if any, is resumed to
-        // take it.
+        // Delivers a value. A parked receiver, if any, is queued on the
+        // scheduler to take it, so it resumes from `run` rather than
+        // nested inside this call.
         send(v: T) is
             _values.enqueue(v)
 
             if _waiters.count > 0 then
-                _waiters.dequeue()()
+                _scheduler.schedule(_waiters.dequeue())
             fi
         si
 

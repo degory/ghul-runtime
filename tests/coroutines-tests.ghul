@@ -96,7 +96,7 @@ namespace Tests is
         @Test()
         Channel_Hands_Off_From_Producer_To_Consumer() is
             let s = SCHEDULER()
-            let ch = CHANNEL[int]()
+            let ch = CHANNEL[int](s)
             let p = s.spawn(sch => producer(sch, ch, 3))
             let c = s.spawn(sch => consumer(sch, ch, 3))
 
@@ -110,7 +110,7 @@ namespace Tests is
         @Test()
         Channel_Receive_Parks_Until_A_Send_Arrives() is
             let s = SCHEDULER()
-            let ch = CHANNEL[string]()
+            let ch = CHANNEL[string](s)
             let t = s.spawn(_ => parked_taker(ch))
 
             is_false(t.completed)
