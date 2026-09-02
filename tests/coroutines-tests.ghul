@@ -66,6 +66,11 @@ namespace Tests is
             return await channel.receive()
         si
 
+        journalling_receiver(ch: CHANNEL[int], journal: LIST[string]) -> JOB is
+            let _ = await ch.receive()
+            journal.add("received")
+        si
+
         @Test()
         Pause_Interleaves_Coroutines_In_Queue_Order() is
             let s = SCHEDULER()
@@ -119,6 +124,30 @@ namespace Tests is
             s.run()
 
             are_equal("hello", t.value)
+        si
+
+        // A send hands the parked receiver to the scheduler rather than
+        // resuming it inline, so the receiver is still parked when the
+        // send returns and runs only once `run` reaches it. Were the
+        // wake synchronous it would resume on the sender's stack, and a
+        // pair exchanging without pausing would nest a frame per send.
+        @Test()
+        Channel_Send_Resumes_The_Receiver_From_Run_Not_Inline() is
+            let s = SCHEDULER()
+            let ch = CHANNEL[int](s)
+            let journal = LIST[string]()
+
+            let receiver = s.spawn(_ => journalling_receiver(ch, journal))
+
+            ch.send(1)
+
+            are_equal(0, journal.count, "the send must not resume the receiver inline")
+            is_false(receiver.completed)
+
+            s.run()
+
+            are_equal("received", journal |> Ghul.Pipes.join(", "))
+            is_true(receiver.completed)
         si
 
         @Test()
