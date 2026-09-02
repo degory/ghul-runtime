@@ -1,0 +1,319 @@
+namespace Ghul.Coroutines is
+    use System.Runtime.CompilerServices.IAsyncStateMachine
+    use System.Runtime.CompilerServices.ICriticalNotifyCompletion
+    use System.Runtime.CompilerServices.INotifyCompletion
+
+    // Drives coroutines on one thread. A coroutine is an ordinary
+    // asynchronous function returning `COROUTINE[T]` or `JOB` - the
+    // task-likes whose builders below run the body to its first
+    // suspension and hand resumption to whatever the awaited value
+    // does with its continuation.
+    //
+    // `spawn` starts a coroutine, which runs on the caller's stack
+    // until it suspends. `pause` parks the calling coroutine for a
+    // later turn. `run` resumes parked coroutines one at a time until
+    // none remain; resumption always happens from `run`, so stacks do
+    // not nest however many coroutines interleave.
+    class SCHEDULER is
+        _ready: Collections.Queue[() -> void]
+
+        init() is
+            _ready = Collections.Queue[() -> void]()
+        si
+
+        // An awaitable that parks the calling coroutine until `run`
+        // gives it its next turn.
+        pause() -> PAUSE => PAUSE(_ready)
+
+        // Starts a coroutine and returns its handle. The body has
+        // already run to its first suspension when this returns.
+        spawn[T](body: SCHEDULER -> COROUTINE[T]) -> COROUTINE[T] => body(self)
+
+        spawn(body: SCHEDULER -> JOB) -> JOB => body(self)
+
+        // Resumes parked coroutines until none remain.
+        run() is
+            while _ready.count > 0 do
+                _ready.dequeue()()
+            od
+        si
+    si
+
+    // The awaitable `scheduler.pause()` returns. Its awaiter is
+    // itself: never completed, and registering a continuation parks
+    // it on the scheduler's ready queue.
+    struct PAUSE: ICriticalNotifyCompletion is
+        _ready: Collections.Queue[() -> void]
+
+        init(ready: Collections.Queue[() -> void]) is
+            _ready = ready
+        si
+
+        get_awaiter() -> PAUSE => self
+
+        is_completed: bool => false
+
+        get_result() is
+        si
+
+        on_completed(continuation: () -> void) is
+            _ready.enqueue(continuation)
+        si
+
+        unsafe_on_completed(continuation: () -> void) is
+            _ready.enqueue(continuation)
+        si
+    si
+
+    // The handle to a coroutine producing a value. Completed when the
+    // body returned or threw; `value` is its result and `exception`
+    // its failure. Reading `value` before completion, or of a failed
+    // coroutine, is an error.
+    @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER))
+    class COROUTINE[T] is
+        exception: System.Exception? public
+        completed: bool public
+        _value: Ghul.MAYBE[T]
+
+        init() is
+        si
+
+        // The coroutine's result. Reading before completion, or of a
+        // failed coroutine, is an error; a failure rethrows with the
+        // original as its cause.
+        value: T is
+            if let e = exception then
+                throw System.Exception("coroutine failed", e)
+            fi
+            return _value!
+        si
+
+        // Records a successful outcome. Reached by the builder; the
+        // public spelling keeps a hand-written builder possible.
+        complete(value: T) is
+            _value = Ghul.MAYBE[T](value)
+            completed = true
+        si
+
+        // Records a failure.
+        fail(e: System.Exception) is
+            exception = e
+            completed = true
+        si
+    si
+
+    // The handle to a coroutine producing nothing.
+    @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(JOB_BUILDER))
+    class JOB is
+        exception: System.Exception? public
+        completed: bool public
+
+        init() is
+        si
+
+        // Records completion. Reached by the builder; the public
+        // spelling keeps a hand-written builder possible.
+        complete() is
+            completed = true
+        si
+
+        // Records a failure.
+        fail(e: System.Exception) is
+            exception = e
+            completed = true
+        si
+    si
+
+    // The builder async functions returning COROUTINE[T] drive,
+    // named by the attribute on the type above. Runs the body inline
+    // from `start`, records the outcome, and materialises the handle
+    // lazily - `task` is read once, after `start` returns, whichever
+    // order the body completed in.
+    class COROUTINE_BUILDER[T] is
+        _result: Ghul.MAYBE[T]
+        _exception: System.Exception?
+        _done: bool
+        _coroutine: COROUTINE[T]?
+
+        init() is
+        si
+
+        create() -> COROUTINE_BUILDER[T] static => COROUTINE_BUILDER[T]()
+
+        start[A: IAsyncStateMachine](state_machine: A ref) is
+            state_machine!.move_next()
+        si
+
+        task: COROUTINE[T] is
+            if !_coroutine? then
+                let handle = COROUTINE[T]()
+                _fill(handle)
+                _coroutine = handle
+                return handle
+            fi
+            return _coroutine
+        si
+
+        set_result(v: T) is
+            _result = Ghul.MAYBE[T](v)
+            _done = true
+            if let handle = _coroutine then
+                _fill(handle)
+            fi
+        si
+
+
+        set_exception(e: System.Exception) is
+            _exception = e
+            _done = true
+            if let handle = _coroutine then
+                _fill(handle)
+            fi
+        si
+
+        _fill(handle: COROUTINE[T]) is
+            if _done then
+                if _exception? then
+                    handle.fail(_exception)
+                else
+                    handle.complete(_result!)
+                fi
+            fi
+        si
+
+        await_on_completed[A: INotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
+            awaiter.on_completed(state_machine.move_next)
+        si
+
+        await_unsafe_on_completed[A: ICriticalNotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
+            awaiter.unsafe_on_completed(state_machine.move_next)
+        si
+    si
+
+    // The builder async functions returning JOB drive.
+    class JOB_BUILDER is
+        _exception: System.Exception?
+        _done: bool
+        _job: JOB?
+
+        init() is
+        si
+
+        create() -> JOB_BUILDER static => JOB_BUILDER()
+
+        start[A: IAsyncStateMachine](state_machine: A ref) is
+            state_machine!.move_next()
+        si
+
+        task: JOB is
+            if !_job? then
+                let handle = JOB()
+                _fill(handle)
+                _job = handle
+                return handle
+            fi
+            return _job
+        si
+
+        set_result() is
+            _done = true
+            if let handle = _job then
+                _fill(handle)
+            fi
+        si
+
+        set_exception(e: System.Exception) is
+            _exception = e
+            _done = true
+            if let handle = _job then
+                _fill(handle)
+            fi
+        si
+
+        _fill(handle: JOB) is
+            if _done then
+                if _exception? then
+                    handle.fail(_exception)
+                else
+                    handle.complete()
+                fi
+            fi
+        si
+
+        await_on_completed[A: INotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
+            awaiter.on_completed(state_machine.move_next)
+        si
+
+        await_unsafe_on_completed[A: ICriticalNotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
+            awaiter.unsafe_on_completed(state_machine.move_next)
+        si
+    si
+
+    // A message channel between coroutines. Sending never parks: the
+    // value is buffered until a receiver takes it. Receiving an empty
+    // channel parks the calling coroutine until a send arrives, and
+    // is the usual way coroutines hand work to one another.
+    class CHANNEL[T] is
+        _values: Collections.Queue[T]
+        _waiters: Collections.Queue[() -> void]
+
+        init() is
+            _values = Collections.Queue[T]()
+            _waiters = Collections.Queue[() -> void]()
+        si
+
+        // Delivers a value. A parked receiver, if any, is resumed to
+        // take it.
+        send(v: T) is
+            _values.enqueue(v)
+
+            if _waiters.count > 0 then
+                _waiters.dequeue()()
+            fi
+        si
+
+        // An awaitable yielding the next value, parking the caller
+        // when none has arrived yet.
+        receive() -> RECEIVE[T] => RECEIVE[T](self)
+
+        // The number of values buffered and not yet received.
+        buffered_count: int => _values.count
+
+        // Takes the oldest buffered value. Reached by `receive`'s
+        // awaiter; an empty queue here means the awaiter has already
+        // established one is present.
+        take_next() -> T => _values.dequeue()
+
+        // Parks a receiver's continuation until a send arrives.
+        // Reached by `receive`'s awaiter.
+        wait_for_next(continuation: () -> void) is
+            _waiters.enqueue(continuation)
+        si
+    si
+
+    // The awaitable `channel.receive()` returns; its awaiter is
+    // itself. Completed when a value is buffered; otherwise
+    // registering a continuation parks it on the channel until a
+    // send arrives.
+    struct RECEIVE[T]: ICriticalNotifyCompletion is
+        _channel: CHANNEL[T]
+
+        init(channel: CHANNEL[T]) is
+            _channel = channel
+        si
+
+        get_awaiter() -> RECEIVE[T] => self
+
+        is_completed: bool => _channel.buffered_count > 0
+
+        get_result() -> T => _channel.take_next()
+
+        on_completed(continuation: () -> void) is
+            _channel.wait_for_next(continuation)
+        si
+
+        unsafe_on_completed(continuation: () -> void) is
+            _channel.wait_for_next(continuation)
+        si
+    si
+si

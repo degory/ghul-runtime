@@ -12,6 +12,7 @@ This package provides:
 - internal types required by all [ghūl](https://ghul.dev) applications
 - support for the ghūl pipe operator and fluent methods on pipes, such as `filter`, `map` and `reduce`
 - `slice`, which takes part of an array, list or string: `xs |> slice(1..4)`. An array or a list is sliced without copying, so a later change to the source shows through
+- `Ghul.Coroutines`, cooperative coroutines: asynchronous functions returning `COROUTINE[T]` or `JOB`, driven single-threaded by a `SCHEDULER` and handing off through `CHANNEL[T]`
 - MSBuild targets needed to build ghūl projects
 
 ## Building a library or an executable

@@ -1,0 +1,153 @@
+namespace Tests is
+    use Collections.LIST
+
+    use Ghul.Coroutines
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    // The coroutine library: interleaving through the scheduler,
+    // hand-off through a channel, and fault recording on the handle.
+    // Interleaving order is observed through a journal the coroutines
+    // append to, which the test owns.
+    @TestClass()
+    class CoroutinesShould is
+        init() is
+        si
+
+        ping(s: SCHEDULER, journal: LIST[string], name: string, n: int) -> COROUTINE[int] is
+            let total mut = 0
+
+            for i in 1::n do
+                journal.add("{name} {i}")
+                await s.pause()
+                total = total + i
+            od
+
+            return total
+        si
+
+        producer(s: SCHEDULER, ch: CHANNEL[int], n: int) -> JOB is
+            for i in 1::n do
+                ch.send(i)
+                await s.pause()
+            od
+        si
+
+        consumer(s: SCHEDULER, ch: CHANNEL[int], n: int) -> COROUTINE[int] is
+            let total mut = 0
+
+            for i in 1::n do
+                let v = await ch.receive()
+                total = total + v
+                await s.pause()
+            od
+
+            return total
+        si
+
+        boom(s: SCHEDULER) -> JOB is
+            await s.pause()
+            throw System.Exception("bang")
+        si
+
+        immediate(s: SCHEDULER, v: int) -> COROUTINE[int] is
+            let x = await Tasks.ValueTask[int](v)
+            return x
+        si
+
+        failing(s: SCHEDULER) -> COROUTINE[int] is
+            await s.pause()
+            throw System.Exception("no result")
+        si
+
+        parked_taker(channel: CHANNEL[string]) -> COROUTINE[string] is
+            return await channel.receive()
+        si
+
+        @Test()
+        Pause_Interleaves_Coroutines_In_Queue_Order() is
+            let s = SCHEDULER()
+            let journal = LIST[string]()
+            let a = s.spawn(sch => ping(sch, journal, "a", 2))
+            let b = s.spawn(sch => ping(sch, journal, "b", 2))
+
+            s.run()
+
+            are_equal("a 1, b 1, a 2, b 2", journal |> Ghul.Pipes.join(", "))
+            are_equal(3, a.value)
+            are_equal(3, b.value)
+            is_true(a.completed)
+            is_true(b.completed)
+        si
+
+        @Test()
+        Value_Completes_Without_Suspending() is
+            let s = SCHEDULER()
+            let handle = s.spawn(sch => immediate(sch, 7))
+
+            is_true(handle.completed)
+            are_equal(7, handle.value)
+
+            s.run()
+        si
+
+        @Test()
+        Channel_Hands_Off_From_Producer_To_Consumer() is
+            let s = SCHEDULER()
+            let ch = CHANNEL[int]()
+            let p = s.spawn(sch => producer(sch, ch, 3))
+            let c = s.spawn(sch => consumer(sch, ch, 3))
+
+            s.run()
+
+            are_equal(6, c.value)
+            is_true(p.completed)
+            are_equal(0, ch.buffered_count)
+        si
+
+        @Test()
+        Channel_Receive_Parks_Until_A_Send_Arrives() is
+            let s = SCHEDULER()
+            let ch = CHANNEL[string]()
+            let t = s.spawn(_ => parked_taker(ch))
+
+            is_false(t.completed)
+
+            ch.send("hello")
+            s.run()
+
+            are_equal("hello", t.value)
+        si
+
+        @Test()
+        Fault_Is_Recorded_On_The_Handle() is
+            let s = SCHEDULER()
+            let f = s.spawn(sch => boom(sch))
+
+            s.run()
+
+            is_true(f.completed)
+            is_true(f.exception?.message =~ "bang")
+        si
+
+        @Test()
+        Value_Rethrows_A_Failed_Coroutines_Exception() is
+            let s = SCHEDULER()
+            let handle = s.spawn(sch => failing(sch))
+
+            s.run()
+
+            let thrown mut = ""
+
+            try
+                let _ = handle.value
+            catch e: System.Exception
+                thrown = e.message
+            yrt
+
+            is_true(thrown.contains("coroutine failed"))
+        si
+    si
+si
