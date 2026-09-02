@@ -4,6 +4,10 @@ namespace Ghul.Pipes is
     // Rewinds by re-deriving fresh iterators from the source iterables
     // rather than calling `reset()` on the spent ones - see
     // `adaptor-pipe.ghul`.
+    // The left iterator is left spent when it runs out rather than
+    // rewound there: nothing reads it again until the pipe as a whole
+    // ends, and rewinding it mid-pass would only be undone and repeated
+    // by reset() - a full extra drain of the left source.
     class CAT_PIPE[T]: Pipe[T] is
         _left_source: Iterable[T]
         _right_source: Iterable[T]
@@ -37,8 +41,6 @@ namespace Ghul.Pipes is
                 if _take_from_left then
                     return true
                 fi
-
-                _left = rewind(_left_source, _left)
             fi
 
             let result = _right.move_next()
