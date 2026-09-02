@@ -21,64 +21,64 @@ namespace Ghul.Pipes is
     // by side.
 
     filter[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        FilterPipe[T](source.iterator, predicate)
+        FilterPipe[T](source, predicate)
 
     map[T,U](source: Iterable[T], mapper: (T) -> U pure) -> Pipe[U] pure =>
-        MAP_PIPE[T,U](source.iterator, mapper)
+        MAP_PIPE[T,U](source, mapper)
 
     flat_map[T,U](source: Iterable[T], mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
-        FLAT_MAP_PIPE[T,U](source.iterator, mapper)
+        FLAT_MAP_PIPE[T,U](source, mapper)
 
     skip[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
-        SKIP_PIPE[T](source.iterator, count)
+        SKIP_PIPE[T](source, count)
 
     take[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
-        TAKE_PIPE[T](source.iterator, count)
+        TAKE_PIPE[T](source, count)
 
     skip_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        SKIP_WHILE_PIPE[T](source.iterator, predicate)
+        SKIP_WHILE_PIPE[T](source, predicate)
 
     take_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        TAKE_WHILE_PIPE[T](source.iterator, predicate)
+        TAKE_WHILE_PIPE[T](source, predicate)
 
     distinct[T](source: Iterable[T]) -> Pipe[T] pure =>
-        DISTINCT_PIPE[T](source.iterator)
+        DISTINCT_PIPE[T](source)
 
     peek[T](source: Iterable[T], action: T -> void) -> Pipe[T] pure =>
-        PEEK_PIPE[T](source.iterator, action)
+        PEEK_PIPE[T](source, action)
 
     memo[T](source: Iterable[T]) -> Pipe[T] pure =>
         MEMO_PIPE[T](source)
 
     chunk[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
-        CHUNK_PIPE[T](source.iterator, size)
+        CHUNK_PIPE[T](source, size)
 
     windows[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
-        WINDOWS_PIPE[T](source.iterator, size)
+        WINDOWS_PIPE[T](source, size)
 
     cat[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        CAT_PIPE[T](source.iterator, right.iterator)
+        CAT_PIPE[T](source, right)
 
     union_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
         distinct(cat(source, right))
 
     intersect_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        INTERSECT_PIPE[T](source.iterator, right)
+        INTERSECT_PIPE[T](source, right)
 
     except[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        EXCEPT_PIPE[T](source.iterator, right)
+        EXCEPT_PIPE[T](source, right)
 
     index[T](source: Iterable[T]) -> Pipe[INDEXED_VALUE[T]] pure =>
-        INDEX_PIPE[T](source.iterator, 0)
+        INDEX_PIPE[T](source, 0)
 
     index[T](source: Iterable[T], index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
-        INDEX_PIPE[T](source.iterator, index)
+        INDEX_PIPE[T](source, index)
 
     zip[T,U](source: Iterable[T], other: Iterable[U]) -> Pipe[(T,U)] pure =>
-        ZIP_PIPE[T,U](source.iterator, other.iterator)
+        ZIP_PIPE[T,U](source, other)
 
     zip[T,U,TOut](source: Iterable[T], other: Iterable[U], mapper: (T,U) -> TOut pure) -> Pipe[TOut] pure =>
-        ZIP_MAP_PIPE[T,U,TOut](source.iterator, other.iterator, mapper)
+        ZIP_MAP_PIPE[T,U,TOut](source, other, mapper)
 
     reduce[T,TRunning](source: Iterable[T], seed: TRunning, accumulator: (TRunning,T) -> TRunning pure) -> TRunning pure is
         let running mut = seed
@@ -342,7 +342,7 @@ namespace Ghul.Pipes is
                 throw InvalidOperationException("multiple elements found")
             fi
 
-            it.reset()
+            rewind(source)
 
             return result
         else
@@ -401,7 +401,7 @@ namespace Ghul.Pipes is
         let list = collect_list(source)
 
         list.sort()
-        source.iterator.reset()
+        rewind(source)
 
         return pipe(list)
     si
@@ -410,7 +410,7 @@ namespace Ghul.Pipes is
         let list = collect_list(source)
 
         list.sort(comparer)
-        source.iterator.reset()
+        rewind(source)
 
         return pipe(list)
     si
@@ -425,7 +425,7 @@ namespace Ghul.Pipes is
         let list = collect_list(source)
 
         list.sort()
-        source.iterator.reset()
+        rewind(source)
 
         return LIST_REVERSE_PIPE(list)
     si
@@ -470,7 +470,7 @@ namespace Ghul.Pipes is
             seen_any = true
         od
 
-        it.reset()
+        rewind(source)
 
         return into
     si

@@ -1,15 +1,20 @@
 namespace Ghul.Pipes is
     use Collections
 
+    // Rewinds by re-deriving a fresh iterator from the source iterable
+    // rather than calling `reset()` on the spent one - see
+    // `adaptor-pipe.ghul`.
     class FilterPipeBase[T]: Pipe[T] is
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         iterator: Iterator[T] => self
 
         current: T => _iterator.current
 
-        init(iterator: Iterator[T]) is
-            _iterator = iterator
+        init(source: Iterable[T]) is
+            _source = source
+            _iterator = source.iterator
         si
 
         move_next() -> bool is
@@ -48,8 +53,9 @@ namespace Ghul.Pipes is
             return result
         si
 
-        reset() => _iterator.reset()
-        // dispose() => _iterator.dispose();
+        reset() is
+            _iterator = rewind(_source, _iterator)
+        si
 
         to_string() -> string => Ghul.Pipes.join(self)
 

@@ -1,17 +1,22 @@
 namespace Ghul.Pipes is
     use Collections
 
+    // Rewinds by re-deriving a fresh iterator from the source iterable
+    // rather than calling `reset()` on the spent one - see
+    // `adaptor-pipe.ghul`.
     class MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
         iterator: Iterator[TTo] => self
 
         current: TTo
 
+        _source: Iterable[TFrom]
         _iterator: Iterator[TFrom]
 
         _mapper: (TFrom) -> TTo
 
-        init(enumerator: Iterator[TFrom], mapper: (TFrom) -> TTo) is
-            _iterator = enumerator
+        init(source: Iterable[TFrom], mapper: (TFrom) -> TTo) is
+            _source = source
+            _iterator = source.iterator
             _mapper = mapper
         si
 
@@ -21,7 +26,7 @@ namespace Ghul.Pipes is
                 return true
             fi
 
-            _iterator.reset()
+            reset()
 
             // TODO: should we set current to default value?
 
@@ -29,7 +34,7 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
         si
 
         to_string() -> string => Ghul.Pipes.join(self)

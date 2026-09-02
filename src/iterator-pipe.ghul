@@ -1,0 +1,41 @@
+namespace Ghul.Pipes is
+    use Collections
+
+    // Adapts a bare `Iterator[T]` to `Pipe[T]`. The cursor is the one
+    // handed in, shared with whoever else holds it, so a chain built on
+    // this pipe carries on pulling from wherever that cursor was left.
+    // There is no owning iterable to re-derive a fresh cursor from, so a
+    // rewind does nothing: every pass carries on pulling from wherever
+    // the shared cursor was left. Refusing - or forwarding to the
+    // iterator, which .NET enumerators are permitted to reject - would
+    // fire the moment a bounded stage above ended its own pass early.
+    class ITERATOR_PIPE[T]: Pipe[T] is
+        _iterator: Iterator[T]
+
+        init(iterator: Iterator[T]) is
+            assert iterator?
+
+            _iterator = iterator
+        si
+
+        iterator: Iterator[T] => self
+
+        current: T => _iterator.current
+
+        move_next() -> bool => _iterator.move_next()
+
+        reset() is
+            si
+
+        to_string() -> string => Ghul.Pipes.join(self)
+
+        dispose() is
+        si
+    si
+
+    // Lift a bare `Iterator[T]` into a pipe so the combinators can
+    // drive it. Deliberately not an overload of `pipe`: a `Pipe[T]` is
+    // both iterable and an iterator, so overloading on the two would be
+    // ambiguous at every call site a pipe reaches.
+    cursor[T](source: Iterator[T]) -> Pipe[T] pure => ITERATOR_PIPE[T](source)
+si

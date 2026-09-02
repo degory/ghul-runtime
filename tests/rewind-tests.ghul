@@ -1,0 +1,105 @@
+namespace Tests is
+
+    use Collections
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    use IO.File
+    use IO.Path
+
+    use Ghul.Pipes
+
+    // Rewinding never calls `reset()` on a spent iterator: .NET
+    // enumerators are permitted to reject one - compiler-generated ones
+    // must - and `File.read_lines` hands out compiler-generated
+    // enumerators, so it is the stand-in for every BCL lazy source. A
+    // pipe source is rewound in place; a plain iterable gets a fresh
+    // iterator taken instead. These tests cover both.
+    @TestClass()
+    class RewindShould is
+        init() is
+        si
+
+        // Three lines on disk, read back through a compiler-generated
+        // enumerator each time `read_lines` is asked for an iterator.
+        write_lines_file() -> string is
+            let path = Path.combine(Path.get_temp_path(), "ghul-rewind-tests.txt")
+
+            File.write_all_lines(path, ["alpha", "beta", "gamma"])
+
+            return path
+        si
+
+        @Test()
+        ExhaustedPipeOverADotNetSource_PlaysAgain() is
+            let path = write_lines_file()
+
+            let pipe = File.read_lines(path) |> map(line => "<{line}>")
+
+            are_equal("<alpha> <beta> <gamma>", pipe |> join(" "))
+            are_equal("<alpha> <beta> <gamma>", pipe |> join(" "))
+        si
+
+        @Test()
+        PartiallyWalkedPipeOverADotNetSource_CarriesOnThenPlaysAgain() is
+            let path = write_lines_file()
+
+            let pipe = File.read_lines(path) |> map(line => line)
+
+            are_equal(MAYBE("alpha"), pipe |> first())
+
+            // A pipe is its own cursor, so the next consumer carries on
+            // from where `first` stopped rather than starting over.
+            are_equal("beta gamma", pipe |> join(" "))
+
+            // That pass ran to the end, so the one after it starts over.
+            are_equal("alpha beta gamma", pipe |> join(" "))
+        si
+
+        @Test()
+        BoundedStageOverADotNetSource_PlaysAgain() is
+            let path = write_lines_file()
+
+            let pipe = File.read_lines(path) |> take(2)
+
+            are_equal("alpha beta", pipe |> join(" "))
+            are_equal("alpha beta", pipe |> join(" "))
+        si
+
+        @Test()
+        SortOverADotNetSource_LeavesNothingSpent() is
+            let path = write_lines_file()
+
+            let sorted = File.read_lines(path) |> sort()
+
+            are_equal("alpha beta gamma", sorted |> join(" "))
+        si
+
+        @Test()
+        PipeOverAPipeSource_PlaysAgain() is
+            let inner = ["alpha", "beta", "gamma"] |> filter(line => true)
+
+            let pipe = inner |> take(2)
+
+            are_equal("alpha beta", pipe |> join(" "))
+            are_equal("alpha beta", pipe |> join(" "))
+        si
+
+        @Test()
+        Cursor_CarriesOnFromWhereTheLastConsumerStopped() is
+            let source = ["alpha", "beta", "gamma"]
+
+            let cursor = source.iterator |> cursor()
+
+            are_equal(MAYBE("alpha"), cursor |> first())
+            are_equal("beta gamma", cursor |> join(" "))
+
+            // The shared cursor is spent now; another pass finds it
+            // empty rather than starting over.
+            are_equal("", cursor |> join(" "))
+        si
+    si
+si

@@ -10,6 +10,45 @@ namespace Ghul.Pipes is
     // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
     // of the enumerators we want to use actually have any non-managed state that needs to be disposed
 
+    // Rewind `source`, leaving it ready for the next consumer. Only a
+    // pipe needs this: a pipe is its own cursor, so a partially walked
+    // one stays part way through, and a terminal that stops early has
+    // left it there. A plain iterable hands a fresh iterator to whoever
+    // asks, so there is nothing to restore, and resetting the iterator
+    // a terminal happens to hold would ask a .NET enumerator to rewind,
+    // which they are permitted - and compiler-generated ones obliged -
+    // to reject.
+    rewind[T](source: Iterable[T]) is
+        if isa Pipe[T](source) then
+            cast Pipe[T](source).reset()
+        fi
+    si
+
+    // Rewind `source` and hand back a cursor over it, replacing `spent`.
+    // A pipe source is rewound in place - which recursively rewinds
+    // whatever it draws from - and is its own cursor. A plain iterable
+    // cannot be rewound, but nobody shares the iterators it hands out
+    // either: `spent` is drained to the end first, because a .NET
+    // iterator can share state with its source - `File.read_lines`
+    // shares its reader - so a partly walked one cannot simply be
+    // dropped, and only then is a fresh iterator taken, the one restart
+    // every iterable owes. `spent` is never reset: .NET enumerators are
+    // permitted to reject that, and compiler-generated ones must.
+    rewind[T](source: Iterable[T], spent: Iterator[T]) -> Iterator[T] is
+        if isa Pipe[T](source) then
+            let source_pipe = cast Pipe[T](source)
+
+            source_pipe.reset()
+
+            return source_pipe
+        fi
+
+        while spent.move_next() do
+        od
+
+        return source.iterator
+    si
+
     // Lift an `Iterable[T]` (any producer with a `.iterator` —
     // includes any existing `Pipe[T]`, which is short-circuited via
     // an `isa` check) to `Pipe[T]`. For state-stepping producers,

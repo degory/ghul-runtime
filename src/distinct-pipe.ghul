@@ -4,8 +4,8 @@ namespace Ghul.Pipes is
     class DISTINCT_PIPE[T]: FilterPipeBase[T] is
         _seen: SET[T]
 
-        init(iterator: Iterator[T]) is
-            super.init(iterator)
+        init(source: Iterable[T]) is
+            super.init(source)
             _seen = SET[T]()
         si
 

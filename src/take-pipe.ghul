@@ -5,8 +5,8 @@ namespace Ghul.Pipes is
         _initial_take_count: int
         _take_count: int
 
-        init(iterator: Iterator[T], take_count: int) is
-            super.init(iterator)
+        init(source: Iterable[T], take_count: int) is
+            super.init(source)
             _initial_take_count = take_count
             _take_count = take_count
         si

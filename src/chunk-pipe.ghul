@@ -6,6 +6,7 @@ namespace Ghul.Pipes is
 
         current: LIST[T]
 
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         _size: int
@@ -16,10 +17,11 @@ namespace Ghul.Pipes is
         // own instead.
         _done: bool
 
-        init(iterator: Iterator[T], size: int) is
+        init(source: Iterable[T], size: int) is
             assert size > 0 else "chunk size must be positive"
 
-            _iterator = iterator
+            _source = source
+            _iterator = source.iterator
             _size = size
             _done = false
         si
@@ -53,7 +55,7 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
             _done = false
         si
 

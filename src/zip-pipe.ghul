@@ -1,7 +1,12 @@
 namespace Ghul.Pipes is
     use Collections
 
+    // Rewinds by re-deriving fresh iterators from the source iterables
+    // rather than calling `reset()` on the spent ones - see
+    // `adaptor-pipe.ghul`.
     class ZIP_PIPE[T1,T2]: Pipe[(T1,T2)] is
+        _source_1: Iterable[T1]
+        _source_2: Iterable[T2]
         _iterator_1: Iterator[T1]
         _iterator_2: Iterator[T2]
 
@@ -11,9 +16,11 @@ namespace Ghul.Pipes is
 
         current: (T1,T2) => _current
 
-        init(enumerator1: Iterator[T1], enumerator2: Iterator[T2]) is
-            _iterator_1 = enumerator1
-            _iterator_2 = enumerator2
+        init(source_1: Iterable[T1], source_2: Iterable[T2]) is
+            _source_1 = source_1
+            _source_2 = source_2
+            _iterator_1 = source_1.iterator
+            _iterator_2 = source_2.iterator
         si
 
         move_next() -> bool is
@@ -27,8 +34,8 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator_1.reset()
-            _iterator_2.reset()
+            _iterator_1 = rewind(_source_1, _iterator_1)
+            _iterator_2 = rewind(_source_2, _iterator_2)
         si
 
         dispose() is
