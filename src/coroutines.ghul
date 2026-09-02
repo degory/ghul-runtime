@@ -4,8 +4,8 @@ namespace Ghul.Coroutines is
     use System.Runtime.CompilerServices.INotifyCompletion
 
     // Drives coroutines on one thread. A coroutine is an ordinary
-    // asynchronous function returning `COROUTINE[T]` or `JOB` - the
-    // task-likes whose builders below run the body to its first
+    // asynchronous function returning `COROUTINE[T]` or `COROUTINE` -
+    // the task-likes whose builders below run the body to its first
     // suspension and hand resumption to whatever the awaited value
     // does with its continuation.
     //
@@ -37,7 +37,7 @@ namespace Ghul.Coroutines is
         // already run to its first suspension when this returns.
         spawn[T](body: SCHEDULER -> COROUTINE[T]) -> COROUTINE[T] => body(self)
 
-        spawn(body: SCHEDULER -> JOB) -> JOB => body(self)
+        spawn(body: SCHEDULER -> COROUTINE) -> COROUTINE => body(self)
 
         // Resumes parked coroutines until none remain.
         run() is
@@ -77,7 +77,7 @@ namespace Ghul.Coroutines is
     // body returned or threw; `value` is its result and `exception`
     // its failure. Reading `value` before completion, or of a failed
     // coroutine, is an error.
-    @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER))
+    @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER[_]))
     class COROUTINE[T] is
         exception: System.Exception?
         completed: bool
@@ -110,9 +110,9 @@ namespace Ghul.Coroutines is
         si
     si
 
-    // The handle to a coroutine producing nothing.
-    @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(JOB_BUILDER))
-    class JOB is
+    // The handle to a coroutine producing no value.
+    @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER))
+    class COROUTINE is
         exception: System.Exception?
         completed: bool
 
@@ -198,34 +198,35 @@ namespace Ghul.Coroutines is
         si
     si
 
-    // The builder async functions returning JOB drive.
-    class JOB_BUILDER is
+    // The builder async functions returning the value-less
+    // COROUTINE drive.
+    class COROUTINE_BUILDER is
         _exception: System.Exception?
         _done: bool
-        _job: JOB?
+        _coroutine: COROUTINE?
 
         init() is
         si
 
-        create() -> JOB_BUILDER static => JOB_BUILDER()
+        create() -> COROUTINE_BUILDER static => COROUTINE_BUILDER()
 
         start[A: IAsyncStateMachine](state_machine: A ref) is
             state_machine!.move_next()
         si
 
-        task: JOB is
-            if !_job? then
-                let handle = JOB()
+        task: COROUTINE is
+            if !_coroutine? then
+                let handle = COROUTINE()
                 _fill(handle)
-                _job = handle
+                _coroutine = handle
                 return handle
             fi
-            return _job
+            return _coroutine
         si
 
         set_result() is
             _done = true
-            if let handle = _job then
+            if let handle = _coroutine then
                 _fill(handle)
             fi
         si
@@ -233,12 +234,12 @@ namespace Ghul.Coroutines is
         set_exception(e: System.Exception) is
             _exception = e
             _done = true
-            if let handle = _job then
+            if let handle = _coroutine then
                 _fill(handle)
             fi
         si
 
-        _fill(handle: JOB) is
+        _fill(handle: COROUTINE) is
             if _done then
                 if _exception? then
                     handle.fail(_exception)
