@@ -133,20 +133,19 @@ namespace Ghul.Coroutines is
     // body returned or threw; `value` is its result and `exception`
     // its failure. Awaiting the handle parks the caller until the
     // coroutine completes and then yields its value, so a coroutine
-    // calls another the way a function does. Reading `value` before
-    // completion is an error, and either route rethrows a failed
-    // coroutine's own exception.
+    // calls another the way a function does; the caller resumes on
+    // the scheduler it parked on, whichever one completed the
+    // callee. Reading `value` before completion is an error, and
+    // either route rethrows a failed coroutine's own exception.
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER[_]))
     class COROUTINE[T]: ICriticalNotifyCompletion is
         exception: System.Exception?
         completed: bool
         _value: Ghul.MAYBE[T]
-        _scheduler: SCHEDULER
-        _waiters: Collections.LIST[() -> void]
+        _waiters: Collections.LIST[WAITER[bool]]
 
         init() is
-            _scheduler = SCHEDULER.current
-            _waiters = Collections.LIST[() -> void]()
+            _waiters = Collections.LIST[WAITER[bool]]()
         si
 
         // The coroutine's result. Reading before completion is an
@@ -187,17 +186,21 @@ namespace Ghul.Coroutines is
             _wake()
         si
 
+        // Parks an awaiter, on its own scheduler: the one current
+        // when it registers, which is the one driving it.
         _wait(continuation: () -> void) is
+            let waiter = WAITER[bool](true, continuation)
+
             if completed then
-                _scheduler.schedule(continuation)
+                waiter.wake()
             else
-                _waiters.add(continuation)
+                _waiters.add(waiter)
             fi
         si
 
         _wake() is
             for w in _waiters do
-                _scheduler.schedule(w)
+                w.wake()
             od
             _waiters.clear()
         si
@@ -209,12 +212,10 @@ namespace Ghul.Coroutines is
     class COROUTINE: ICriticalNotifyCompletion is
         exception: System.Exception?
         completed: bool
-        _scheduler: SCHEDULER
-        _waiters: Collections.LIST[() -> void]
+        _waiters: Collections.LIST[WAITER[bool]]
 
         init() is
-            _scheduler = SCHEDULER.current
-            _waiters = Collections.LIST[() -> void]()
+            _waiters = Collections.LIST[WAITER[bool]]()
         si
 
         get_awaiter() -> COROUTINE => self
@@ -250,17 +251,21 @@ namespace Ghul.Coroutines is
             _wake()
         si
 
+        // Parks an awaiter, on its own scheduler: the one current
+        // when it registers, which is the one driving it.
         _wait(continuation: () -> void) is
+            let waiter = WAITER[bool](true, continuation)
+
             if completed then
-                _scheduler.schedule(continuation)
+                waiter.wake()
             else
-                _waiters.add(continuation)
+                _waiters.add(waiter)
             fi
         si
 
         _wake() is
             for w in _waiters do
-                _scheduler.schedule(w)
+                w.wake()
             od
             _waiters.clear()
         si

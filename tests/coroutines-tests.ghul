@@ -328,6 +328,31 @@ namespace Tests is
             are_same(outer, SCHEDULER.current)
         si
 
+        // An awaiter resumes on the scheduler driving it, not on the
+        // one that completed the coroutine it awaited: a coroutine
+        // started under `outer` that awaits one parked on `inner`
+        // comes back through `outer.run()`.
+        @Test()
+        Awaiting_Across_Schedulers_Resumes_On_The_Awaiters_Own() is
+            let outer = SCHEDULER()
+            let inner = SCHEDULER()
+            let journal = LIST[string]()
+
+            let target = inner.spawn(_ => double_after_pause(4))
+            let j = outer.spawn(_ => joiner(target, journal))
+
+            inner.run()
+
+            is_true(target.completed)
+            are_equal(0, journal.count)
+            is_false(j.completed)
+
+            outer.run()
+
+            are_equal("joined 8", journal |> Ghul.Pipes.join(", "))
+            is_true(j.completed)
+        si
+
         @Test()
         Mutex_Admits_One_Holder_At_A_Time() is
             SCHEDULER.current = SCHEDULER()
