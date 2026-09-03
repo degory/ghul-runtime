@@ -71,6 +71,52 @@ namespace Tests is
             journal.add("received")
         si
 
+        double_after_pause(v: int) -> COROUTINE[int] is
+            await pause()
+            return v * 2
+        si
+
+        calls_another(journal: LIST[string]) -> COROUTINE[int] is
+            journal.add("before")
+            let v = await double_after_pause(21)
+            journal.add("after {v}")
+            return v
+        si
+
+        awaits_failure(journal: LIST[string]) -> COROUTINE is
+            try
+                await failing(SCHEDULER.current)
+            catch e: System.Exception
+                journal.add("caught {e.message}")
+            yrt
+        si
+
+        joiner(target: COROUTINE[int], journal: LIST[string]) -> COROUTINE is
+            let v = await target
+            journal.add("joined {v}")
+        si
+
+        holds_lock(lock: MUTEX, journal: LIST[string], name: string) -> COROUTINE is
+            await lock.acquire()
+            journal.add("{name} in")
+            await pause()
+            journal.add("{name} out")
+            lock.release()
+        si
+
+        takes_permit(semaphore: SEMAPHORE, journal: LIST[string], name: string) -> COROUTINE is
+            await semaphore.acquire()
+            journal.add("{name} in")
+            await pause()
+            semaphore.release()
+            journal.add("{name} out")
+        si
+
+        receives_once(ch: CHANNEL[int], journal: LIST[string], name: string) -> COROUTINE is
+            let v = await ch.receive()
+            journal.add("{name} got {v}")
+        si
+
         @Test()
         Pause_Interleaves_Coroutines_In_Queue_Order() is
             let s = SCHEDULER()
@@ -101,7 +147,7 @@ namespace Tests is
         @Test()
         Channel_Hands_Off_From_Producer_To_Consumer() is
             let s = SCHEDULER()
-            let ch = CHANNEL[int](s)
+            let ch = CHANNEL[int]()
             let p = s.spawn(sch => producer(sch, ch, 3))
             let c = s.spawn(sch => consumer(sch, ch, 3))
 
@@ -115,7 +161,7 @@ namespace Tests is
         @Test()
         Channel_Receive_Parks_Until_A_Send_Arrives() is
             let s = SCHEDULER()
-            let ch = CHANNEL[string](s)
+            let ch = CHANNEL[string]()
             let t = s.spawn(_ => parked_taker(ch))
 
             is_false(t.completed)
@@ -134,7 +180,7 @@ namespace Tests is
         @Test()
         Channel_Send_Resumes_The_Receiver_From_Run_Not_Inline() is
             let s = SCHEDULER()
-            let ch = CHANNEL[int](s)
+            let ch = CHANNEL[int]()
             let journal = LIST[string]()
 
             let receiver = s.spawn(_ => journalling_receiver(ch, journal))
@@ -176,7 +222,192 @@ namespace Tests is
                 thrown = e.message
             yrt
 
-            is_true(thrown.contains("coroutine failed"))
+            are_equal("no result", thrown)
+        si
+
+        // A coroutine awaits another the way a function calls one:
+        // the caller parks until the callee completes and then reads
+        // its value, resuming from `run` rather than inside the
+        // callee's completion.
+        @Test()
+        Awaiting_A_Coroutine_Yields_Its_Value_When_It_Completes() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+
+            let outer = calls_another(journal)
+
+            are_equal("before", journal |> Ghul.Pipes.join(", "))
+            is_false(outer.completed)
+
+            run()
+
+            are_equal("before, after 42", journal |> Ghul.Pipes.join(", "))
+            are_equal(42, outer.value)
+        si
+
+        @Test()
+        Awaiting_A_Failed_Coroutine_Rethrows_The_Failure() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+
+            let outer = awaits_failure(journal)
+
+            run()
+
+            is_true(outer.completed)
+            are_equal("caught no result", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        Awaiting_A_Completed_Coroutine_Continues_Inline() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+            let target = double_after_pause(5)
+
+            run()
+
+            is_true(target.completed)
+
+            let j = joiner(target, journal)
+
+            is_true(j.completed)
+            are_equal("joined 10", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        Several_Coroutines_Can_Await_One() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+            let target = double_after_pause(1)
+
+            let a = joiner(target, journal)
+            let b = joiner(target, journal)
+
+            run()
+
+            are_equal("joined 2, joined 2", journal |> Ghul.Pipes.join(", "))
+            is_true(a.completed)
+            is_true(b.completed)
+        si
+
+        // With no scheduler named anywhere, coroutines park on the
+        // default and the global `run` drains it.
+        @Test()
+        Pause_And_Run_Use_The_Current_Scheduler() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+
+            let a = ping(SCHEDULER.current, journal, "a", 2)
+            let b = double_after_pause(4)
+
+            run()
+
+            are_equal("a 1, a 2", journal |> Ghul.Pipes.join(", "))
+            are_equal(3, a.value)
+            are_equal(8, b.value)
+        si
+
+        @Test()
+        Spawn_And_Run_Make_Their_Scheduler_Current() is
+            let outer = SCHEDULER()
+            let inner = SCHEDULER()
+            SCHEDULER.current = outer
+
+            let handle = inner.spawn(_ => double_after_pause(3))
+
+            are_same(outer, SCHEDULER.current)
+            is_false(handle.completed)
+
+            outer.run()
+
+            is_false(handle.completed)
+
+            inner.run()
+
+            are_equal(6, handle.value)
+            are_same(outer, SCHEDULER.current)
+        si
+
+        @Test()
+        Mutex_Admits_One_Holder_At_A_Time() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+            let lock = MUTEX()
+
+            let a = holds_lock(lock, journal, "a")
+            let b = holds_lock(lock, journal, "b")
+
+            run()
+
+            are_equal("a in, a out, b in, b out", journal |> Ghul.Pipes.join(", "))
+            is_true(a.completed)
+            is_true(b.completed)
+            are_equal(1, lock.available)
+        si
+
+        @Test()
+        Semaphore_Admits_Up_To_Its_Permits() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+            let semaphore = SEMAPHORE(2)
+
+            let _ = takes_permit(semaphore, journal, "a")
+            let _ = takes_permit(semaphore, journal, "b")
+            let _ = takes_permit(semaphore, journal, "c")
+
+            run()
+
+            are_equal("a in, b in, a out, b out, c in, c out", journal |> Ghul.Pipes.join(", "))
+            are_equal(2, semaphore.available)
+        si
+
+        // A released permit goes to the waiter at the head of the
+        // queue: a coroutine arriving after it cannot take the permit
+        // first, however the scheduler orders them.
+        @Test()
+        Release_Hands_The_Permit_To_The_First_Waiter() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+            let lock = MUTEX()
+
+            let _ = holds_lock(lock, journal, "a")
+            let _ = holds_lock(lock, journal, "b")
+
+            run()
+
+            let _ = holds_lock(lock, journal, "c")
+            let _ = holds_lock(lock, journal, "d")
+
+            run()
+
+            are_equal("a in, a out, b in, b out, c in, c out, d in, d out", journal |> Ghul.Pipes.join(", "))
+        si
+
+        // A value sent to a parked receiver is that receiver's: a
+        // receiver arriving between the send and the parked one's
+        // resumption gets the next value, not this one.
+        @Test()
+        Send_To_A_Parked_Receiver_Cannot_Be_Overtaken() is
+            SCHEDULER.current = SCHEDULER()
+            let journal = LIST[string]()
+            let ch = CHANNEL[int]()
+
+            let _ = receives_once(ch, journal, "first")
+
+            ch.send(1)
+
+            let _ = receives_once(ch, journal, "second")
+
+            are_equal(0, journal.count)
+
+            run()
+
+            are_equal("first got 1", journal |> Ghul.Pipes.join(", "))
+
+            ch.send(2)
+            run()
+
+            are_equal("first got 1, second got 2", journal |> Ghul.Pipes.join(", "))
         si
     si
 si
