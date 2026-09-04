@@ -4,81 +4,77 @@ namespace Ghul.Pipes is
 
     use Collections
 
-    // Free-function equivalents of the Pipe[T] trait's combinators and
-    // terminals (see degory/ghul-runtime#134 and degory/ghul#1846). A trait
-    // member can't take a bound on the trait's own unbounded T - min/max
-    // above already hit this - so these give every combinator, bounded or
-    // not, the same call shape via the thread-first operator:
-    // `xs |> filter(p) |> map(f) |> min()`.
+    // The pipe combinators and terminals, as free functions taking the
+    // sequence first so the thread-first operator chains them:
+    // `xs |> filter(p) |> map(f) |> min()`. A trait member could not take
+    // a bound on Pipe[T]'s own unbounded T - min/max above need one - so
+    // every combinator, bounded or not, has this one call shape.
     //
     // Source parameter is Iterable[T], the loosest sufficient type, so a
-    // chain can start directly from a raw array/list with no pipe()/| wrap.
+    // chain can start directly from a raw array/list with no pipe() wrap.
     // A stage function's return type is the Pipe[U] trait rather than the
     // concrete adaptor class it builds, so the adaptor classes stay an
-    // implementation detail invisible to a chain's static type - matching
-    // the trait method equivalents this forwards to. Pipe[T]'s trait
-    // methods forward to these; both call styles stay fully supported side
-    // by side.
+    // implementation detail invisible to a chain's static type.
 
     filter[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        FilterPipe[T](source.iterator, predicate)
+        FilterPipe[T](source, predicate)
 
     map[T,U](source: Iterable[T], mapper: (T) -> U pure) -> Pipe[U] pure =>
-        MAP_PIPE[T,U](source.iterator, mapper)
+        MAP_PIPE[T,U](source, mapper)
 
     flat_map[T,U](source: Iterable[T], mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
-        FLAT_MAP_PIPE[T,U](source.iterator, mapper)
+        FLAT_MAP_PIPE[T,U](source, mapper)
 
     skip[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
-        SKIP_PIPE[T](source.iterator, count)
+        SKIP_PIPE[T](source, count)
 
     take[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
-        TAKE_PIPE[T](source.iterator, count)
+        TAKE_PIPE[T](source, count)
 
     skip_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        SKIP_WHILE_PIPE[T](source.iterator, predicate)
+        SKIP_WHILE_PIPE[T](source, predicate)
 
     take_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
-        TAKE_WHILE_PIPE[T](source.iterator, predicate)
+        TAKE_WHILE_PIPE[T](source, predicate)
 
     distinct[T](source: Iterable[T]) -> Pipe[T] pure =>
-        DISTINCT_PIPE[T](source.iterator)
+        DISTINCT_PIPE[T](source)
 
     peek[T](source: Iterable[T], action: T -> void) -> Pipe[T] pure =>
-        PEEK_PIPE[T](source.iterator, action)
+        PEEK_PIPE[T](source, action)
 
     memo[T](source: Iterable[T]) -> Pipe[T] pure =>
         MEMO_PIPE[T](source)
 
     chunk[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
-        CHUNK_PIPE[T](source.iterator, size)
+        CHUNK_PIPE[T](source, size)
 
     windows[T](source: Iterable[T], size: int) -> Pipe[LIST[T]] pure =>
-        WINDOWS_PIPE[T](source.iterator, size)
+        WINDOWS_PIPE[T](source, size)
 
     cat[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        CAT_PIPE[T](source.iterator, right.iterator)
+        CAT_PIPE[T](source, right)
 
     union_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
         distinct(cat(source, right))
 
     intersect_with[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        INTERSECT_PIPE[T](source.iterator, right)
+        INTERSECT_PIPE[T](source, right)
 
     except[T](source: Iterable[T], right: Iterable[T]) -> Pipe[T] pure =>
-        EXCEPT_PIPE[T](source.iterator, right)
+        EXCEPT_PIPE[T](source, right)
 
     index[T](source: Iterable[T]) -> Pipe[INDEXED_VALUE[T]] pure =>
-        INDEX_PIPE[T](source.iterator, 0)
+        INDEX_PIPE[T](source, 0)
 
     index[T](source: Iterable[T], index: int) -> Pipe[INDEXED_VALUE[T]] pure =>
-        INDEX_PIPE[T](source.iterator, index)
+        INDEX_PIPE[T](source, index)
 
     zip[T,U](source: Iterable[T], other: Iterable[U]) -> Pipe[(T,U)] pure =>
-        ZIP_PIPE[T,U](source.iterator, other.iterator)
+        ZIP_PIPE[T,U](source, other)
 
     zip[T,U,TOut](source: Iterable[T], other: Iterable[U], mapper: (T,U) -> TOut pure) -> Pipe[TOut] pure =>
-        ZIP_MAP_PIPE[T,U,TOut](source.iterator, other.iterator, mapper)
+        ZIP_MAP_PIPE[T,U,TOut](source, other, mapper)
 
     reduce[T,TRunning](source: Iterable[T], seed: TRunning, accumulator: (TRunning,T) -> TRunning pure) -> TRunning pure is
         let running mut = seed
@@ -214,6 +210,14 @@ namespace Ghul.Pipes is
     si
 
     count[T](source: Iterable[T]) -> int pure is
+        if isa Bag[T](source) then
+            return source.count
+        fi
+
+        if isa MutableBag[T](source) then
+            return source.count
+        fi
+
         let it = source.iterator
         let result mut = 0
 
@@ -342,8 +346,6 @@ namespace Ghul.Pipes is
                 throw InvalidOperationException("multiple elements found")
             fi
 
-            it.reset()
-
             return result
         else
             throw InvalidOperationException("no element found")
@@ -393,15 +395,10 @@ namespace Ghul.Pipes is
     sort[T: Ghul.Comparable[T]](source: Iterable[T]) -> Pipe[T] pure =>
         _sort_ascending(source)
 
-    // Pipe[T].sort() cannot carry the bound, since T is the trait's own
-    // unbounded parameter, so it forwards here instead. Calling the bounded
-    // overload from there would emit a call that violates the constraint and
-    // fail verification when the method is first reached.
     _sort_ascending[T](source: Iterable[T]) -> Pipe[T] pure is
         let list = collect_list(source)
 
         list.sort()
-        source.iterator.reset()
 
         return pipe(list)
     si
@@ -410,7 +407,6 @@ namespace Ghul.Pipes is
         let list = collect_list(source)
 
         list.sort(comparer)
-        source.iterator.reset()
 
         return pipe(list)
     si
@@ -425,7 +421,6 @@ namespace Ghul.Pipes is
         let list = collect_list(source)
 
         list.sort()
-        source.iterator.reset()
 
         return LIST_REVERSE_PIPE(list)
     si
@@ -469,8 +464,6 @@ namespace Ghul.Pipes is
 
             seen_any = true
         od
-
-        it.reset()
 
         return into
     si

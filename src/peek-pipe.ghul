@@ -6,12 +6,14 @@ namespace Ghul.Pipes is
 
         current: T
 
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         _action: (T) -> void
 
-        init(iterator: Iterator[T], action: (T) -> void) is
-            _iterator = iterator
+        init(source: Iterable[T], action: (T) -> void) is
+            _source = source
+            _iterator = source.iterator
             _action = action
         si
 
@@ -23,18 +25,17 @@ namespace Ghul.Pipes is
                 return true
             fi
 
-            _iterator.reset()
+            reset()
 
             return false
         si
 
         reset() is
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
         si
 
         to_string() -> string => Ghul.Pipes.join(self)
 
-        dispose() is
-        si
+        dispose() => _iterator.dispose()
     si
 si

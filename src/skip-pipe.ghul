@@ -5,8 +5,8 @@ namespace Ghul.Pipes is
         _initial_skip_count: int
         _skip_count: int
 
-        init(enumerator: Iterator[T], skip_count: int) is
-            super.init(enumerator)
+        init(source: Iterable[T], skip_count: int) is
+            super.init(source)
             _initial_skip_count = skip_count
             _skip_count = skip_count
         si

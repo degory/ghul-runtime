@@ -4,6 +4,7 @@ namespace Ghul.Pipes is
     class INDEX_PIPE[T]: Pipe[INDEXED_VALUE[T]] is
         _initial_index: int
         _index: int
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         iterator: Iterator[INDEXED_VALUE[T]] => self
@@ -11,8 +12,9 @@ namespace Ghul.Pipes is
         current: INDEXED_VALUE[T] =>
             INDEXED_VALUE(_index, _iterator.current)
 
-        init(enumerator: Iterator[T], index: int) is
-            _iterator = enumerator
+        init(source: Iterable[T], index: int) is
+            _source = source
+            _iterator = source.iterator
             _initial_index = index
             _index = index - 1
         si
@@ -30,12 +32,10 @@ namespace Ghul.Pipes is
 
         reset() is
             _index = _initial_index - 1
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
         si
 
-        dispose() is
-            _iterator.dispose()
-        si
+        dispose() => _iterator.dispose()
 
         to_string() -> string => Ghul.Pipes.join(self)
     si

@@ -17,34 +17,21 @@ namespace Ghul.Pipes is
         current: T => _iterator.current
 
         move_next() -> bool is
-            let result = _iterator.move_next()
-
-            if !result then
-                _iterator.reset()
+            if _iterator.move_next() then
+                return true
             fi
 
-            return result
+            reset()
+
+            return false
         si
 
-        reset() => _iterator.reset()
+        reset() is
+            _iterator = rewind(_source, _iterator)
+        si
 
         to_string() -> string => Ghul.Pipes.join(self)
 
-        dispose() is
-        si
-
-        count() -> int pure is
-            if isa MutableBag[T](_source) then
-                return cast MutableBag[T](_source).count
-            fi
-
-            let result mut = 0
-
-            while move_next() do
-                result = result + 1
-            od
-
-            return result
-        si
+        dispose() => _iterator.dispose()
     si
 si

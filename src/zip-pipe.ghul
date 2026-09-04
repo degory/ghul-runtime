@@ -2,6 +2,8 @@ namespace Ghul.Pipes is
     use Collections
 
     class ZIP_PIPE[T1,T2]: Pipe[(T1,T2)] is
+        _source_1: Iterable[T1]
+        _source_2: Iterable[T2]
         _iterator_1: Iterator[T1]
         _iterator_2: Iterator[T2]
 
@@ -11,24 +13,27 @@ namespace Ghul.Pipes is
 
         current: (T1,T2) => _current
 
-        init(enumerator1: Iterator[T1], enumerator2: Iterator[T2]) is
-            _iterator_1 = enumerator1
-            _iterator_2 = enumerator2
+        init(source_1: Iterable[T1], source_2: Iterable[T2]) is
+            _source_1 = source_1
+            _source_2 = source_2
+            _iterator_1 = source_1.iterator
+            _iterator_2 = source_2.iterator
         si
 
         move_next() -> bool is
             if _iterator_1.move_next() /\ _iterator_2.move_next() then
                 _current = (_iterator_1.current, _iterator_2.current)
                 return true
-            else
-                reset()
-                return false
             fi
+
+            reset()
+
+            return false
         si
 
         reset() is
-            _iterator_1.reset()
-            _iterator_2.reset()
+            _iterator_1 = rewind(_source_1, _iterator_1)
+            _iterator_2 = rewind(_source_2, _iterator_2)
         si
 
         dispose() is

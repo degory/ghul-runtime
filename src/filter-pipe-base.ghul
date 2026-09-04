@@ -2,18 +2,20 @@ namespace Ghul.Pipes is
     use Collections
 
     class FilterPipeBase[T]: Pipe[T] is
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         iterator: Iterator[T] => self
 
         current: T => _iterator.current
 
-        init(iterator: Iterator[T]) is
-            _iterator = iterator
+        init(source: Iterable[T]) is
+            _source = source
+            _iterator = source.iterator
         si
 
         move_next() -> bool is
-            while _iterator.move_next() do
+            while should_pull() /\ _iterator.move_next() do
                 have_moved()
 
                 if !should_continue() then
@@ -30,30 +32,24 @@ namespace Ghul.Pipes is
             return false
         si
 
+        // Whether to ask the source for another element at all: a
+        // stage that has yielded its quota stops without pulling the
+        // element it would have discarded, leaving it for whoever reads
+        // the source next.
+        should_pull() -> bool => true
+
         have_moved() is si
 
         should_continue() -> bool => true
 
         should_include() -> bool
 
-        count() -> int pure is
-            let result mut = 0
-
-            while move_next() do
-                result = result + 1
-            od
-
-            reset()
-
-            return result
+        reset() is
+            _iterator = rewind(_source, _iterator)
         si
-
-        reset() => _iterator.reset()
-        // dispose() => _iterator.dispose();
 
         to_string() -> string => Ghul.Pipes.join(self)
 
-        dispose() is
-        si
+        dispose() => _iterator.dispose()
     si
 si
