@@ -6,6 +6,7 @@ namespace Ghul.Pipes is
 
         current: TTo
 
+        _source: Iterable[TFrom]
         _iterator: Iterator[TFrom]
         // Absent until the first source element supplies one, and
         // again after reset.
@@ -13,8 +14,9 @@ namespace Ghul.Pipes is
 
         _mapper: (TFrom) -> Iterable[TTo]
 
-        init(iterator: Iterator[TFrom], mapper: (TFrom) -> Iterable[TTo]) is
-            _iterator = iterator
+        init(source: Iterable[TFrom], mapper: (TFrom) -> Iterable[TTo]) is
+            _source = source
+            _iterator = source.iterator
             _mapper = mapper
         si
 
@@ -44,13 +46,18 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
             _flat_iterator = null
         si
 
         to_string() -> string => Ghul.Pipes.join(self)
 
         dispose() is
+            _iterator.dispose()
+
+            if let flat = _flat_iterator then
+                flat.dispose()
+            fi
         si
     si
 si

@@ -2,13 +2,13 @@ namespace Ghul.Pipes is
     use Collections
 
     // A pipe that pulls its upstream once and replays what it pulled on
-    // every later enumeration. The first pass drives the source and appends
-    // each element to the cache; a later pass reads the cache and only asks
-    // the source again once it runs past the cached prefix. The source's
-    // iterator is dropped once the source is exhausted, since nothing will
-    // ask it for more.
+    // every later pass. The first pass drives the source and appends
+    // each element to the cache; a later pass reads the cache and only
+    // asks the source again once it runs past the cached prefix. The
+    // source's iterator is dropped once the source is exhausted, since
+    // nothing will ask it for more. Rewinding never reaches the source:
+    // a fresh pass replays the cache.
     class MEMO_PIPE[T]: Pipe[T] is
-        _source: Iterable[T]
         _iterator: Iterator[T]?
         _cache: LIST[T]
         _at: int
@@ -16,10 +16,8 @@ namespace Ghul.Pipes is
         init(source: Iterable[T]) is
             assert source?
 
-            _source = source
             _iterator = source.iterator
             _cache = LIST[T]()
-            _at = 0
         si
 
         iterator: Iterator[T] => self
@@ -29,24 +27,23 @@ namespace Ghul.Pipes is
         move_next() -> bool is
             if _at < _cache.count then
                 _at = _at + 1
-                return true
-            fi
 
-            if !_iterator? then
-                reset()
-                return false
+                return true
             fi
 
             let it = _iterator
 
-            if it.move_next() then
+            if it? /\ it.move_next() then
                 _cache.add(it.current)
                 _at = _at + 1
+
                 return true
             fi
 
             _iterator = null
+
             reset()
+
             return false
         si
 
@@ -57,6 +54,9 @@ namespace Ghul.Pipes is
         to_string() -> string => Ghul.Pipes.join(self)
 
         dispose() is
+            if let it = _iterator then
+                it.dispose()
+            fi
         si
     si
 si

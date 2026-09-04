@@ -1,0 +1,274 @@
+namespace Tests is
+
+    use Collections
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    use IO.File
+    use IO.Path
+
+    use Ghul.Pipes
+
+    // An iterable that counts how many of the iterators it has handed
+    // out have been disposed.
+    class DISPOSAL_SOURCE: Iterable[int] is
+        values: int[]
+        disposed: int public
+
+        init(values: int[]) is
+            self.values = values
+        si
+
+        iterator: Iterator[int] => DISPOSAL_ITERATOR(self)
+    si
+
+    class DISPOSAL_ITERATOR: Iterator[int] is
+        _source: DISPOSAL_SOURCE
+        _at: int
+
+        init(source: DISPOSAL_SOURCE) is
+            _source = source
+            _at = -1
+        si
+
+        current: int => _source.values[_at]
+
+        move_next() -> bool is
+            _at = _at + 1
+
+            return _at < _source.values.count
+        si
+
+        reset() is
+            _at = -1
+        si
+
+        dispose() is
+            _source.disposed = _source.disposed + 1
+        si
+    si
+
+    // The pipe contract: a pipe is a cursor that carries on from wherever
+    // the last consumer stopped and starts over once it has run out;
+    // `reset()` rewinds it early; `dispose()` is explicit and reaches
+    // every held iterator. A rewind never calls `Reset()` on a .NET
+    // enumerator: `File.read_lines` stands in for every BCL lazy source,
+    // since its enumerators are compiler-generated and reject one.
+    @TestClass()
+    class PipeContractShould is
+        init() is
+        si
+
+        // Three lines on disk, read back through a compiler-generated
+        // enumerator each time `read_lines` is asked for an iterator.
+        write_lines_file() -> string is
+            let path = Path.combine(Path.get_temp_path(), "ghul-pipe-contract-tests.txt")
+
+            File.write_all_lines(path, ["alpha", "beta", "gamma"])
+
+            return path
+        si
+
+        @Test()
+        Pipe_ReadToItsEnd_StartsOverOnTheNextPull() is
+            let pipe = [1, 2, 3] |> map(x => x * 10)
+
+            while pipe.move_next() do
+            od
+
+            is_true(pipe.move_next())
+            are_equal(10, pipe.current)
+        si
+
+        @Test()
+        Pipe_WalkedByForTwice_YieldsEverythingBothTimes() is
+            let pipe = [1, 2, 3] |> filter(x => x > 1)
+
+            let first_pass mut = 0
+            for x in pipe do
+                first_pass = first_pass + 1
+            od
+
+            let second_pass mut = 0
+            for x in pipe do
+                second_pass = second_pass + 1
+            od
+
+            are_equal(2, first_pass)
+            are_equal(2, second_pass)
+        si
+
+        @Test()
+        Pipe_StoppedPartWay_CarriesOnForTheNextConsumer() is
+            let pipe = [1, 2, 3, 4, 5] |> map(x => x)
+
+            are_equal(MAYBE(1), pipe |> first())
+            are_equal("2, 3, 4, 5", pipe |> join(", "))
+
+            // That pass ran to the end, so the next one starts over.
+            are_equal("1, 2, 3, 4, 5", pipe |> join(", "))
+        si
+
+        @Test()
+        Iterator_IsAlwaysThePipeItself() is
+            let pipe = [1, 2, 3] |> map(x => x)
+
+            are_same(pipe, pipe.iterator)
+
+            while pipe.move_next() do
+            od
+
+            are_same(pipe, pipe.iterator)
+        si
+
+        @Test()
+        BoundedStage_ReachingItsCount_RewindsTheChainBelowIt() is
+            let inner = ["alpha", "beta", "gamma"] |> filter(line => true)
+
+            let pipe = inner |> take(2)
+
+            are_equal("alpha beta", pipe |> join(" "))
+            are_equal("alpha beta", pipe |> join(" "))
+
+            // The rewind reached `inner` in place, so it starts over too.
+            are_equal("alpha beta gamma", inner |> join(" "))
+        si
+
+        @Test()
+        BoundedStage_RebuiltOverALivePipe_StartsOverToo() is
+            let source = COUNTING_SOURCE[int]([1, 2, 3, 4, 5])
+
+            are_equal("1, 2", source |> take(2) |> join(", "))
+            are_equal("1, 2", source |> take(2) |> join(", "))
+        si
+
+        @Test()
+        Take_PullsOnlyWhatItYields() is
+            let source = COUNTING_SOURCE[int]([1, 2, 3, 4, 5])
+
+            are_equal("1, 2", source |> take(2) |> join(", "))
+            are_equal(2, source.handed_out)
+        si
+
+        @Test()
+        EveryStage_StartsOverWithTheChain() is
+            let pipe = [1, 2, 3, 4, 5] |> skip(1) |> take(3) |> index(10)
+
+            are_equal("(10,2), (11,3), (12,4)", pipe |> join(", "))
+            are_equal("(10,2), (11,3), (12,4)", pipe |> join(", "))
+        si
+
+        // A source that rewinds itself when it runs out must not be read
+        // again by the stage above it on the pull that exhausted it: a
+        // short final chunk ends the pass rather than wrapping around.
+        @Test()
+        Chunk_OverAPipeSource_EndsAfterTheShortChunk() is
+            let pipe = [1, 2, 3, 4, 5] |> filter(x => true) |> chunk(2)
+
+            are_equal("[1, 2], [3, 4], [5]", pipe |> map(c => "[{c |> join(", ")}]") |> join(", "))
+            are_equal("[1, 2], [3, 4], [5]", pipe |> map(c => "[{c |> join(", ")}]") |> join(", "))
+        si
+
+        @Test()
+        Reset_RewindsInPlace() is
+            let pipe = [1, 2, 3] |> map(x => x)
+
+            is_true(pipe.move_next())
+            is_true(pipe.move_next())
+
+            pipe.reset()
+
+            are_equal("1, 2, 3", pipe |> join(", "))
+        si
+
+        @Test()
+        Reset_RewindsEveryStageBackToTheSource() is
+            let source = stream(1, (s: int) => if s > 5 then STREAM.DONE[int, int]() else s || s + 1 fi)
+            let pipe = source |> filter(x => x % 2 == 1) |> map(x => x * 10)
+
+            is_true(pipe.move_next())
+            is_true(pipe.move_next())
+
+            pipe.reset()
+
+            are_equal("10, 30, 50", pipe |> join(", "))
+        si
+
+        @Test()
+        Dispose_ReleasesEveryHeldSourceIterator() is
+            let left = DISPOSAL_SOURCE([1, 2, 3])
+            let right = DISPOSAL_SOURCE([4, 5])
+
+            let pipe = left |> map(x => x) |> filter(x => true) |> cat(right |> take(1))
+
+            is_true(pipe.move_next())
+
+            are_equal(0, left.disposed)
+            are_equal(0, right.disposed)
+
+            pipe.dispose()
+
+            are_equal(1, left.disposed)
+            are_equal(1, right.disposed)
+        si
+
+        @Test()
+        Rewind_DisposesNothing() is
+            let source = DISPOSAL_SOURCE([1, 2, 3])
+
+            let pipe = source |> map(x => x)
+
+            are_equal(3, pipe |> count())
+            are_equal(3, pipe |> count())
+
+            are_equal(0, source.disposed)
+        si
+
+        @Test()
+        ExhaustedPipeOverADotNetSource_PlaysAgain() is
+            let path = write_lines_file()
+
+            let pipe = File.read_lines(path) |> map(line => "<{line}>")
+
+            are_equal("<alpha> <beta> <gamma>", pipe |> join(" "))
+            are_equal("<alpha> <beta> <gamma>", pipe |> join(" "))
+        si
+
+        @Test()
+        PartiallyWalkedPipeOverADotNetSource_CarriesOnThenPlaysAgain() is
+            let path = write_lines_file()
+
+            let pipe = File.read_lines(path) |> map(line => line)
+
+            are_equal(MAYBE("alpha"), pipe |> first())
+            are_equal("beta gamma", pipe |> join(" "))
+            are_equal("alpha beta gamma", pipe |> join(" "))
+        si
+
+        @Test()
+        SortOverADotNetSource_LeavesNothingSpent() is
+            let path = write_lines_file()
+
+            let sorted = File.read_lines(path) |> sort()
+
+            are_equal("alpha beta gamma", sorted |> join(" "))
+        si
+
+        @Test()
+        Cursor_CarriesOnFromWhereTheLastConsumerStopped() is
+            let source = ["alpha", "beta", "gamma"]
+
+            let cursor = source.iterator |> cursor()
+
+            are_equal(MAYBE("alpha"), cursor |> first())
+            are_equal("beta gamma", cursor |> join(" "))
+
+            // A bare iterator has nothing to rewind from, so the shared
+            // cursor stays spent rather than starting over.
+            are_equal("", cursor |> join(" "))
+        si
+    si
+si

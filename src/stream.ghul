@@ -20,9 +20,7 @@ namespace Ghul.Pipes is
     // surface. Each `move_next` calls `advance(_state)`; the result is
     // either `DONE` (sequence over) or `YIELD(value, next_state)` —
     // the yielded element and the state to feed into the next call.
-    // `reset()` reinstates the initial state so re-iterating
-    // combinators (`has`, `sort`, `only`, `append_to`, …) work against
-    // a stream-backed pipe.
+    // `reset()` reinstates the initial state.
     //
     // The mutable state cursor lives on the class; the user's
     // `advance` is a pure `S -> STREAM[T, S]` — no recursion, no

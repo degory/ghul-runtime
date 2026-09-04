@@ -6,20 +6,22 @@ namespace Ghul.Pipes is
 
         current: LIST[T]
 
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         _size: int
 
         // Set when the source signals exhaustion partway through a chunk.
-        // The source resets itself at that point, so asking it again would
-        // start pulling from the beginning; this pipe ends the pass on its
-        // own instead.
+        // The source rewinds itself at that point, so asking it again
+        // would start pulling from the beginning; this pipe ends the pass
+        // on its own instead.
         _done: bool
 
-        init(iterator: Iterator[T], size: int) is
+        init(source: Iterable[T], size: int) is
             assert size > 0 else "chunk size must be positive"
 
-            _iterator = iterator
+            _source = source
+            _iterator = source.iterator
             _size = size
             _done = false
         si
@@ -53,13 +55,12 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
             _done = false
         si
 
         to_string() -> string => Ghul.Pipes.join(self)
 
-        dispose() is
-        si
+        dispose() => _iterator.dispose()
     si
 si

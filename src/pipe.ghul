@@ -6,9 +6,28 @@ namespace Ghul.Pipes is
 
     use Collections
 
-    // FIXME: should dispose of all enumerators - ideally somehow check if they really need disposing
-    // and so only pay cost of try/finally handler if genuinely needed. For now, in practice, none
-    // of the enumerators we want to use actually have any non-managed state that needs to be disposed
+    // A pipe is a cursor over its source that rewinds itself at its end:
+    // driven part way it carries on from wherever the last consumer
+    // stopped, whoever that consumer was, and once it has run out the
+    // next pull starts it over. A rewind takes a fresh iterator from a
+    // plain source and rewinds a pipe source in place, so every holder
+    // of that pipe sees it start over too. Nothing ever calls `reset()`
+    // on a .NET enumerator: they are permitted to reject it, and
+    // compiler-generated ones must.
+
+    // A fresh cursor over `source` to replace `cursor`, which a stage took
+    // from it earlier. A pipe cursor is rewound in place, which rewinds
+    // whatever it draws from in turn. Any other iterator is dropped for a
+    // fresh one, the one restart every iterable owes.
+    rewind[T](source: Iterable[T], cursor: Iterator[T]) -> Iterator[T] is
+        if isa Pipe[T](cursor) then
+            cursor.reset()
+
+            return cursor
+        fi
+
+        return source.iterator
+    si
 
     // Lift an `Iterable[T]` (any producer with a `.iterator` —
     // includes any existing `Pipe[T]`, which is short-circuited via

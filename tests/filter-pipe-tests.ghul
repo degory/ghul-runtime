@@ -84,7 +84,7 @@ namespace Tests is
         Count_AlwaysTruePredicate_ReturnsElementCount() is
             let input = ["a", "b", "c", "d"]
 
-            let pipe = FilterPipe[string](input.iterator, (e: string) => true)
+            let pipe = FilterPipe[string](input, (e: string) => true)
 
             are_equal(4, pipe |> count())
         si
@@ -93,7 +93,7 @@ namespace Tests is
         Count_EmptyList_ReturnsZero() is
             let input = empty`[int]()
 
-            let pipe = FilterPipe[int](input.iterator, (e: int) => true)
+            let pipe = FilterPipe[int](input, (e: int) => true)
 
             are_equal(0, pipe |> count())
         si
@@ -102,7 +102,7 @@ namespace Tests is
         Iterator_ReturnsSelf() is
             let input = ["a", "b", "c"]
 
-            let pipe = FilterPipe[string](input.iterator, (e: string) => true)
+            let pipe = FilterPipe[string](input, (e: string) => true)
 
             are_same(pipe, pipe.iterator)
         si
@@ -111,7 +111,7 @@ namespace Tests is
         Iterator_AlwaysTruePredicate_ResultEqualsInput() is
             let input = ["a", "b", "c"]
 
-            let pipe = FilterPipe[string](input.iterator, (e: string) => true)
+            let pipe = FilterPipe[string](input, (e: string) => true)
 
             assert_are_equal(["a", "b", "c"], pipe)
         si

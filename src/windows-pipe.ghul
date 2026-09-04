@@ -6,16 +6,18 @@ namespace Ghul.Pipes is
 
         current: LIST[T]
 
+        _source: Iterable[T]
         _iterator: Iterator[T]
 
         _size: int
 
         _buffer: LIST[T]
 
-        init(iterator: Iterator[T], size: int) is
+        init(source: Iterable[T], size: int) is
             assert size > 0 else "window size must be positive"
 
-            _iterator = iterator
+            _source = source
+            _iterator = source.iterator
             _size = size
             _buffer = LIST[T]()
         si
@@ -39,13 +41,12 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator.reset()
+            _iterator = rewind(_source, _iterator)
             _buffer = LIST[T]()
         si
 
         to_string() -> string => Ghul.Pipes.join(self)
 
-        dispose() is
-        si
+        dispose() => _iterator.dispose()
     si
 si

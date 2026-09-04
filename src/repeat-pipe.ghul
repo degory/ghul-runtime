@@ -24,8 +24,6 @@ namespace Ghul.Pipes is
             fi
 
             if _remaining == 0 then
-                // Exhausting resets, as every other pipe does, so a second
-                // pass over the same value reads the same elements.
                 reset()
 
                 return false
