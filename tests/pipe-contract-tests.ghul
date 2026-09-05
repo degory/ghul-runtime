@@ -12,6 +12,22 @@ namespace Tests is
 
     use Ghul.Pipes
 
+    // An iterable that counts how many iterators it has handed out.
+    class ITERATOR_COUNTING_SOURCE: Iterable[int] is
+        _values: int[]
+        handed_out: int public
+
+        init(values: int[]) is
+            _values = values
+        si
+
+        iterator: Iterator[int] is
+            handed_out = handed_out + 1
+
+            return _values.iterator
+        si
+    si
+
     // An iterable that counts how many of the iterators it has handed
     // out have been disposed.
     class DISPOSAL_SOURCE: Iterable[int] is
@@ -172,6 +188,46 @@ namespace Tests is
             are_equal("[1, 2], [3, 4], [5]", pipe |> map(c => "[{c |> join(", ")}]") |> join(", "))
         si
 
+        // Running out releases the spent iterator and takes nothing from
+        // the source: the fresh iterator is fetched by the next pull.
+        @Test()
+        Rewind_TakesNoIteratorUntilTheNextPull() is
+            let source = ITERATOR_COUNTING_SOURCE([1, 2, 3])
+            let pipe = source |> map(x => x)
+
+            are_equal(1, source.handed_out)
+
+            while pipe.move_next() do
+            od
+
+            are_equal(1, source.handed_out)
+
+            pipe.reset()
+
+            are_equal(1, source.handed_out)
+
+            is_true(pipe.move_next())
+            are_equal(1, pipe.current)
+            are_equal(2, source.handed_out)
+
+            while pipe.move_next() do
+            od
+
+            are_equal(2, source.handed_out)
+        si
+
+        @Test()
+        Rewind_ReachesEveryStageAndFetchesOncePerPass() is
+            let source = ITERATOR_COUNTING_SOURCE([1, 2, 3, 4])
+            let pipe = source |> filter(x => x % 2 == 0) |> map(x => x * 10) |> take(1)
+
+            are_equal("20", pipe |> join(", "))
+            are_equal("20", pipe |> join(", "))
+            are_equal("20", pipe |> join(", "))
+
+            are_equal(3, source.handed_out)
+        si
+
         @Test()
         Reset_RewindsInPlace() is
             let pipe = [1, 2, 3] |> map(x => x)
@@ -215,16 +271,19 @@ namespace Tests is
             are_equal(1, right.disposed)
         si
 
+        // The spent iterator is released at the rewind - nothing can read
+        // it again - and the next pass takes a fresh one.
         @Test()
-        Rewind_DisposesNothing() is
+        Rewind_ReleasesTheSpentIterator() is
             let source = DISPOSAL_SOURCE([1, 2, 3])
 
             let pipe = source |> map(x => x)
 
             are_equal(3, pipe |> count())
-            are_equal(3, pipe |> count())
+            are_equal(1, source.disposed)
 
-            are_equal(0, source.disposed)
+            are_equal(3, pipe |> count())
+            are_equal(2, source.disposed)
         si
 
         @Test()

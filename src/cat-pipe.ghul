@@ -6,6 +6,8 @@ namespace Ghul.Pipes is
         _right_source: Iterable[T]
         _left: Iterator[T]
         _right: Iterator[T]
+        _left_pending: PENDING_CURSOR[T]?
+        _right_pending: PENDING_CURSOR[T]?
 
         _take_from_left: bool
 
@@ -46,10 +48,34 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _left = rewind(_left_source, _left)
-            _right = rewind(_right_source, _right)
+            _left = rewind(_left, left_pending())
+            _right = rewind(_right, right_pending())
 
             _take_from_left = true
+        si
+
+        left_pending() -> PENDING_CURSOR[T] is
+            if let p = _left_pending then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[T](_left_source, (it: Iterator[T]) is _left = it si)
+
+            _left_pending = p
+
+            return p
+        si
+
+        right_pending() -> PENDING_CURSOR[T] is
+            if let p = _right_pending then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[T](_right_source, (it: Iterator[T]) is _right = it si)
+
+            _right_pending = p
+
+            return p
         si
 
         to_string() -> string => Ghul.Pipes.join(self)

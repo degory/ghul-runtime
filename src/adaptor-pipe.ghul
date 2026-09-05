@@ -4,6 +4,7 @@ namespace Ghul.Pipes is
     class ADAPTOR_PIPE[T]: Pipe[T] is
         _source: Iterable[T]
         _iterator: Iterator[T]
+        _pending: PENDING_CURSOR[T]?
 
         init(iterable: Iterable[T]) is
             assert iterable?
@@ -27,7 +28,19 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator = rewind(_source, _iterator)
+            _iterator = rewind(_iterator, pending())
+        si
+
+        pending() -> PENDING_CURSOR[T] is
+            if let p = _pending then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
+
+            _pending = p
+
+            return p
         si
 
         to_string() -> string => Ghul.Pipes.join(self)

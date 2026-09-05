@@ -8,6 +8,7 @@ namespace Ghul.Pipes is
 
         _source: Iterable[TFrom]
         _iterator: Iterator[TFrom]
+        _pending: PENDING_CURSOR[TFrom]?
 
         _mapper: (TFrom) -> TTo
 
@@ -29,7 +30,19 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator = rewind(_source, _iterator)
+            _iterator = rewind(_iterator, pending())
+        si
+
+        pending() -> PENDING_CURSOR[TFrom] is
+            if let p = _pending then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[TFrom](_source, (it: Iterator[TFrom]) is _iterator = it si)
+
+            _pending = p
+
+            return p
         si
 
         to_string() -> string => Ghul.Pipes.join(self)
