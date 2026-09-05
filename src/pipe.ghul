@@ -9,24 +9,60 @@ namespace Ghul.Pipes is
     // A pipe is a cursor over its source that rewinds itself at its end:
     // driven part way it carries on from wherever the last consumer
     // stopped, whoever that consumer was, and once it has run out the
-    // next pull starts it over. A rewind takes a fresh iterator from a
-    // plain source and rewinds a pipe source in place, so every holder
-    // of that pipe sees it start over too. Nothing ever calls `reset()`
-    // on a .NET enumerator: they are permitted to reject it, and
-    // compiler-generated ones must.
+    // next pull starts it over. A pipe source is rewound in place, so
+    // every holder of that pipe sees it start over too. Nothing ever
+    // calls `reset()` on a .NET enumerator - they are permitted to reject
+    // it, and compiler-generated ones must - and none is fetched on the
+    // rewind itself: the spent one is released and a fresh one is taken
+    // from the source only when something next pulls.
 
-    // A fresh cursor over `source` to replace `cursor`, which a stage took
-    // from it earlier. A pipe cursor is rewound in place, which rewinds
-    // whatever it draws from in turn. Any other iterator is dropped for a
-    // fresh one, the one restart every iterable owes.
-    rewind[T](source: Iterable[T], cursor: Iterator[T]) -> Iterator[T] is
+    // Stands in for a stage's cursor between the end of one pass and the
+    // first pull of the next. That pull takes a fresh iterator from the
+    // source, installs it as the stage's cursor so every later pull goes
+    // straight to it, and forwards itself. One per stage, made the first
+    // time the stage runs out and kept for every rewind after.
+    class PENDING_CURSOR[T]: Iterator[T] is
+        _source: Iterable[T]
+        _install: (Iterator[T]) -> void
+
+        init(source: Iterable[T], install: (Iterator[T]) -> void) is
+            _source = source
+            _install = install
+        si
+
+        current: T => throw InvalidOperationException("no current element")
+
+        move_next() -> bool is
+            let it = _source.iterator
+
+            _install(it)
+
+            return it.move_next()
+        si
+
+        reset() is
+        si
+
+        dispose() is
+        si
+    si
+
+    // Rewind a stage's cursor at the end of a pass. A pipe is rewound in
+    // place, which rewinds whatever it draws from in turn, and stays the
+    // cursor. Any other iterator is released, and `pending` takes its
+    // place until the next pull.
+    rewind[T](cursor: Iterator[T], pending: PENDING_CURSOR[T]) -> Iterator[T] is
         if isa Pipe[T](cursor) then
             cursor.reset()
 
             return cursor
         fi
 
-        return source.iterator
+        if cursor != pending then
+            cursor.dispose()
+        fi
+
+        return pending
     si
 
     // Lift an `Iterable[T]` (any producer with a `.iterator` —

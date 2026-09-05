@@ -6,6 +6,8 @@ namespace Ghul.Pipes is
         _source_2: Iterable[T2]
         _iterator_1: Iterator[T1]
         _iterator_2: Iterator[T2]
+        _pending_1: PENDING_CURSOR[T1]?
+        _pending_2: PENDING_CURSOR[T2]?
         _mapper: (T1, T2) -> TOut
 
         _current: TOut
@@ -34,13 +36,37 @@ namespace Ghul.Pipes is
         si
 
         reset() is
-            _iterator_1 = rewind(_source_1, _iterator_1)
-            _iterator_2 = rewind(_source_2, _iterator_2)
+            _iterator_1 = rewind(_iterator_1, pending_1())
+            _iterator_2 = rewind(_iterator_2, pending_2())
         si
 
         dispose() is
             _iterator_1.dispose()
             _iterator_2.dispose()
+        si
+
+        pending_1() -> PENDING_CURSOR[T1] is
+            if let p = _pending_1 then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[T1](_source_1, (it: Iterator[T1]) is _iterator_1 = it si)
+
+            _pending_1 = p
+
+            return p
+        si
+
+        pending_2() -> PENDING_CURSOR[T2] is
+            if let p = _pending_2 then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[T2](_source_2, (it: Iterator[T2]) is _iterator_2 = it si)
+
+            _pending_2 = p
+
+            return p
         si
 
         to_string() -> string => Ghul.Pipes.join(self)

@@ -4,6 +4,7 @@ namespace Ghul.Pipes is
     class FilterPipeBase[T]: Pipe[T] is
         _source: Iterable[T]
         _iterator: Iterator[T]
+        _pending: PENDING_CURSOR[T]?
 
         iterator: Iterator[T] => self
 
@@ -45,7 +46,19 @@ namespace Ghul.Pipes is
         should_include() -> bool
 
         reset() is
-            _iterator = rewind(_source, _iterator)
+            _iterator = rewind(_iterator, pending())
+        si
+
+        pending() -> PENDING_CURSOR[T] is
+            if let p = _pending then
+                return p
+            fi
+
+            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
+
+            _pending = p
+
+            return p
         si
 
         to_string() -> string => Ghul.Pipes.join(self)
