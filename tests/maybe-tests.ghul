@@ -131,5 +131,170 @@ namespace Tests is
             is_false(has_value)
             are_equal(0, value)
         si
+
+        @Test()
+        Maybe_Present_EqualsAnotherPresentWithTheSameValue() is
+            is_true(MAYBE[int](42) =~ MAYBE[int](42))
+            is_false(MAYBE[int](42) =~ MAYBE[int](43))
+        si
+
+        @Test()
+        Maybe_Absent_EqualsAnotherAbsent() is
+            is_true(MAYBE[int]() =~ MAYBE[int]())
+        si
+
+        @Test()
+        Maybe_PresentAndAbsent_AreNotEqual() is
+            is_false(MAYBE[int](42) =~ MAYBE[int]())
+            is_false(MAYBE[int]() =~ MAYBE[int](42))
+        si
+
+        @Test()
+        Maybe_Present_ComparesItsValueByEquality() is
+            // Reference identity would answer false: the two strings are
+            // equal by content and are not the same object.
+            is_true(MAYBE[string]("value") =~ MAYBE[string]("{"val"}{"ue"}"))
+        si
+
+        @Test()
+        Maybe_Present_ComparesAClassByItsOwnOperator() is
+            is_true(MAYBE[BOXED](BOXED(1)) =~ MAYBE[BOXED](BOXED(1)))
+            is_false(MAYBE[BOXED](BOXED(1)) =~ MAYBE[BOXED](BOXED(2)))
+        si
+
+        @Test()
+        Maybe_Present_ComparesAClassWithoutAnOperatorByIdentity() is
+            let shared = PLAIN()
+
+            is_true(MAYBE[PLAIN](shared) =~ MAYBE[PLAIN](shared))
+            is_false(MAYBE[PLAIN](PLAIN()) =~ MAYBE[PLAIN](PLAIN()))
+        si
+
+        @Test()
+        Maybe_Present_ComparesATuple() is
+            is_true(MAYBE[(int, string)]((1, "a")) =~ MAYBE[(int, string)]((1, "a")))
+            is_false(MAYBE[(int, string)]((1, "a")) =~ MAYBE[(int, string)]((2, "a")))
+        si
+
+        @Test()
+        Maybe_Nested_Compares() is
+            is_true(MAYBE[MAYBE[int]](MAYBE[int](1)) =~ MAYBE[MAYBE[int]](MAYBE[int](1)))
+            is_false(MAYBE[MAYBE[int]](MAYBE[int](1)) =~ MAYBE[MAYBE[int]](MAYBE[int]()))
+        si
+
+        @Test()
+        Maybe_EqualValues_HaveEqualHashCodes() is
+            are_equal(MAYBE[int](42).get_hash_code(), MAYBE[int](42).get_hash_code())
+            are_equal(MAYBE[string]("value").get_hash_code(), MAYBE[string]("{"val"}{"ue"}").get_hash_code())
+            are_equal(MAYBE[int]().get_hash_code(), MAYBE[int]().get_hash_code())
+        si
+
+        @Test()
+        Maybe_Absent_HashesAsZero() is
+            are_equal(0, MAYBE[int]().get_hash_code())
+            are_equal(0, MAYBE[string]().get_hash_code())
+        si
+
+        @Test()
+        Maybe_Absent_HashesWithoutReadingItsValue() is
+            // `value` throws when absent, so a hash that read it would too.
+            are_equal(0, MAYBE[PLAIN]().get_hash_code())
+        si
+
+        @Test()
+        Maybe_IsUsableAsADictionaryKey() is
+            let counts = MAP[MAYBE[int], string]()
+
+            counts[MAYBE[int](1)] = "one"
+            counts[MAYBE[int]()] = "none"
+
+            are_equal("one", counts[MAYBE[int](1)])
+            are_equal("none", counts[MAYBE[int]()])
+            is_false(counts.contains_key(MAYBE[int](2)))
+        si
+
+        @Test()
+        Maybe_ComparesThroughTheDefaultEqualityComparer() is
+            // The route generic code reaches, including `=~` on an
+            // unconstrained type parameter.
+            let comparer = Collections.EqualityComparer[MAYBE[int]].`default
+
+            is_true(comparer.equals(MAYBE[int](1), MAYBE[int](1)))
+            is_false(comparer.equals(MAYBE[int](1), MAYBE[int](2)))
+            is_true(comparer.equals(MAYBE[int](), MAYBE[int]()))
+        si
+
+        @Test()
+        OptionalOfAnUnconstrainedTypeParameter_StillComparesByPresenceAndValue() is
+            // `T?` over an unconstrained `T` is carried by MAYBE, so this is
+            // the path the operator must leave alone.
+            is_true(compare_optionals[int](wrap(1), wrap(1)))
+            is_false(compare_optionals[int](wrap(1), wrap(2)))
+            is_true(compare_optionals[int](absent[int](), absent[int]()))
+            is_false(compare_optionals[int](wrap(1), absent[int]()))
+            is_true(compare_optionals[string](wrap("value"), wrap("{"val"}{"ue"}")))
+        si
+
+        @Test()
+        Maybe_Present_ComparesAStructWithoutAnOperatorFieldwise() is
+            is_true(MAYBE[PAIR](PAIR(1, 2)) =~ MAYBE[PAIR](PAIR(1, 2)))
+            is_false(MAYBE[PAIR](PAIR(1, 2)) =~ MAYBE[PAIR](PAIR(2, 1)))
+        si
+
+        @Test()
+        Maybe_Present_ComparesAUnion() is
+            is_true(MAYBE[Shape](Shape.DOT()) =~ MAYBE[Shape](Shape.DOT()))
+            is_true(MAYBE[Shape](Shape.LINE(3)) =~ MAYBE[Shape](Shape.LINE(3)))
+            is_false(MAYBE[Shape](Shape.LINE(3)) =~ MAYBE[Shape](Shape.LINE(4)))
+            is_false(MAYBE[Shape](Shape.DOT()) =~ MAYBE[Shape](Shape.LINE(3)))
+        si
+
+        @Test()
+        Maybe_Present_ComparesAnEnum() is
+            is_true(MAYBE[Suit](Suit.HEARTS) =~ MAYBE[Suit](Suit.HEARTS))
+            is_false(MAYBE[Suit](Suit.HEARTS) =~ MAYBE[Suit](Suit.SPADES))
+        si
+
+        @Test()
+        Maybe_OfAnOptionalReference_ComparesWithoutDereferencing() is
+            is_true(MAYBE[string?]("value") =~ MAYBE[string?]("{"val"}{"ue"}"))
+            is_true(MAYBE[string?](null) =~ MAYBE[string?](null))
+            is_false(MAYBE[string?](null) =~ MAYBE[string?]("value"))
+            are_equal(0, MAYBE[string?](null).get_hash_code())
+        si
+
+        compare_optionals[T](a: T?, b: T?) -> bool => a =~ b
+
+        wrap[T](value: T) -> T? => value
+
+        absent[T]() -> T? => null
+    si
+
+    struct PAIR(a: int, b: int);
+
+    enum Suit is
+        HEARTS,
+        SPADES,
+    si
+
+    union Shape is
+        DOT;
+        LINE(length: int);
+    si
+
+    class PLAIN is
+        init() is si
+    si
+
+    class BOXED is
+        _value: int
+
+        init(value: int) is
+            _value = value
+        si
+
+        =~(other: BOXED) -> bool pure => _value == other._value
+
+        get_hash_code() -> int pure => _value
     si
 si

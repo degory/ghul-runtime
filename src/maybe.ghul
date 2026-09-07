@@ -19,6 +19,28 @@ namespace Ghul is
                 throw System.InvalidOperationException("maybe has no value")
             fi
 
+        =~(other: MAYBE[T]) -> bool pure is
+            if _has_value != other._has_value then
+                return false
+            fi
+
+            if !_has_value then
+                return true
+            fi
+
+            _value =~ other._value
+        si
+
+        // Absent hashes as zero, as `Nullable[T]` does. The comparer rather
+        // than `_value.get_hash_code()` because `T` is unconstrained and can
+        // be an optional reference, so a present value can still be null.
+        get_hash_code() -> int pure =>
+            if _has_value then
+                Collections.EqualityComparer[T].`default.get_hash_code(_value)
+            else
+                0
+            fi
+
         deconstruct(has_value: bool ref, value: T ref) is
             has_value! = _has_value
             value! = _value
