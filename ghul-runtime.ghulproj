@@ -42,10 +42,10 @@
 
     <GhulSources Include="src/**/*.ghul" />
 
-    <!-- Terminator-free sources; error on CI so stray `;` cannot creep
-         back in, warning locally. -->
+    <!-- Terminator-free sources; an error so a stray `;` cannot creep
+         back in. -->
     <GhulOptions Include="--warn redundant-semicolon" />
-    <GhulOptions Include="--warn-as-error redundant-semicolon" Condition="'$(CI)' != ''" />
+    <GhulOptions Include="--warn-as-error redundant-semicolon" />
 
     <Content Include="build\ghul.runtime.targets" PackagePath="\build">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
