@@ -270,7 +270,7 @@ namespace Tests is
         absent[T]() -> T? => null
     si
 
-    struct PAIR(a: int, b: int);
+    struct PAIR(a: int, b: int)
 
     enum Suit is
         HEARTS,
@@ -278,8 +278,8 @@ namespace Tests is
     si
 
     union Shape is
-        DOT;
-        LINE(length: int);
+        DOT
+        LINE(length: int)
     si
 
     class PLAIN is
