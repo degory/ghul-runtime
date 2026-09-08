@@ -1,0 +1,25 @@
+namespace Ghul.Internal is
+    use System
+
+    // Marker attribute emitted by the compiler on a parameter whose
+    // declared type carries the argument-pack marker - `f: T.. -> U`.
+    // The parameter's own type says only that it takes the tuple the
+    // pack binds to, so without this marker a caller in another
+    // assembly has nothing to tell it that a function of as many
+    // parameters as the call supplies belongs there instead.
+    // Compiler-emitted; not user-facing.
+    class ARGUMENT_PACK_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+
+    // Marker attribute emitted by the compiler on the parameter that
+    // absorbs a call's remaining arguments into the pack's tuple -
+    // `v: T..`. Read on cross-assembly import so that a caller can
+    // write the arguments out rather than assembling the tuple.
+    // Compiler-emitted; not user-facing.
+    class ARGUMENT_SPREAD_ATTRIBUTE: Attribute is
+        init() is
+        si
+    si
+si
