@@ -9,7 +9,20 @@ namespace Ghul.Internal is
     // parameters as the call supplies belongs there instead.
     // Compiler-emitted; not user-facing.
     class ARGUMENT_PACK_ATTRIBUTE: Attribute is
+        // How many returns into the parameter's own type the marked
+        // function type sits, since the marker can be written past the
+        // outermost one - `f: X -> T.. -> U` asks for the N-ary
+        // function the caller's own lambda returns. Zero is the
+        // parameter's own type, which is what the argumentless form
+        // means.
+        depth: int
+
         init() is
+            depth = 0
+        si
+
+        init(depth: int) is
+            self.depth = depth
         si
     si
 
