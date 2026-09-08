@@ -56,5 +56,136 @@ namespace Tests is
         Map_OverScalars_IsUnchanged() is
             assert_are_equal([2, 4, 6], [1, 2, 3] |> map(n => n * 2))
         si
+
+        @Test()
+        Any_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            is_true(pairs |> any((n, s) => n == 2 /\ s == "b"))
+        si
+
+        @Test()
+        All_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            is_true(pairs |> all((n, s) => n > 0 /\ s.length == 1))
+        si
+
+        @Test()
+        Find_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            are_equal((2, "b"), (pairs |> find((n, s) => n == 2))!)
+        si
+
+        @Test()
+        FindMap_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            are_equal("b", (pairs |> find_map((n, s) => if n == 2 then MAYBE(s) else MAYBE[string]() fi))!)
+        si
+
+        @Test()
+        FindMapOrThrow_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            are_equal("b", pairs |> find_map_or_throw((n, s) => if n == 2 then MAYBE(s) else MAYBE[string]() fi))
+        si
+
+        @Test()
+        FirstMap_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            are_equal("a", (pairs |> first_map((n, s) => MAYBE(s)))!)
+        si
+
+        @Test()
+        FirstMapOrThrow_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            are_equal("a", pairs |> first_map_or_throw((n, s) => MAYBE(s)))
+        si
+
+        @Test()
+        TakeWhile_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b"), (3, "c")]
+
+            assert_are_equal([(1, "a"), (2, "b")], pairs |> take_while((n, s) => n < 3))
+        si
+
+        @Test()
+        SkipWhile_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b"), (3, "c")]
+
+            assert_are_equal([(3, "c")], pairs |> skip_while((n, s) => n < 3))
+        si
+
+        @Test()
+        Peek_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+            let seen = LIST[string]()
+
+            pairs |> peek((n, s) => seen.add("{n}{s}")) |> each(p is si)
+
+            assert_are_equal(["1a", "2b"], seen |> map(s => s))
+        si
+
+        @Test()
+        GroupBy_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (1, "b"), (2, "c")]
+
+            let groups = pairs |> group_by((n, s) => n)
+
+            assert_are_equal([(1, "a"), (1, "b")], groups[1] |> map(p => p))
+            assert_are_equal([(2, "c")], groups[2] |> map(p => p))
+        si
+
+        @Test()
+        SortBy_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(2, "b"), (1, "a")]
+
+            assert_are_equal([(1, "a"), (2, "b")], pairs |> sort_by((n, s) => n))
+        si
+
+        @Test()
+        SortByDescending_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            assert_are_equal([(2, "b"), (1, "a")], pairs |> sort_by_descending((n, s) => n))
+        si
+
+        @Test()
+        MinBy_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(2, "b"), (1, "a")]
+
+            are_equal((1, "a"), (pairs |> min_by((n, s) => n))!)
+        si
+
+        @Test()
+        MaxBy_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(2, "b"), (1, "a")]
+
+            are_equal((2, "b"), (pairs |> max_by((n, s) => n))!)
+        si
+
+        @Test()
+        Partition_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b"), (3, "c")]
+
+            let (matching, non_matching) = pairs |> partition((n, s) => n % 2 == 0)
+
+            assert_are_equal([(2, "b")], matching |> map(p => p))
+            assert_are_equal([(1, "a"), (3, "c")], non_matching |> map(p => p))
+        si
+
+        @Test()
+        CollectMap_OverTuples_TakesAnNaryCallbackOnBothSelectors() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            let result = pairs |> collect_map((n, s) => n, (n, s) => s)
+
+            are_equal("a", result[1])
+            are_equal("b", result[2])
+        si
     si
 si
