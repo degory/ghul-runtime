@@ -16,13 +16,13 @@ namespace Ghul.Pipes is
     // concrete adaptor class it builds, so the adaptor classes stay an
     // implementation detail invisible to a chain's static type.
 
-    filter[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
+    filter[T..](source: Iterable[T], predicate: T.. -> bool pure) -> Pipe[T] pure =>
         FilterPipe[T](source, predicate)
 
-    map[T,U](source: Iterable[T], mapper: (T) -> U pure) -> Pipe[U] pure =>
+    map[T..,U](source: Iterable[T], mapper: T.. -> U pure) -> Pipe[U] pure =>
         MAP_PIPE[T,U](source, mapper)
 
-    flat_map[T,U](source: Iterable[T], mapper: (T) -> Iterable[U] pure) -> Pipe[U] pure =>
+    flat_map[T..,U](source: Iterable[T], mapper: T.. -> Iterable[U] pure) -> Pipe[U] pure =>
         FLAT_MAP_PIPE[T,U](source, mapper)
 
     skip[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
@@ -380,7 +380,7 @@ namespace Ghul.Pipes is
         return true
     si
 
-    each[T](source: Iterable[T], action: T -> void) is
+    each[T..](source: Iterable[T], action: T.. -> void) is
         let it = source.iterator
 
         while it.move_next() do
