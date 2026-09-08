@@ -31,16 +31,16 @@ namespace Ghul.Pipes is
     take[T](source: Iterable[T], count: int) -> Pipe[T] pure =>
         TAKE_PIPE[T](source, count)
 
-    skip_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
+    skip_while[T..](source: Iterable[T], predicate: T.. -> bool pure) -> Pipe[T] pure =>
         SKIP_WHILE_PIPE[T](source, predicate)
 
-    take_while[T](source: Iterable[T], predicate: (T) -> bool pure) -> Pipe[T] pure =>
+    take_while[T..](source: Iterable[T], predicate: T.. -> bool pure) -> Pipe[T] pure =>
         TAKE_WHILE_PIPE[T](source, predicate)
 
     distinct[T](source: Iterable[T]) -> Pipe[T] pure =>
         DISTINCT_PIPE[T](source)
 
-    peek[T](source: Iterable[T], action: T -> void) -> Pipe[T] pure =>
+    peek[T..](source: Iterable[T], action: T.. -> void) -> Pipe[T] pure =>
         PEEK_PIPE[T](source, action)
 
     memo[T](source: Iterable[T]) -> Pipe[T] pure =>
@@ -122,7 +122,7 @@ namespace Ghul.Pipes is
         return result
     si
 
-    collect_map[T,K,V](source: Iterable[T], key_selector: (T) -> K pure, value_selector: (T) -> V pure) -> MAP[K,V] pure is
+    collect_map[T..,K,V](source: Iterable[T], key_selector: T.. -> K pure, value_selector: T.. -> V pure) -> MAP[K,V] pure is
         let result = MAP[K,V]()
 
         for element in source do
@@ -132,7 +132,7 @@ namespace Ghul.Pipes is
         return result
     si
 
-    partition[T](source: Iterable[T], predicate: (T) -> bool pure) -> (LIST[T], LIST[T]) pure is
+    partition[T..](source: Iterable[T], predicate: T.. -> bool pure) -> (LIST[T], LIST[T]) pure is
         let matching = LIST[T]()
         let non_matching = LIST[T]()
 
@@ -147,7 +147,7 @@ namespace Ghul.Pipes is
         return (matching, non_matching)
     si
 
-    group_by[T,K](source: Iterable[T], key_selector: (T) -> K pure) -> MAP[K, LIST[T]] pure is
+    group_by[T..,K](source: Iterable[T], key_selector: T.. -> K pure) -> MAP[K, LIST[T]] pure is
         let result = MAP[K, LIST[T]]()
 
         for element in source do
@@ -165,7 +165,7 @@ namespace Ghul.Pipes is
         return result
     si
 
-    min_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
+    min_by[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> MAYBE[T] pure is
         let it = source.iterator
 
         if it.move_next() then
@@ -187,7 +187,7 @@ namespace Ghul.Pipes is
         return MAYBE[T]()
     si
 
-    max_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> MAYBE[T] pure is
+    max_by[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> MAYBE[T] pure is
         let it = source.iterator
 
         if it.move_next() then
@@ -228,7 +228,7 @@ namespace Ghul.Pipes is
         return result
     si
 
-    find[T](source: Iterable[T], predicate: (T) -> bool pure) -> MAYBE[T] pure is
+    find[T..](source: Iterable[T], predicate: T.. -> bool pure) -> MAYBE[T] pure is
         let it = source.iterator
 
         while it.move_next() do
@@ -242,7 +242,7 @@ namespace Ghul.Pipes is
         return MAYBE[T]()
     si
 
-    find_map[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
+    find_map[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> MAYBE[U] pure is
         let it = source.iterator
 
         while it.move_next() do
@@ -271,7 +271,7 @@ namespace Ghul.Pipes is
         throw InvalidOperationException("no matching element found")
     si
 
-    find_map_or_throw[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> U pure is
+    find_map_or_throw[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> U pure is
         let it = source.iterator
 
         while it.move_next() do
@@ -296,7 +296,7 @@ namespace Ghul.Pipes is
         return MAYBE[T]()
     si
 
-    first_map[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> MAYBE[U] pure is
+    first_map[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> MAYBE[U] pure is
         let it = source.iterator
 
         if it.move_next() then
@@ -321,7 +321,7 @@ namespace Ghul.Pipes is
         throw InvalidOperationException("no element found")
     si
 
-    first_map_or_throw[T,U](source: Iterable[T], mapper: (T) -> MAYBE[U] pure) -> U pure is
+    first_map_or_throw[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> U pure is
         let it = source.iterator
 
         if it.move_next() then
@@ -352,7 +352,7 @@ namespace Ghul.Pipes is
         fi
     si
 
-    any[T](source: Iterable[T], predicate: (T) -> bool pure) -> bool pure is
+    any[T..](source: Iterable[T], predicate: T.. -> bool pure) -> bool pure is
         let it = source.iterator
 
         while it.move_next() do
@@ -366,7 +366,7 @@ namespace Ghul.Pipes is
         return false
     si
 
-    all[T](source: Iterable[T], predicate: (T) -> bool pure) -> bool pure is
+    all[T..](source: Iterable[T], predicate: T.. -> bool pure) -> bool pure is
         let it = source.iterator
 
         while it.move_next() do
@@ -425,10 +425,10 @@ namespace Ghul.Pipes is
         return LIST_REVERSE_PIPE(list)
     si
 
-    sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
+    sort_by[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> Pipe[T] pure =>
         _sort_by(source, key_selector, false)
 
-    sort_by_descending[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure) -> Pipe[T] pure =>
+    sort_by_descending[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> Pipe[T] pure =>
         _sort_by(source, key_selector, true)
 
     // Computes each element's key once (into `keyed`) rather than
