@@ -1,0 +1,60 @@
+namespace Tests is
+
+    use Collections
+
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    // The one-element combinators declare their callback against an
+    // argument pack, so a sequence of tuples takes a callback with one
+    // parameter per element as well as the single-parameter form.
+    @TestClass()
+    class ArgumentPackCombinatorsShould is
+        init() is
+        si
+
+        @Test()
+        Map_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            assert_are_equal(["1a", "2b"], pairs |> map((n, s) => "{n}{s}"))
+        si
+
+        @Test()
+        Map_OverTuples_StillTakesASingleParameterCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            assert_are_equal(["1a", "2b"], pairs |> map(p => "{p.`0}{p.`1}"))
+        si
+
+        @Test()
+        Filter_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b"), (3, "c")]
+
+            assert_are_equal([(1, "a"), (3, "c")], pairs |> filter((n, s) => n != 2))
+        si
+
+        @Test()
+        FlatMap_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+
+            assert_are_equal(["a", "a", "b", "b"], pairs |> flat_map((n, s) => LIST[string]([s, s])))
+        si
+
+        @Test()
+        Each_OverTuples_TakesAnNaryCallback() is
+            let pairs = [(1, "a"), (2, "b")]
+            let seen = LIST[string]()
+
+            pairs |> each((n, s) => seen.add("{n}{s}"))
+
+            assert_are_equal(["1a", "2b"], seen |> map(s => s))
+        si
+
+        @Test()
+        Map_OverScalars_IsUnchanged() is
+            assert_are_equal([2, 4, 6], [1, 2, 3] |> map(n => n * 2))
+        si
+    si
+si
