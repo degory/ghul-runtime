@@ -1,0 +1,134 @@
+namespace Tests is
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+    use Ghul.Pipes
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    @TestClass()
+    class RANGE_Should is
+        init() is si
+
+        @Test()
+        RANGE__dot_dot__over_char__yields_the_characters_up_to_the_end() is
+            assert_equal('a'..'e', ['a', 'b', 'c', 'd'])
+        si
+
+        @Test()
+        RANGE__dot_dot__over_ubyte__yields_from_zero() is
+            assert_equal(0ub..3ub, [0ub, 1ub, 2ub])
+        si
+
+        @Test()
+        RANGE__dot_dot__over_ulong__yields_from_zero() is
+            assert_equal(0ul..3ul, [0ul, 1ul, 2ul])
+        si
+
+        @Test()
+        RANGE__dot_dot__over_bigint__yields_the_integers_up_to_the_end() is
+            assert_equal(1n..4n, [1n, 2n, 3n])
+        si
+
+        @Test()
+        RANGE__dot_dot__given_an_empty_range__yields_nothing() is
+            are_equal(('e'..'a') |> count(), 0)
+        si
+
+        @Test()
+        RANGE__dot_dot__given_equal_bounds__yields_nothing() is
+            are_equal(('a'..'a') |> count(), 0)
+        si
+
+        @Test()
+        RANGE__reset__given_a_partly_read_range__starts_again() is
+            let range = 'a'..'e'
+
+            range |> take(2) |> count()
+            range.reset()
+
+            assert_equal(range, ['a', 'b', 'c', 'd'])
+        si
+
+        @Test()
+        RANGE__from__is_the_lower_bound() is
+            are_equal(('a'..'e').from, 'a')
+        si
+
+        @Test()
+        RANGE__to__is_the_upper_bound() is
+            are_equal(('a'..'e').to, 'e')
+        si
+
+        @Test()
+        RANGE__to_string__given_an_unread_range__is_the_bounds() is
+            are_equal("a..e", ('a'..'e').to_string())
+        si
+
+        @Test()
+        RANGE__to_string__given_a_partly_read_range__names_the_cursor() is
+            let range = 'a'..'e'
+
+            range.move_next()
+            range.move_next()
+
+            are_equal("a..e @ b", range.to_string())
+        si
+
+        @Test()
+        RANGE__dot_dot__over_int__still_constructs_an_INT_RANGE() is
+            are_equal("0..3", (0..3).to_string())
+        si
+    si
+
+    @TestClass()
+    class RANGE_INCLUSIVE_Should is
+        init() is si
+
+        @Test()
+        RANGE_INCLUSIVE__colon_colon__over_char__yields_both_endpoints() is
+            assert_equal('a'::'e', ['a', 'b', 'c', 'd', 'e'])
+        si
+
+        @Test()
+        RANGE_INCLUSIVE__colon_colon__over_bigint__yields_both_endpoints() is
+            assert_equal(1n::4n, [1n, 2n, 3n, 4n])
+        si
+
+        @Test()
+        RANGE_INCLUSIVE__colon_colon__given_equal_bounds__yields_one_element() is
+            assert_equal('a'::'a', ['a'])
+        si
+
+        @Test()
+        RANGE_INCLUSIVE__colon_colon__given_a_reversed_range__yields_nothing() is
+            are_equal(('e'::'a') |> count(), 0)
+        si
+
+        // The step is taken only once the cursor is known to be short of
+        // the end, so a range through the last value of its type ends
+        // rather than wrapping round to the first.
+        @Test()
+        RANGE_INCLUSIVE__colon_colon__through_the_largest_value__terminates() is
+            are_equal((253ub::255ub) |> count(), 3)
+        si
+
+        @Test()
+        RANGE_INCLUSIVE__reset__given_a_partly_read_range__starts_again() is
+            let range = 'a'::'e'
+
+            range |> take(2) |> count()
+            range.reset()
+
+            assert_equal(range, ['a', 'b', 'c', 'd', 'e'])
+        si
+
+        @Test()
+        RANGE_INCLUSIVE__to_string__given_an_unread_range__is_the_bounds() is
+            are_equal("a::e", ('a'::'e').to_string())
+        si
+
+        @Test()
+        RANGE_INCLUSIVE__colon_colon__over_int__still_constructs_an_INT_RANGE_INCLUSIVE() is
+            are_equal("0::3", (0::3).to_string())
+        si
+    si
+si
