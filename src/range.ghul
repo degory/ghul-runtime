@@ -1,0 +1,119 @@
+namespace Ghul is
+    use Collections
+    use System.Numerics.IBinaryInteger
+    use System.Numerics.IAdditionOperators.`+
+
+    // Ranges over any of the primitive integer types, over `char`, and
+    // over `bigint` - everything .NET's `IBinaryInteger[T]` covers. `int`
+    // keeps its own `INT_RANGE` and `INT_RANGE_INCLUSIVE`, which the
+    // compiler constructs directly from the two bounds, so an ordinary
+    // `1..5` never pays for the generic instantiation.
+    //
+    // The cursor is the element about to be yielded rather than the one
+    // before it: `from - 1` is not available on a type whose lowest value
+    // is where a range legitimately starts, and `char` and the unsigned
+    // types both have one.
+
+    struct RANGE[T: IBinaryInteger[T]]: Range[T], Iterable[T], Iterator[T], Resettable is
+        iterator: Iterator[T] => self
+
+        from: T
+        to: T
+
+        current: T
+
+        _started: bool field
+
+        init(from: T, to: T) is
+            self.from = from
+            self.to = to
+
+            current = from
+            _started = false
+        si
+
+        move_next() -> bool is
+            if _started then
+                current = current + T.one
+            else
+                _started = true
+            fi
+
+            return current < to
+        si
+
+        reset() is
+            current = from
+            _started = false
+        si
+
+        to_string() -> string =>
+            if _started then
+                "{from}..{to} @ {current}"
+            else
+                "{from}..{to}"
+            fi
+
+        dispose() is
+        si
+    si
+
+    struct RANGE_INCLUSIVE[T: IBinaryInteger[T]]: Range[T], Iterable[T], Iterator[T], Resettable is
+        iterator: Iterator[T] => self
+
+        from: T
+        to: T
+
+        current: T
+
+        _started: bool field
+
+        init(from: T, to: T) is
+            self.from = from
+            self.to = to
+
+            current = from
+            _started = false
+        si
+
+        // The last element is the largest value of `T` when `to` is, so
+        // the step is taken only once the cursor is known to be short of
+        // it. Incrementing first and comparing after would wrap round.
+        move_next() -> bool is
+            if !_started then
+                _started = true
+
+                return current <= to
+            fi
+
+            if current < to then
+                current = current + T.one
+
+                return true
+            fi
+
+            return false
+        si
+
+        reset() is
+            current = from
+            _started = false
+        si
+
+        to_string() -> string =>
+            if _started then
+                "{from}::{to} @ {current}"
+            else
+                "{from}::{to}"
+            fi
+
+        dispose() is
+        si
+    si
+
+    ..[T: IBinaryInteger[T]](from: T, to: T) -> RANGE[T] pure =>
+        RANGE[T](from, to)
+
+    ::[T: IBinaryInteger[T]](from: T, to: T) -> RANGE_INCLUSIVE[T] pure =>
+        RANGE_INCLUSIVE[T](from, to)
+si
