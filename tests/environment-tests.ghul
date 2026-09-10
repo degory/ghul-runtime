@@ -53,5 +53,92 @@ namespace Tests is
         Environment_Instance_IsTheSameObjectEveryTime() is
             are_same(Ghul.ENVIRONMENT.instance, Ghul.ENVIRONMENT.instance)
         si
+
+        // The whole point of the trait: an entry() function should be able
+        // to declare its parameter as Ghul.Environment rather than
+        // committing to the concrete ENVIRONMENT type. This assignment is
+        // exactly the cross-assembly case that motivated the trait - the
+        // tests project consumes ENVIRONMENT only through the compiled
+        // ghul-runtime package, never its source.
+        @Test()
+        Environment_AsTrait_ContainsKeyAndIndexerAgree() is
+            let env: Ghul.Environment = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "fourth"
+
+            is_true(env.contains_key(_probe_name))
+            are_equal("fourth", env[_probe_name])
+        si
+
+        @Test()
+        Environment_AsTrait_RemoveUnsetsAndReportsWhetherItWasPresent() is
+            let env: Ghul.Environment = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "fifth"
+
+            is_true(env.remove(_probe_name))
+            is_false(env.contains_key(_probe_name))
+            is_false(env.remove(_probe_name))
+        si
+
+        @Test()
+        Environment_AsTrait_IterationFindsAWrittenVariable() is
+            let env: Ghul.Environment = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "sixth"
+
+            let found mut = false
+
+            for entry in env do
+                if entry.key =~ _probe_name then
+                    found = true
+
+                    are_equal("sixth", entry.value)
+                fi
+            od
+
+            is_true(found)
+        si
+
+        @Test()
+        Environment_AsTrait_KeysAndValuesIncludeAWrittenVariable() is
+            let env: Ghul.Environment = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "seventh"
+
+            let found_key mut = false
+            let found_value mut = false
+
+            for key in env.keys do
+                if key =~ _probe_name then
+                    found_key = true
+                fi
+            od
+
+            for value in env.values do
+                if value =~ "seventh" then
+                    found_value = true
+                fi
+            od
+
+            is_true(found_key)
+            is_true(found_value)
+        si
+
+        @Test()
+        Environment_AsTrait_ToMapIsAnImmutableSnapshotWithNoNullValues() is
+            let env: Ghul.Environment = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "eighth"
+
+            let map = env.to_map()
+
+            are_equal("eighth", map[_probe_name])
+
+            // The snapshot doesn't track later writes.
+            env[_probe_name] = "ninth"
+
+            are_equal("eighth", map[_probe_name])
+        si
     si
 si
