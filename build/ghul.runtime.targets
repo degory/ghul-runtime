@@ -3,7 +3,61 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
 
-  <Target Name="CreateManifestResourceNames" />
+  <!-- Overrides the no-op stub Microsoft.Common.CurrentVersion.targets left
+       here for a language that never populated it: this project's
+       CoreCompile depends on it, same as C#'s, but nothing has ever computed
+       %(ManifestResourceName) on @(EmbeddedResource). Follows the same
+       convention CreateCSharpManifestResourceName does for anything other
+       than a .resx (which ghūl does not special-case) - RootNamespace,
+       joined with the item's folder path (its Link when it has one, so a
+       file included from outside the project directory names itself by
+       where it appears to live rather than where it actually is) with
+       directory separators turned to dots, keeping the extension. An
+       explicit %(LogicalName) always wins, exactly as it does for C#.
+
+       Three item-update passes rather than one: MSBuild's MSB4096 check
+       (an unqualified %(Metadata) reference is refused unless every item in
+       the batch defines that metadata) fires even inside a value expression
+       when the metadata is genuinely absent rather than merely empty, and
+       even once every reference is qualified with the item type, a
+       property function nested inside the string argument of another one
+       is not evaluated - it comes out as literal text. Splitting the
+       derivation into plain, unnested steps sidesteps both: each step reads
+       only metadata every item is guaranteed to have (by construction, from
+       the step before), and no step's expression contains another
+       property-function call as an argument to a further one. -->
+  <Target Name="CreateManifestResourceNames" Condition="'@(EmbeddedResource)' != ''">
+    <PropertyGroup>
+      <_GhulResourceNamespacePrefix Condition="'$(RootNamespace)' != ''">$(RootNamespace).</_GhulResourceNamespacePrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <EmbeddedResource>
+        <_GhulResourcePath>$([MSBuild]::ValueOrDefault('%(EmbeddedResource.Link)', '%(EmbeddedResource.Identity)'))</_GhulResourcePath>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource>
+        <_GhulResourceDottedPath>$(_GhulResourceNamespacePrefix)$([System.String]::Copy('%(EmbeddedResource._GhulResourcePath)').Replace('\', '.').Replace('/', '.'))</_GhulResourceDottedPath>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource>
+        <ManifestResourceName>$([MSBuild]::ValueOrDefault('%(EmbeddedResource.LogicalName)', '%(EmbeddedResource._GhulResourceDottedPath)'))</ManifestResourceName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+
+  <!-- The resources, in the `resource "path=name"` spelling the compiler's
+       resource option takes, one per @(EmbeddedResource) item. Mirrors
+       _ComputeGhulReferenceArguments below. -->
+  <Target Name="_ComputeGhulResourceArguments" DependsOnTargets="CreateManifestResourceNames">
+    <ItemGroup>
+      <_GhulResourceArgument Include="@(EmbeddedResource -> '--resource &quot;%(FullPath)=%(ManifestResourceName)&quot;')" Condition="'@(EmbeddedResource)' != ''" />
+    </ItemGroup>
+  </Target>
 
   <!-- WriteLinesToFile treats its Lines items as file paths and, on
        non-Windows MSBuild, normalizes any backslash in them to a forward
@@ -219,7 +273,7 @@
        rather than a list of what matched. A consumer that wants them passes
        GhulSourceGlobsFile as well and gets them in a file of their own, one
        per line - a list to read, not a response file to hand the compiler. -->
-  <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments;_ComputeGhulSourceGlobs">
+  <Target Name="GenerateGhulResponseFile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments;_ComputeGhulResourceArguments;_ComputeGhulSourceGlobs">
     <PropertyGroup>
       <GhulResponseFile Condition="'$(GhulResponseFile)' == ''">$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-$([System.Guid]::NewGuid()).rsp))</GhulResponseFile>
     </PropertyGroup>
@@ -238,6 +292,7 @@
       <_GhulResponseLine Include="$(GhulOptions)" Condition="'$(GhulOptions)' != ''" />
       <_GhulResponseLine Include="@(GhulOptions)" />
       <_GhulResponseLine Include="@(_GhulReferenceArgument)" />
+      <_GhulResponseLine Include="@(_GhulResourceArgument)" />
     </ItemGroup>
 
     <WriteLinesToFile File="$(GhulResponseFile)" Lines="@(_GhulResponseLine)" Overwrite="true" Encoding="Utf-8" />
@@ -249,7 +304,7 @@
              Text="Wrote $(GhulSourceGlobsFile) with the source globs: $(_GhulSourceGlobs)" />
   </Target>
 
-  <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments">
+  <Target Name="CoreCompile" DependsOnTargets="_ComputeGhulCompilerOptions;_ComputeGhulReferenceArguments;_ComputeGhulResourceArguments">
     <ItemGroup>
       <AssemblyInfo Include="System.Reflection.AssemblyInformationalVersionAttribute" Condition="'$(Version)'!=''">
         <Parameter>$(Version)</Parameter>
@@ -308,7 +363,7 @@
          are not supported and this does not attempt to make them so. -->
     <PropertyGroup>
       <_GhulBuildResponseFile>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), ghul-build-$([System.Guid]::NewGuid()).rsp))</_GhulBuildResponseFile>
-      <CommandLine>$(_GhulResolvedOptions) @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 --msbuild-diagnostics @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(_GhulReferenceArgument, '%20')</CommandLine>
+      <CommandLine>$(_GhulResolvedOptions) @(AssemblyInfo -> '--assembly-info-string "%(Identity)=%(Parameter)"', '%20') --v3 --msbuild-diagnostics @(GhulSources -> '"%(fullpath)"', '%20') -o "$(IntermediateOutputPath)$(AssemblyName).dll" @(_GhulReferenceArgument, '%20') @(_GhulResourceArgument, '%20')</CommandLine>
     </PropertyGroup>
 
     <Message Importance="Low" Text="$(GhulCompiler) $(CommandLine)" />
