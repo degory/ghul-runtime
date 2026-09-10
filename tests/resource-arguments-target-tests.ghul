@@ -1,0 +1,140 @@
+namespace Tests is
+
+    use Collections
+    use System.Exception
+    use System.Diagnostics.Process
+    use System.Diagnostics.ProcessStartInfo
+    use System.Reflection.Assembly
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    use IO.Directory
+    use IO.File
+    use IO.Path
+
+    // The resource-argument publication in build/ghul.runtime.targets:
+    // @(EmbeddedResource) items, with and without %(LogicalName), turned
+    // into `--resource <path>=<name>` compiler arguments. Driven end to end
+    // through dotnet msbuild against fixture projects written into a
+    // temporary directory, importing this repo's own targets file by
+    // absolute path, so the target under test is exactly the one in the
+    // working tree and no package resolution is involved.
+    @TestClass()
+    class ResourceArgumentsTargetShould is
+        init() is
+        si
+
+        // <repo>/build/ghul.runtime.targets, found by walking up from the
+        // test assembly to the checkout root.
+        repo_targets_path() -> string is
+            let dir mut = Path.get_directory_name(Assembly.get_executing_assembly().location)
+
+            while let d: string = dir do
+                let candidate = Path.combine(d, "build/ghul.runtime.targets")
+
+                if File.exists(candidate) then
+                    return candidate
+                fi
+
+                dir = Path.get_directory_name(d)
+            od
+
+            throw Exception("could not find build/ghul.runtime.targets above the test assembly")
+        si
+
+        // One resource with no %(LogicalName) (named from RootNamespace plus
+        // its own relative path) and one with an explicit one.
+        write_fixture(directory: string) is
+            Directory.create_directory(directory)
+            Directory.create_directory(Path.combine(directory, "data"))
+
+            Directory.create_directory(Path.combine(directory, "src"))
+            File.write_all_text(Path.combine(directory, "src/main.ghul"), "entry() is si")
+            File.write_all_text(Path.combine(directory, "data/greeting.txt"), "hello")
+            File.write_all_text(Path.combine(directory, "icon.png"), "not really a png")
+
+            File.write_all_text(Path.combine(directory, "p.ghulproj"),
+                "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup>"
+                "<EnableDefaultCompileItems>false</EnableDefaultCompileItems>"
+                "<RootNamespace>Example</RootNamespace>"
+                "<TargetFramework>net10.0</TargetFramework></PropertyGroup>"
+                "<ItemGroup><GhulSources Include=\"src/**/*.ghul\" />"
+                "<EmbeddedResource Include=\"data/greeting.txt\" />"
+                "<EmbeddedResource Include=\"icon.png\"><LogicalName>app.ico</LogicalName></EmbeddedResource>"
+                "</ItemGroup>"
+                "<Import Project=\"{repo_targets_path()}\" /></Project>")
+        si
+
+        generate_response_file(directory: string) -> string is
+            let start_info = ProcessStartInfo()
+
+            start_info.file_name = "dotnet"
+            // -restore: the reference-resolution targets the response file
+            // depends on want a NuGet assets file, and the fixture has none
+            // until then. The fixture references no packages, so this is
+            // local work only.
+            start_info.arguments = "msbuild -restore p.ghulproj -t:GenerateGhulResponseFile "
+                "-p:GhulResponseFile=response.rsp"
+            start_info.working_directory = directory
+
+            start_info.use_shell_execute = false
+            start_info.redirect_standard_output = true
+            start_info.redirect_standard_error = true
+
+            let process = Process.start(start_info)
+
+            assert process? else Exception("could not start dotnet msbuild")
+
+            let out = process.standard_output.read_to_end()
+            let err = process.standard_error.read_to_end()
+
+            assert process.wait_for_exit(120000) else
+                Exception("dotnet msbuild timed out:\n{out}\n{err}")
+
+            if process.exit_code != 0 then
+                throw Exception("dotnet msbuild failed with {process.exit_code}:\n{out}\n{err}")
+            fi
+
+            let response_path = Path.combine(directory, "response.rsp")
+
+            if !File.exists(response_path) then
+                throw Exception("no response file was written:\n{out}\n{err}")
+            fi
+
+            return File.read_all_text(response_path)
+        si
+
+        @Test()
+        Names_An_Unlabelled_Resource_From_Root_Namespace_And_Relative_Path() is
+            let directory = Path.combine(Path.get_temp_path(), "ghul-resource-args-{System.Guid.new_guid()}")
+            write_fixture(directory)
+
+            try
+                let response = generate_response_file(directory)
+                let greeting_path = Path.combine(directory, "data/greeting.txt")
+
+                is_true(response.contains("--resource \"{greeting_path}=Example.data.greeting.txt\""))
+            finally
+                Directory.delete(directory, true)
+            yrt
+        si
+
+        @Test()
+        Prefers_An_Explicit_Logical_Name_Over_The_Derived_One() is
+            let directory = Path.combine(Path.get_temp_path(), "ghul-resource-args-{System.Guid.new_guid()}")
+            write_fixture(directory)
+
+            try
+                let response = generate_response_file(directory)
+                let icon_path = Path.combine(directory, "icon.png")
+
+                is_true(response.contains("--resource \"{icon_path}=app.ico\""))
+            finally
+                Directory.delete(directory, true)
+            yrt
+        si
+    si
+si
