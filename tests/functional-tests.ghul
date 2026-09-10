@@ -1,0 +1,76 @@
+namespace Tests is
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    @TestClass()
+    class FunctionalCombinatorsShould is
+        init() is
+        si
+
+        add(a: int, b: int) -> int => a + b
+
+        double(n: int) -> int => n * 2
+
+        square(n: int) -> int => n * n
+
+        @Test()
+        Compose_AppliesLeftThenRight() is
+            let f = double >> square
+
+            are_equal(16, f(2))
+        si
+
+        @Test()
+        Compose_BackwardsAppliesRightThenLeft() is
+            let f = square << double
+
+            are_equal(16, f(2))
+        si
+
+        @Test()
+        Compose_ChainsLeftToRight() is
+            let f = double >> square >> double
+
+            are_equal(32, f(2))
+        si
+
+        @Test()
+        Compose_ShiftsOnItsOwnOperands() is
+            // The compose token is shared with right shift; the operand
+            // types keep them apart.
+            are_equal(1, 2 >> 1)
+            are_equal(16, (double >> square)(2))
+        si
+
+        @Test()
+        Curry_SuppliesOneArgument() is
+            let add_3 = curry(add)(3)
+
+            are_equal(7, add_3(4))
+        si
+
+        @Test()
+        Curry_RoundTripsThroughUncurry() is
+            let f = uncurry(curry(add))
+
+            are_equal(7, f(3, 4))
+        si
+
+        @Test()
+        Memoize_ComputesEachArgumentOnce() is
+            let calls mut = 0
+
+            let counted = memoize(n => (
+                calls = calls + 1
+                square(n)
+            ))
+
+            are_equal(4, counted(2))
+            are_equal(4, counted(2))
+            are_equal(9, counted(3))
+            are_equal(2, calls)
+        si
+    si
+si
