@@ -1,0 +1,27 @@
+namespace Ghul is
+    // A live view over the process environment - a read reaches
+    // System.Environment.get_environment_variable on every access, and a
+    // write reaches System.Environment.set_environment_variable, taking
+    // effect for any process started afterwards. There is deliberately no
+    // snapshot: a read twice can disagree if something else in the process
+    // changed the variable in between, which is also how a shell's own
+    // environment behaves.
+    class ENVIRONMENT is
+        _instance: ENVIRONMENT static
+
+        init() static is
+            _instance = ENVIRONMENT()
+        si
+
+        init() is
+        si
+
+        instance: ENVIRONMENT static => _instance
+
+        [name: string]: string? =>
+            System.Environment.get_environment_variable(name),
+            = value is
+                System.Environment.set_environment_variable(name, value)
+            si
+    si
+si

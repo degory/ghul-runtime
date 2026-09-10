@@ -1,0 +1,57 @@
+namespace Tests is
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    @TestClass()
+    class EnvironmentShould is
+        init() is
+        si
+
+        // A name unlikely to collide with anything already set in the
+        // process running the tests.
+        _probe_name: string => "GHUL_RUNTIME_ENVIRONMENT_TEST_PROBE"
+
+        @Test()
+        Environment_UnsetVariable_ReadsAsAbsent() is
+            let env = Ghul.ENVIRONMENT.instance
+
+            System.Environment.set_environment_variable(_probe_name, null)
+
+            is_false(env[_probe_name]?)
+        si
+
+        @Test()
+        Environment_WrittenVariable_ReadsBackTheSameValue() is
+            let env = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "first"
+
+            are_equal("first", env[_probe_name])
+        si
+
+        @Test()
+        Environment_WriteIsVisibleThroughTheUnderlyingDotNetApi() is
+            let env = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "second"
+
+            are_equal("second", System.Environment.get_environment_variable(_probe_name))
+        si
+
+        @Test()
+        Environment_WritingNull_UnsetsTheVariable() is
+            let env = Ghul.ENVIRONMENT.instance
+
+            env[_probe_name] = "third"
+            env[_probe_name] = null
+
+            is_false(env[_probe_name]?)
+        si
+
+        @Test()
+        Environment_Instance_IsTheSameObjectEveryTime() is
+            are_same(Ghul.ENVIRONMENT.instance, Ghul.ENVIRONMENT.instance)
+        si
+    si
+si
