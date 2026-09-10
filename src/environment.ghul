@@ -1,12 +1,45 @@
 namespace Ghul is
+    use Collections
+
+    // A live, forgiving string-keyed map: reading a key that was never set
+    // answers absent rather than throwing, and setting a key to null
+    // removes it - an accurate model of how a process environment actually
+    // behaves, which Collections.MutableMap's IDictionary-shaped contract
+    // (a value type with no null, add() that throws on a duplicate key,
+    // the dictionary invariant that a written key is then present) is not.
+    // to_map() is the escape hatch for code that wants the ordinary
+    // Collections.Map contract instead - an immutable snapshot, not a view.
+    //
+    // Iteration yields Collections.KeyValuePair rather than a named tuple:
+    // a tuple's element names don't survive being read back from another
+    // assembly's metadata, and every real consumer of this trait is in a
+    // different assembly from ghul-runtime by construction.
+    trait Environment: Iterable[KeyValuePair[string, string]] is
+        [key: string]: string?, = value
+
+        contains_key(key: string) -> bool
+
+        remove(key: string) -> bool
+
+        keys: Iterable[string]
+
+        values: Iterable[string]
+
+        to_map() -> Map[string, string]
+    si
+
     // A live view over the process environment - a read reaches
     // System.Environment.get_environment_variable on every access, and a
     // write reaches System.Environment.set_environment_variable, taking
     // effect for any process started afterwards. There is deliberately no
-    // snapshot: a read twice can disagree if something else in the process
-    // changed the variable in between, which is also how a shell's own
-    // environment behaves.
-    class ENVIRONMENT is
+    // snapshot behind the indexer itself: a read twice can disagree if
+    // something else in the process changed the variable in between, which
+    // is also how a shell's own environment behaves. Enumeration (keys,
+    // values, iteration, to_map) does take a one-off snapshot via
+    // System.Environment.get_environment_variables() at the moment it is
+    // asked for, which is the same snapshot .NET's own Dictionary-backed
+    // collections take.
+    class ENVIRONMENT: Environment is
         _instance: ENVIRONMENT static
 
         init() static is
@@ -18,10 +51,67 @@ namespace Ghul is
 
         instance: ENVIRONMENT static => _instance
 
-        [name: string]: string? =>
-            System.Environment.get_environment_variable(name),
+        [key: string]: string? =>
+            System.Environment.get_environment_variable(key),
             = value is
-                System.Environment.set_environment_variable(name, value)
+                System.Environment.set_environment_variable(key, value)
             si
+
+        contains_key(key: string) -> bool => self[key]?
+
+        remove(key: string) -> bool is
+            if !contains_key(key) then
+                return false
+            fi
+
+            self[key] = null
+
+            return true
+        si
+
+        _snapshot() -> LIST[KeyValuePair[string, string]] is
+            let result = LIST[KeyValuePair[string, string]]()
+            let raw = System.Environment.get_environment_variables()
+
+            for key in System.Linq.Enumerable.cast[string](raw.keys) do
+                if let value: string = self[key] then
+                    result.add(KeyValuePair[string, string](key, value))
+                fi
+            od
+
+            return result
+        si
+
+        keys: Iterable[string] is
+            let result = LIST[string]()
+
+            for entry in _snapshot() do
+                result.add(entry.key)
+            od
+
+            return result
+        si
+
+        values: Iterable[string] is
+            let result = LIST[string]()
+
+            for entry in _snapshot() do
+                result.add(entry.value)
+            od
+
+            return result
+        si
+
+        iterator: Iterator[KeyValuePair[string, string]] => _snapshot().iterator
+
+        to_map() -> Map[string, string] is
+            let result = MAP[string, string]()
+
+            for entry in _snapshot() do
+                result.add(entry.key, entry.value)
+            od
+
+            return result
+        si
     si
 si
