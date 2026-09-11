@@ -4,6 +4,16 @@ namespace Tests is
     use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
     use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
+    // Pack adaptation currently accepts a global function or a lambda
+    // where a `T.. -> U` formal wants an N-ary function, not a method
+    // named on an instance - so the apply tests use these globals.
+    add_two(a: int, b: int) -> int => a + b
+
+    concat_words(a: string, b: string, c: string) -> string =>
+        "{a}{b}{c}"
+
+    times_two(n: int) -> int => n * 2
+
     @TestClass()
     class FunctionalCombinatorsShould is
         init() is
@@ -71,6 +81,24 @@ namespace Tests is
             are_equal(4, counted(2))
             are_equal(9, counted(3))
             are_equal(2, calls)
+        si
+
+        @Test()
+        Apply_CallsSpreadArguments() is
+            are_equal(9, apply(add_two, 4, 5))
+            are_equal("abc", apply(concat_words, "a", "b", "c"))
+        si
+
+        @Test()
+        Apply_AcceptsTheWrittenOutTuple() is
+            are_equal(9, apply(add_two, (4, 5)))
+        si
+
+        @Test()
+        Apply_AcceptsAUnaryFunction() is
+            let four: int = apply(times_two, 2)
+
+            are_equal(4, four)
         si
     si
 si
