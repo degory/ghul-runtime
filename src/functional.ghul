@@ -2,17 +2,20 @@ namespace Ghul is
     use Collections
 
     // Function combinators: composition in both reading orders, arity
-    // reshaping for the two-argument case, and a call cache. They live
-    // here rather than in Ghul.Pipes because none of them is about
-    // sequences, and in Ghul itself so no `use` is needed to reach them.
+    // reshaping for the two-argument case, a call cache, and an
+    // attempt-limited decorator. They live here rather than in
+    // Ghul.Pipes because none of them is about sequences, and in Ghul
+    // itself so no `use` is needed to reach them.
 
     // Left-to-right composition: `f >> g` applies f, then g - the
-    // reading that matches the thread-first operator's direction.
-    >>[A, B, C](f: A -> B, g: B -> C) -> A -> C => x => g(f(x))
+    // reading that matches the thread-first operator's direction. The
+    // composed function keeps f's own arity: one argument is threaded
+    // as it is, several are gathered into the tuple the pack binds to.
+    >>[T.., B, C](f: T.. -> B, g: (B) -> C) -> T.. -> C => v => g(f(v))
 
     // Right-to-left composition, the mathematical reading: `f << g`
-    // applies g, then f.
-    <<[A, B, C](f: B -> C, g: A -> B) -> A -> C => x => f(g(x))
+    // applies g, then f, keeping the second stage's arity.
+    <<[T.., B, C](f: (B) -> C, g: T.. -> B) -> T.. -> C => v => f(g(v))
 
     // Reshape a two-argument function into unary functions returning
     // functions, so one argument can be supplied and the rest passed
@@ -33,18 +36,42 @@ namespace Ghul is
     apply[T.., U](f: T.. -> U, v: T..) -> U => f(v)
 
     // A function that answers from a map of the results it has already
-    // computed, so repeated calls with the same argument compute once.
-    // The cache is an ordinary MAP: single-threaded use.
-    memoize[A, B](f: (A) -> B) -> (A) -> B is
-        let cache mut = MAP[A, B]()
+    // computed, so repeated calls with the same arguments compute once.
+    // The cache is an ordinary MAP, keyed on the tuple the argument
+    // pack binds to: single-threaded use.
+    memoize[T.., U](f: T.. -> U) -> T.. -> U is
+        let cache mut = MAP[T, U]()
 
-        return x => (
-            if cache.contains_key(x) then cache[x]
+        return v => (
+            if cache.contains_key(v) then cache[v]
             else
-                let v = f(x)
-                cache.add(x, v)
-                v
+                let r = f(v)
+                cache.add(v, r)
+                r
             fi
+        )
+    si
+
+    // A function that calls f, retrying the whole call up to `attempts`
+    // times when it throws, and throwing the last failure when every
+    // attempt does. The returned function keeps f's own arity.
+    retry[T.., U](f: T.. -> U, attempts: int) -> T.. -> U is
+        return v => (
+            let n mut = attempts
+
+            while true do
+                try
+                    return f(v)
+                catch e: System.Exception
+                    n = n - 1
+
+                    if n <= 0 then
+                        throw e
+                    fi
+                yrt
+            od
+
+            throw System.Exception("unreachable")
         )
     si
 si

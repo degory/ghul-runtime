@@ -14,6 +14,8 @@ namespace Tests is
 
     times_two(n: int) -> int => n * 2
 
+    show(n: int) -> string => "[{n}]"
+
     @TestClass()
     class FunctionalCombinatorsShould is
         init() is
@@ -83,6 +85,102 @@ namespace Tests is
             are_equal(2, calls)
         si
 
+        add_with(a: int, b: int) -> int => a + b
+
+        show_tagged(n: int) -> string => "[{n}]"
+
+        mul_with(a: int, b: int) -> int => a * b
+
+        add_three_with(a: int, b: int, c: int) -> int => a + b + c
+
+        @Test()
+        Compose_KeepsTheFirstStageArity() is
+            let tagged = add_with >> show_tagged
+
+            are_equal("[9]", tagged(4, 5))
+        si
+
+        @Test()
+        Compose_ThreadsThreeArguments() is
+            let f = add_three_with >> show_tagged
+
+            are_equal("[6]", f(1, 2, 3))
+        si
+
+        @Test()
+        Compose_ChainsUnaryThroughOperator() is
+            let f = double >> show_tagged
+
+            are_equal("[4]", f(2))
+        si
+
+        @Test()
+        Compose_BackwardsKeepsTheSecondStageArity() is
+            let f = show_tagged << mul_with
+
+            are_equal("[20]", f(4, 5))
+        si
+
+        calls_of_counted: int
+
+        counted_with(a: int, b: int) -> int is
+            calls_of_counted = calls_of_counted + 1
+            return a * 10 + b
+        si
+
+        @Test()
+        Memoize_KeysOnTheWholeTuple() is
+            calls_of_counted = 0
+
+            let counted = memoize(counted_with)
+
+            are_equal(45, counted(4, 5))
+            are_equal(45, counted(4, 5))
+            are_equal(46, counted(4, 6))
+            are_equal(2, calls_of_counted)
+        si
+
+        flaky_target(a: int, b: int) -> int is
+            calls_of_flaky = calls_of_flaky + 1
+
+            if calls_of_flaky < 3 then
+                throw System.Exception("flaky")
+            fi
+
+            return a + b
+        si
+
+        calls_of_flaky: int
+
+        @Test()
+        Retry_CallsThroughWhenNothingThrows() is
+            let f = retry(add_with, 3)
+
+            are_equal(9, f(4, 5))
+        si
+
+        @Test()
+        Retry_RetriesUntilTheCallSucceeds() is
+            calls_of_flaky = 0
+
+            let flaky = retry(flaky_target, 3)
+
+            are_equal(9, flaky(4, 5))
+            are_equal(3, calls_of_flaky)
+        si
+
+        @Test()
+        Retry_ThrowsTheLastFailure() is
+            let f = retry((n: int) -> int => throw System.Exception("no"), 2)
+
+            try
+                f(1)
+                is_true(false)
+            catch e: System.Exception
+                are_equal("no", e.message)
+            yrt
+        si
+
         @Test()
         Apply_CallsSpreadArguments() is
             are_equal(9, apply(add_two, 4, 5))
@@ -93,6 +191,7 @@ namespace Tests is
         Apply_AcceptsTheWrittenOutTuple() is
             are_equal(9, apply(add_two, (4, 5)))
         si
+
 
         @Test()
         Apply_AcceptsAUnaryFunction() is
