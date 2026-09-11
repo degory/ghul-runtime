@@ -26,6 +26,12 @@ namespace Ghul is
     uncurry[A, B, C](f: (A) -> (B) -> C) -> (A, B) -> C =>
         (a, b) => f(a)(b)
 
+    // Call a function with the arguments of the call itself, of any
+    // arity: `apply(f, x, y)` is `f(x, y)`. The argument pack gathers
+    // the arguments, so both the spread spelling and the written-out
+    // tuple reach the same formal.
+    apply[T.., U](f: T.. -> U, v: T..) -> U => f(v)
+
     // A function that answers from a map of the results it has already
     // computed, so repeated calls with the same argument compute once.
     // The cache is an ordinary MAP: single-threaded use.

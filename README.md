@@ -12,7 +12,7 @@ This package provides:
 - internal types required by all [ghūl](https://ghul.dev) applications
 - support for the ghūl pipe operator and fluent methods on pipes, such as `filter`, `map` and `reduce`
 - `slice`, which takes part of an array, list or string: `xs |> slice(1..4)`. An array or a list is sliced without copying, so a later change to the source shows through
-- function combinators, in `Ghul` and so in scope without a `use`: `f >> g` composes left to right and `f << g` right to left, `curry` and `uncurry` reshape a two-argument function in either direction, and `memoize(f)` answers from a cache of the results `f` has already computed
+- function combinators, in `Ghul` and so in scope without a `use`: `f >> g` composes left to right and `f << g` right to left, `curry` and `uncurry` reshape a two-argument function in either direction, and `memoize(f)` answers from a cache of the results `f` has already computed; and `apply(f, x, y)` calls a function of any arity with the arguments of the call itself
 - `Ghul.Coroutines`, cooperative coroutines: asynchronous functions returning `COROUTINE[T]` or `COROUTINE`, which one coroutine awaits as it would call a function. `pause()` gives up the turn, `run()` resumes parked coroutines one at a time, `CHANNEL[T]` hands values between them, and `MUTEX` and `SEMAPHORE` guard what they share. All of it runs on one thread, on a default `SCHEDULER` unless one is named
 - MSBuild targets needed to build ghūl projects
 

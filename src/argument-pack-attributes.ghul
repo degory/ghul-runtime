@@ -35,4 +35,26 @@ namespace Ghul.Internal is
         init() is
         si
     si
+
+    // Marker attribute emitted by the compiler on a function whose
+    // declared return type carries the argument-pack marker -
+    // `-> T.. -> U`. The returned value's own type says only that it
+    // takes the tuple the pack binds to, so without this marker a
+    // caller in another assembly has nothing to tell it that the
+    // returned function is to be called with the arguments spread
+    // out. Compiler-emitted; not user-facing.
+    class RETURN_PACK_ATTRIBUTE: Attribute is
+        // How many returns into the declared return type the marked
+        // function type sits, mirroring ARGUMENT_PACK_ATTRIBUTE.depth:
+        // `-> T.. -> U` is zero, `-> X -> T.. -> U` is one.
+        depth: int
+
+        init() is
+            depth = 0
+        si
+
+        init(depth: int) is
+            self.depth = depth
+        si
+    si
 si
