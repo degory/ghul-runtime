@@ -45,30 +45,6 @@ namespace Ghul is
         display(state: DISPLAY_STATE)
     si
 
-    $(value: object?) -> string is
-        let state = DISPLAY_STATE()
-
-        state.render(value)
-
-        return state.to_string()
-    si
-
-    // Non-optional deliberately. A plain string prefers the sequence
-    // overload below - a string is an Iterable[char] - over a parameter
-    // spelled `string?`, so an optional one here never wins and the
-    // string renders as its characters. Declared this way it wins for a
-    // present string, and an absent one is answered by the object?
-    // overload above.
-    $(value: string) -> string => value
-
-    $[T](values: Collections.Iterable[T]) -> string is
-        let state = DISPLAY_STATE()
-
-        state.render_sequence(values)
-
-        return state.to_string()
-    si
-
     // What an implementation of `Displayable` is handed. The buffer, the
     // element budget and the set of values already being rendered are
     // private: the surface is `append` and `render`, so how the text is
@@ -291,5 +267,33 @@ namespace Ghul is
 
             return true
         si
+    si
+si
+
+namespace Ghul.Intrinsics is
+    use Ghul
+
+    $(value: object?) -> string is
+        let state = DISPLAY_STATE()
+
+        state.render(value)
+
+        return state.to_string()
+    si
+
+    // Non-optional deliberately. A plain string prefers the sequence
+    // overload below - a string is an Iterable[char] - over a parameter
+    // spelled `string?`, so an optional one here never wins and the
+    // string renders as its characters. Declared this way it wins for a
+    // present string, and an absent one is answered by the object?
+    // overload above.
+    $(value: string) -> string => value
+
+    $[T](values: Collections.Iterable[T]) -> string is
+        let state = DISPLAY_STATE()
+
+        state.render_sequence(values)
+
+        return state.to_string()
     si
 si

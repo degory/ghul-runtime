@@ -1,4 +1,4 @@
-namespace Ghul is
+namespace Ghul.Intrinsics is
     // Ranges with one or both endpoints counted back from the end of
     // whatever they are applied to. The number of `<` says how many are,
     // filling from the right: `a..<b` counts `b` back from the end,

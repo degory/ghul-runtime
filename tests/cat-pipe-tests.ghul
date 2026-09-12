@@ -1,6 +1,7 @@
 
 
 namespace Tests is
+    use Ghul
 
     use Collections
     use NSubstitute
