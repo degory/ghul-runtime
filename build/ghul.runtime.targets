@@ -209,11 +209,12 @@
       <GhulCompiler Condition="'$(GhulCompiler)'==''">dotnet ghul-compiler</GhulCompiler>
       <LibraryParameter Condition="'$(GhulLibrary)' == 'true' OR ('$(GhulLibrary)' == '' AND '$(_GhulOutputKind)' == 'library')">--library</LibraryParameter>
       <UnderscoreAccessParameter Condition="'$(GhulUnderscoreAccess)' != ''">--underscore-access $(GhulUnderscoreAccess)</UnderscoreAccessParameter>
+      <DefaultUsesParameter Condition="'$(GhulDefaultUses)' != ''">--default-use "$(GhulDefaultUses.Replace(';', ','))"</DefaultUsesParameter>
       <NoWarnParameter Condition="'$(GhulNoWarn)' != ''">--suppress "$(GhulNoWarn.Replace(';', ','))"</NoWarnParameter>
       <WarnAsErrorParameter Condition="'$(GhulWarnAsError)' != ''">--warn-as-error "$(GhulWarnAsError.Replace(';', ','))"</WarnAsErrorParameter>
       <WarnAsHintParameter Condition="'$(GhulWarnAsHint)' != ''">--warn-as-hint "$(GhulWarnAsHint.Replace(';', ','))"</WarnAsHintParameter>
       <WarnAsInfoParameter Condition="'$(GhulWarnAsInfo)' != ''">--warn-as-info "$(GhulWarnAsInfo.Replace(';', ','))"</WarnAsInfoParameter>
-      <_GhulResolvedOptions>$(VersionParameter) $(TargetFrameworkParameter) $(DebugParameter) $(LibraryParameter) $(GlobalNamespaceParameter) $(UnderscoreAccessParameter) $(NoWarnParameter) $(WarnAsErrorParameter) $(WarnAsHintParameter) $(WarnAsInfoParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20')</_GhulResolvedOptions>
+      <_GhulResolvedOptions>$(VersionParameter) $(TargetFrameworkParameter) $(DebugParameter) $(LibraryParameter) $(GlobalNamespaceParameter) $(UnderscoreAccessParameter) $(DefaultUsesParameter) $(NoWarnParameter) $(WarnAsErrorParameter) $(WarnAsHintParameter) $(WarnAsInfoParameter) $(GhulOptions) @(GhulOptions -> '%(Identity)', '%20')</_GhulResolvedOptions>
     </PropertyGroup>
   </Target>
 
