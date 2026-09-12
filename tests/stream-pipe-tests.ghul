@@ -148,5 +148,36 @@ namespace Tests is
             CollectionAssert.are_equal(expected, actual)
         si
 
+        @Test()
+        Stream_TakesTheStepSpreadOutOverAMultiPartState() is
+            // The N-ary form the docs lead with: the step's own
+            // parameters are the state tuple's elements, rather than
+            // one bound tuple parameter.
+            let p =
+                stream((0, 1), (previous, current) => previous || (current, previous + current))
+                    |> take(6)
+
+            let actual = LIST[int]()
+            actual.add_range(p)
+
+            let expected = LIST[int]([0, 1, 1, 2, 3, 5])
+
+            CollectionAssert.are_equal(expected, actual)
+        si
+
+        @Test()
+        Stream_SinglePartStateStillTakesOneTupleParameter() is
+            let p =
+                stream((0, 1), ((previous, current): (int, int)) => previous || (current, previous + current))
+                    |> take(6)
+
+            let actual = LIST[int]()
+            actual.add_range(p)
+
+            let expected = LIST[int]([0, 1, 1, 2, 3, 5])
+
+            CollectionAssert.are_equal(expected, actual)
+        si
+
     si
 si

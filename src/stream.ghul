@@ -67,10 +67,13 @@ namespace Ghul.Pipes is
     si
 
     // Build a `Pipe[T]` from an initial state and a pure step function
-    // `S -> STREAM[T, S]`. The step returns `DONE` to terminate, or
+    // `S.. -> STREAM[T, S]`. The step returns `DONE` to terminate, or
     // `YIELD(value, next_state)` (which the `||` infix produces) to
-    // yield a value and advance.
-    stream[T, S](initial: S, advance: S -> STREAM[T, S]) -> Pipe[T] is
+    // yield a value and advance. `S` is a tuple when the state has more
+    // than one part, and the pack marker lets the step take it spread
+    // out - `(previous, current) => ...` - rather than as one bound
+    // tuple parameter.
+    stream[T, S..](initial: S, advance: S.. -> STREAM[T, S]) -> Pipe[T] is
         return STREAM_PIPE[T, S](initial, advance)
     si
 si
