@@ -111,6 +111,15 @@ namespace Ghul is
         si
     si
 
+si
+
+// `..` and `::` over `int` are intrinsics, so these are what makes the
+// same spelling work for every other integer type. They belong beside
+// them rather than among the library's globals.
+namespace Ghul.Intrinsics is
+    use Ghul
+    use System.Numerics.IBinaryInteger
+
     ..[T: IBinaryInteger[T]](from: T, to: T) -> RANGE[T] pure =>
         RANGE[T](from, to)
 
