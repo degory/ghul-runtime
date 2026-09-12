@@ -1,15 +1,17 @@
-namespace Ghul.Internal is
+namespace Ghul.Intrinsics.Staging is
+    use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
     // The compiler's intrinsic operators and magic types. Each carries
     // `INTRINSIC_ATTRIBUTE`, which is what makes the compiler reconstruct
     // it as an intrinsic — a call lowers straight to IL opcodes rather
     // than to a call of the method emitted here.
     //
-    // They are declared under `Ghul.Internal` but the compiler registers
-    // them in `Ghul`, where the language expects to find them. That
-    // relocation is what lets this assembly declare its own intrinsics
-    // and still be compiled by a compiler that reflects them: the
-    // declarations here and the registrations they produce never occupy
-    // the same namespace, so neither hides the other.
+    // They are declared under `Ghul.Intrinsics.Staging` but the compiler
+    // registers them in `Ghul.Intrinsics`, the namespace every
+    // compilation imports without a `use`. That relocation is what lets
+    // this assembly declare its own intrinsics and still be compiled by
+    // a compiler that reflects them: the declarations here and the
+    // registrations they produce never occupy the same namespace, so
+    // neither hides the other.
 
     @INTRINSIC_ATTRIBUTE("type.reference")
     struct REFERENCE[E] is
