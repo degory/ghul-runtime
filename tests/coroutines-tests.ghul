@@ -435,5 +435,154 @@ namespace Tests is
 
             are_equal("first got 1, second got 2", journal |> Ghul.Pipes.join(", "))
         si
+
+        sleeper(journal: LIST[string], name: string, milliseconds: int) -> COROUTINE is
+            await sleep(milliseconds)
+            journal.add(name)
+        si
+
+        @Test()
+        Sleeping_should_resume_in_deadline_order() is
+            let journal = LIST[string]()
+
+            let _ = sleeper(journal, "slow", 60)
+            let _ = sleeper(journal, "quick", 10)
+            let _ = sleeper(journal, "middling", 30)
+
+            are_equal(0, journal.count)
+
+            run()
+
+            are_equal("quick, middling, slow", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        Sleeping_should_wait_at_least_as_long_as_it_was_asked_to() is
+            let journal = LIST[string]()
+            let started = SCHEDULER.now
+
+            let _ = sleeper(journal, "done", 50)
+
+            run()
+
+            is_true(SCHEDULER.now - started >= 50L)
+            are_equal("done", journal |> Ghul.Pipes.join(", "))
+        si
+
+        sleeping_twice(journal: LIST[string], name: string, first: int, second: int) -> COROUTINE is
+            await sleep(first)
+            journal.add("{name} woke")
+            await sleep(second)
+            journal.add("{name} woke again")
+        si
+
+        pacing(journal: LIST[string], turns: int) -> COROUTINE is
+            for i in 1::turns do
+                journal.add("turn {i}")
+                await pause()
+            od
+        si
+
+        sleeps_then_doubles(v: int, milliseconds: int) -> COROUTINE[int] is
+            await sleep(milliseconds)
+            return v * 2
+        si
+
+        sleeps_then_throws(milliseconds: int) -> COROUTINE is
+            await sleep(milliseconds)
+            throw System.Exception("late")
+        si
+
+        waits_for(other: COROUTINE[int], journal: LIST[string]) -> COROUTINE[int] is
+            let v = await other
+            journal.add("got {v}")
+            return v + 1
+        si
+
+        @Test()
+        Sleeping_for_no_time_should_not_park_the_coroutine() is
+            let handle = sleeps_then_doubles(21, 0)
+
+            is_true(handle.completed)
+            are_equal(42, handle.value)
+        si
+
+        @Test()
+        Sleeping_should_let_every_ready_coroutine_run_first() is
+            let journal = LIST[string]()
+
+            let _ = sleeper(journal, "slept", 30)
+            let _ = pacing(journal, 3)
+
+            run()
+
+            are_equal("turn 1, turn 2, turn 3, slept", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        A_sleeping_coroutine_should_complete_with_its_value() is
+            let handle = sleeps_then_doubles(21, 20)
+
+            is_false(handle.completed)
+
+            run()
+
+            is_true(handle.completed)
+            are_equal(42, handle.value)
+        si
+
+        @Test()
+        Sleeping_twice_should_wait_for_each_deadline_in_turn() is
+            let journal = LIST[string]()
+            let started = SCHEDULER.now
+
+            let _ = sleeping_twice(journal, "a", 20, 20)
+
+            run()
+
+            is_true(SCHEDULER.now - started >= 40L)
+            are_equal("a woke, a woke again", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        Coroutines_sharing_a_deadline_should_all_wake_from_one_wait() is
+            let journal = LIST[string]()
+
+            let _ = sleeper(journal, "a", 20)
+            let _ = sleeper(journal, "b", 20)
+            let _ = sleeper(journal, "c", 20)
+
+            run()
+
+            are_equal("a, b, c", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        A_coroutine_failing_after_a_sleep_should_record_its_exception() is
+            let handle = sleeps_then_throws(10)
+
+            run()
+
+            is_true(handle.completed)
+
+            if let e = handle.exception then
+                are_equal("late", e.message)
+            else
+                fail("the coroutine recorded no exception")
+            fi
+        si
+
+        @Test()
+        Awaiting_a_sleeping_coroutine_should_resume_the_caller_after_it() is
+            let journal = LIST[string]()
+
+            let inner = sleeps_then_doubles(21, 30)
+            let outer = waits_for(inner, journal)
+
+            run()
+
+            are_equal(43, outer.value)
+            are_equal("got 42", journal |> Ghul.Pipes.join(", "))
+        si
     si
 si
