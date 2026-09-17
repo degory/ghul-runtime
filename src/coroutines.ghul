@@ -109,44 +109,57 @@ namespace Ghul.Coroutines is
 
         // Resumes parked coroutines until none remain, waiting for the
         // next deadline whenever sleepers are all that is left.
+        //
+        // A pass runs the coroutines that were ready when it started
+        // and no more, so one that pauses in a loop takes a single turn
+        // per pass rather than holding the queue. Every pass then looks
+        // at the sleepers, which is what keeps a coroutine whose
+        // deadline has come from waiting on one that never finishes.
         run() is
             let previous = current
             current = self
 
             try
                 while _ready.count > 0 \/ _sleepers.count > 0 do
-                    while _ready.count > 0 do
+                    let turns mut = _ready.count
+
+                    while turns > 0 do
                         _ready.dequeue()()
+                        turns = turns - 1
                     od
 
-                    _wake_due_sleepers()
+                    _wake_due_sleepers(_ready.count == 0)
                 od
             finally
                 current = previous
             yrt
         si
 
-        // Waits for the earliest deadline among the parked sleepers and
-        // queues every sleeper that is due once it arrives. This is the
-        // only place the thread blocks: with nothing ready to run there
-        // is no coroutine for the wait to interleave with.
-        _wake_due_sleepers() is
+        // Queues every sleeper whose deadline has passed. With nothing
+        // ready to run there is no coroutine for a wait to interleave
+        // with, so the thread waits for the earliest deadline; with
+        // work still queued it takes whatever is already due and
+        // leaves the rest, and that wait is the only place the
+        // scheduler blocks.
+        _wake_due_sleepers(may_wait: bool) is
             if _sleepers.count == 0 then
                 return
             fi
 
-            let earliest mut = _sleepers[0].deadline
+            if may_wait then
+                let earliest mut = _sleepers[0].deadline
 
-            for s in _sleepers do
-                if s.deadline < earliest then
-                    earliest = s.deadline
+                for s in _sleepers do
+                    if s.deadline < earliest then
+                        earliest = s.deadline
+                    fi
+                od
+
+                let remaining = earliest - now
+
+                if remaining > 0L then
+                    System.Threading.Thread.sleep(cast int(remaining))
                 fi
-            od
-
-            let remaining = earliest - now
-
-            if remaining > 0L then
-                System.Threading.Thread.sleep(cast int(remaining))
             fi
 
             let due = now
