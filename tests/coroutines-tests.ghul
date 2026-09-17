@@ -435,5 +435,38 @@ namespace Tests is
 
             are_equal("first got 1, second got 2", journal |> Ghul.Pipes.join(", "))
         si
+
+        sleeper(journal: LIST[string], name: string, milliseconds: int) -> COROUTINE is
+            await sleep(milliseconds)
+            journal.add(name)
+        si
+
+        @Test()
+        Sleeping_should_resume_in_deadline_order() is
+            let journal = LIST[string]()
+
+            let _ = sleeper(journal, "slow", 60)
+            let _ = sleeper(journal, "quick", 10)
+            let _ = sleeper(journal, "middling", 30)
+
+            are_equal(0, journal.count)
+
+            run()
+
+            are_equal("quick, middling, slow", journal |> Ghul.Pipes.join(", "))
+        si
+
+        @Test()
+        Sleeping_should_wait_at_least_as_long_as_it_was_asked_to() is
+            let journal = LIST[string]()
+            let started = SCHEDULER.now
+
+            let _ = sleeper(journal, "done", 50)
+
+            run()
+
+            is_true(SCHEDULER.now - started >= 50L)
+            are_equal("done", journal |> Ghul.Pipes.join(", "))
+        si
     si
 si

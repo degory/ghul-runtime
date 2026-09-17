@@ -8,6 +8,10 @@ namespace Ghul.Coroutines is
     // scheduler until `run` gives it its next turn.
     pause() -> PAUSE => SCHEDULER.current.pause()
 
+    // An awaitable that parks the calling coroutine on the current
+    // scheduler until the given number of milliseconds has passed.
+    sleep(milliseconds: int) -> SLEEP => SCHEDULER.current.sleep(milliseconds)
+
     // Resumes parked coroutines on the current scheduler until none
     // remain.
     run() is
@@ -35,9 +39,11 @@ namespace Ghul.Coroutines is
         _current: SCHEDULER? static
 
         _ready: Collections.Queue[() -> void]
+        _sleepers: Collections.LIST[SLEEPER]
 
         init() is
             _ready = Collections.Queue[() -> void]()
+            _sleepers = Collections.LIST[SLEEPER]()
         si
 
         // The scheduler coroutines park on, created on first use.
@@ -54,6 +60,19 @@ namespace Ghul.Coroutines is
         // An awaitable that parks the calling coroutine until `run`
         // gives it its next turn.
         pause() -> PAUSE => PAUSE(_ready)
+
+        // An awaitable that parks the calling coroutine until the
+        // given number of milliseconds has passed.
+        sleep(milliseconds: int) -> SLEEP => SLEEP(self, now + cast long(milliseconds))
+
+        // Parks a coroutine until its deadline. Reached by `sleep`'s
+        // awaiter.
+        sleep_until(deadline: long, resume: () -> void) is
+            _sleepers.add(SLEEPER(deadline, resume))
+        si
+
+        // The clock deadlines are measured against, in milliseconds.
+        now: long static => System.Environment.tick_count64
 
         // Queues a continuation to run from the next `run`. Reached
         // by a channel, a lock or a completing coroutine waking
@@ -88,18 +107,60 @@ namespace Ghul.Coroutines is
             yrt
         si
 
-        // Resumes parked coroutines until none remain.
+        // Resumes parked coroutines until none remain, waiting for the
+        // next deadline whenever sleepers are all that is left.
         run() is
             let previous = current
             current = self
 
             try
-                while _ready.count > 0 do
-                    _ready.dequeue()()
+                while _ready.count > 0 \/ _sleepers.count > 0 do
+                    while _ready.count > 0 do
+                        _ready.dequeue()()
+                    od
+
+                    _wake_due_sleepers()
                 od
             finally
                 current = previous
             yrt
+        si
+
+        // Waits for the earliest deadline among the parked sleepers and
+        // queues every sleeper that is due once it arrives. This is the
+        // only place the thread blocks: with nothing ready to run there
+        // is no coroutine for the wait to interleave with.
+        _wake_due_sleepers() is
+            if _sleepers.count == 0 then
+                return
+            fi
+
+            let earliest mut = _sleepers[0].deadline
+
+            for s in _sleepers do
+                if s.deadline < earliest then
+                    earliest = s.deadline
+                fi
+            od
+
+            let remaining = earliest - now
+
+            if remaining > 0L then
+                System.Threading.Thread.sleep(cast int(remaining))
+            fi
+
+            let due = now
+            let still_waiting = Collections.LIST[SLEEPER]()
+
+            for s in _sleepers do
+                if s.deadline <= due then
+                    _ready.enqueue(s.resume)
+                else
+                    still_waiting.add(s)
+                fi
+            od
+
+            _sleepers = still_waiting
         si
     si
 
@@ -128,6 +189,37 @@ namespace Ghul.Coroutines is
             _ready.enqueue(continuation)
         si
     si
+
+    // The awaitable `sleep(ms)` returns; its awaiter is itself.
+    // Completed once the deadline has passed; otherwise registering a
+    // continuation parks it on the scheduler until it does.
+    struct SLEEP: ICriticalNotifyCompletion is
+        _scheduler: SCHEDULER
+        _deadline: long
+
+        init(scheduler: SCHEDULER, deadline: long) is
+            _scheduler = scheduler
+            _deadline = deadline
+        si
+
+        get_awaiter() -> SLEEP => self
+
+        is_completed: bool => _deadline <= SCHEDULER.now
+
+        get_result() is
+        si
+
+        on_completed(continuation: () -> void) is
+            _scheduler.sleep_until(_deadline, continuation)
+        si
+
+        unsafe_on_completed(continuation: () -> void) is
+            _scheduler.sleep_until(_deadline, continuation)
+        si
+    si
+
+    // A coroutine parked until its deadline, and how to resume it.
+    class SLEEPER(deadline: long, resume: () -> void) is si
 
     // The handle to a coroutine producing a value. Completed when the
     // body returned or threw; `value` is its result and `exception`
