@@ -18,6 +18,15 @@ namespace Ghul.Coroutines is
         SCHEDULER.current.run()
     si
 
+    // Implemented by an awaiter that hands the continuation it is
+    // given to the scheduler itself - by queueing it, parking it as a
+    // sleeper, or waking it through `schedule` - so the scheduler
+    // already knows the coroutine is waiting. A coroutine awaiting
+    // anything else, a task for instance, is resumed through the
+    // scheduler's inbox instead, which `run` waits on.
+    trait SchedulerAwaiter open is
+    si
+
     // Drives coroutines on one thread. A coroutine is an ordinary
     // asynchronous function returning `COROUTINE[T]` or `COROUTINE` -
     // the task-likes whose builders below run the body to its first
@@ -35,15 +44,33 @@ namespace Ghul.Coroutines is
     // awaiters on. It is a default instance unless one is installed,
     // and `spawn` and `run` make their own scheduler current while
     // they drive, so a program with one scheduler never names it.
+    //
+    // A coroutine may also await a task or any other awaitable the
+    // scheduler does not own. Whatever thread completes it only posts
+    // the continuation to the scheduler's inbox; `run` waits for the
+    // post and resumes the coroutine on its own thread like any other.
+    // In the browser, where `run` cannot block waiting for the post,
+    // such an await is reported as an error instead.
     class SCHEDULER is
         _current: SCHEDULER? static
 
         _ready: Collections.Queue[() -> void]
         _sleepers: Collections.LIST[SLEEPER]
 
+        // Continuations of awaits the scheduler does not own, posted
+        // from whichever thread completed them, and the signal that
+        // says one has arrived. The count is of those registered and
+        // not yet taken from the inbox, and is only touched from the
+        // scheduler's own thread.
+        _posted: System.Collections.Concurrent.ConcurrentQueue[() -> void]
+        _signal: System.Threading.ManualResetEventSlim
+        _outstanding: int
+
         init() is
             _ready = Collections.Queue[() -> void]()
             _sleepers = Collections.LIST[SLEEPER]()
+            _posted = System.Collections.Concurrent.ConcurrentQueue[() -> void]()
+            _signal = System.Threading.ManualResetEventSlim(false)
         si
 
         // The scheduler coroutines park on, created on first use.
@@ -82,6 +109,23 @@ namespace Ghul.Coroutines is
             _ready.enqueue(continuation)
         si
 
+        // Wraps the continuation of an await this scheduler does not
+        // own. The awaited value calls the wrapper from whatever thread
+        // completes it, and all the wrapper does is post the
+        // continuation for `run` to resume. Reached by the coroutine
+        // builders.
+        external(continuation: () -> void) -> () -> void is
+            _outstanding = _outstanding + 1
+
+            let posted = _posted
+            let signal = _signal
+
+            return () is
+                posted.enqueue(continuation)
+                signal.set()
+            si
+        si
+
         // Starts a coroutine on this scheduler and returns its handle.
         // The body has already run to its first suspension when this
         // returns.
@@ -108,7 +152,8 @@ namespace Ghul.Coroutines is
         si
 
         // Resumes parked coroutines until none remain, waiting for the
-        // next deadline whenever sleepers are all that is left.
+        // next deadline or the next post to the inbox whenever nothing
+        // is ready.
         //
         // A pass runs the coroutines that were ready when it started
         // and no more, so one that pauses in a loop takes a single turn
@@ -120,7 +165,9 @@ namespace Ghul.Coroutines is
             current = self
 
             try
-                while _ready.count > 0 \/ _sleepers.count > 0 do
+                while _ready.count > 0 \/ _sleepers.count > 0 \/ _outstanding > 0 do
+                    _take_posted()
+
                     let turns mut = _ready.count
 
                     while turns > 0 do
@@ -128,11 +175,59 @@ namespace Ghul.Coroutines is
                         turns = turns - 1
                     od
 
-                    _wake_due_sleepers(_ready.count == 0)
+                    _take_posted()
+
+                    if _ready.count == 0 /\ _outstanding > 0 then
+                        _wait_for_post()
+                        _wake_due_sleepers(false)
+                    else
+                        _wake_due_sleepers(_ready.count == 0)
+                    fi
                 od
             finally
                 current = previous
             yrt
+        si
+
+        // Moves every posted continuation onto the ready queue.
+        _take_posted() is
+            let continuation: () -> void mut = () is si
+
+            while _posted.try_dequeue(continuation ref) do
+                _ready.enqueue(continuation)
+                _outstanding = _outstanding - 1
+            od
+        si
+
+        // Blocks until something is posted to the inbox, or until the
+        // earliest sleeper's deadline when there is one. The inbox is
+        // always emptied before this is reached, so resetting the
+        // signal afterwards cannot lose a post: one arriving after the
+        // reset is still in the queue for the next pass to take.
+        _wait_for_post() is
+            let timeout mut = -1
+
+            if _sleepers.count > 0 then
+                let earliest mut = _sleepers[0].deadline
+
+                for s in _sleepers do
+                    if s.deadline < earliest then
+                        earliest = s.deadline
+                    fi
+                od
+
+                let remaining = earliest - now
+                timeout = if remaining > 0L then cast int(remaining) else 0 fi
+            fi
+
+            if System.OperatingSystem.is_browser() then
+                throw System.InvalidOperationException(
+                    "a coroutine is awaiting something the scheduler does not own, "
+                    "and it cannot complete while run is blocking the browser")
+            fi
+
+            _signal.wait(timeout)
+            _signal.reset()
         si
 
         // Queues every sleeper whose deadline has passed. With nothing
@@ -180,7 +275,7 @@ namespace Ghul.Coroutines is
     // The awaitable `pause()` returns. Its awaiter is itself: never
     // completed, and registering a continuation parks it on the
     // scheduler's ready queue.
-    struct PAUSE: ICriticalNotifyCompletion is
+    struct PAUSE: ICriticalNotifyCompletion, SchedulerAwaiter is
         _ready: Collections.Queue[() -> void]
 
         init(ready: Collections.Queue[() -> void]) is
@@ -206,7 +301,7 @@ namespace Ghul.Coroutines is
     // The awaitable `sleep(ms)` returns; its awaiter is itself.
     // Completed once the deadline has passed; otherwise registering a
     // continuation parks it on the scheduler until it does.
-    struct SLEEP: ICriticalNotifyCompletion is
+    struct SLEEP: ICriticalNotifyCompletion, SchedulerAwaiter is
         _scheduler: SCHEDULER
         _deadline: long
 
@@ -243,7 +338,7 @@ namespace Ghul.Coroutines is
     // callee. Reading `value` before completion is an error, and
     // either route rethrows a failed coroutine's own exception.
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER[_]))
-    class COROUTINE[T]: ICriticalNotifyCompletion is
+    class COROUTINE[T]: ICriticalNotifyCompletion, SchedulerAwaiter is
         exception: System.Exception?
         completed: bool
         _value: Ghul.MAYBE[T]
@@ -314,7 +409,7 @@ namespace Ghul.Coroutines is
     // The handle to a coroutine producing no value. Awaiting it parks
     // the caller until the coroutine completes.
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER))
-    class COROUTINE: ICriticalNotifyCompletion is
+    class COROUTINE: ICriticalNotifyCompletion, SchedulerAwaiter is
         exception: System.Exception?
         completed: bool
         _waiters: Collections.LIST[WAITER[bool]]
@@ -432,12 +527,23 @@ namespace Ghul.Coroutines is
             fi
         si
 
+        // An awaiter the scheduler owns is handed the continuation as
+        // it is; anything else is handed one that posts it back to the
+        // scheduler, so the coroutine resumes from `run`.
         await_on_completed[A: INotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
-            awaiter.on_completed(state_machine.move_next)
+            if isa SchedulerAwaiter(awaiter!) then
+                awaiter.on_completed(state_machine.move_next)
+            else
+                awaiter.on_completed(SCHEDULER.current.external(state_machine.move_next))
+            fi
         si
 
         await_unsafe_on_completed[A: ICriticalNotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
-            awaiter.unsafe_on_completed(state_machine.move_next)
+            if isa SchedulerAwaiter(awaiter!) then
+                awaiter.unsafe_on_completed(state_machine.move_next)
+            else
+                awaiter.unsafe_on_completed(SCHEDULER.current.external(state_machine.move_next))
+            fi
         si
     si
 
@@ -492,12 +598,23 @@ namespace Ghul.Coroutines is
             fi
         si
 
+        // An awaiter the scheduler owns is handed the continuation as
+        // it is; anything else is handed one that posts it back to the
+        // scheduler, so the coroutine resumes from `run`.
         await_on_completed[A: INotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
-            awaiter.on_completed(state_machine.move_next)
+            if isa SchedulerAwaiter(awaiter!) then
+                awaiter.on_completed(state_machine.move_next)
+            else
+                awaiter.on_completed(SCHEDULER.current.external(state_machine.move_next))
+            fi
         si
 
         await_unsafe_on_completed[A: ICriticalNotifyCompletion](awaiter: A ref, state_machine: IAsyncStateMachine) is
-            awaiter.unsafe_on_completed(state_machine.move_next)
+            if isa SchedulerAwaiter(awaiter!) then
+                awaiter.unsafe_on_completed(state_machine.move_next)
+            else
+                awaiter.unsafe_on_completed(SCHEDULER.current.external(state_machine.move_next))
+            fi
         si
     si
 
@@ -575,7 +692,7 @@ namespace Ghul.Coroutines is
     // itself. Completed when a value is buffered; otherwise
     // registering a continuation parks it on the channel until a
     // send arrives, and the value comes back through the ticket.
-    struct RECEIVE[T]: ICriticalNotifyCompletion is
+    struct RECEIVE[T]: ICriticalNotifyCompletion, SchedulerAwaiter is
         _channel: CHANNEL[T]
         _ticket: TICKET[T]
 
@@ -664,7 +781,7 @@ namespace Ghul.Coroutines is
     // itself. Completed when a permit is free, taking it; otherwise
     // registering a continuation parks it until a release grants
     // one.
-    struct ACQUIRE: ICriticalNotifyCompletion is
+    struct ACQUIRE: ICriticalNotifyCompletion, SchedulerAwaiter is
         _semaphore: SEMAPHORE
         _grant: GRANT
 
