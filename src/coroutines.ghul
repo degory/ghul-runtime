@@ -49,8 +49,8 @@ namespace Ghul.Coroutines is
     // scheduler does not own. Whatever thread completes it only posts
     // the continuation to the scheduler's inbox; `run` waits for the
     // post and resumes the coroutine on its own thread like any other.
-    // In the browser, where `run` cannot block waiting for the post,
-    // such an await is reported as an error instead.
+    // Where the thread cannot block waiting for the post, such an
+    // await is reported as an error instead.
     class SCHEDULER is
         _current: SCHEDULER? static
 
@@ -220,13 +220,14 @@ namespace Ghul.Coroutines is
                 timeout = if remaining > 0L then cast int(remaining) else 0 fi
             fi
 
-            if System.OperatingSystem.is_browser() then
+            try
+                _signal.wait(timeout)
+            catch e: System.PlatformNotSupportedException
                 throw System.InvalidOperationException(
                     "a coroutine is awaiting something the scheduler does not own, "
-                    "and it cannot complete while run is blocking the browser")
-            fi
+                    "and this thread cannot block waiting for it", e)
+            yrt
 
-            _signal.wait(timeout)
             _signal.reset()
         si
 
