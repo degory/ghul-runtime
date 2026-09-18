@@ -615,5 +615,89 @@ namespace Tests is
 
             are_equal("noticed", journal |> Ghul.Pipes.join(", "))
         si
+
+        delaying(journal: LIST[string], name: string, n: int) -> COROUTINE is
+            for i in 1::n do
+                journal.add("{name} {i}")
+                await Tasks.TASK.delay(10)
+            od
+        si
+
+        @Test()
+        Coroutines_awaiting_a_task_should_all_run_before_run_returns() is
+            let s = SCHEDULER()
+            let journal = LIST[string]()
+
+            let a = s.spawn(_ => delaying(journal, "a", 3))
+            let b = s.spawn(_ => delaying(journal, "b", 3))
+
+            s.run()
+
+            is_true(a.completed)
+            is_true(b.completed)
+            are_equal(6, journal.count)
+        si
+
+        computed_elsewhere(threads: LIST[int]) -> COROUTINE[int] is
+            let v = await Tasks.TASK.run(() -> int => 42)
+            threads.add(System.Threading.Thread.current_thread.managed_thread_id)
+            return v
+        si
+
+        @Test()
+        A_coroutine_awaiting_a_task_should_resume_on_the_thread_that_called_run() is
+            let s = SCHEDULER()
+            let threads = LIST[int]()
+
+            let handle = s.spawn(_ => computed_elsewhere(threads))
+
+            s.run()
+
+            are_equal(42, handle.value)
+            are_equal(1, threads.count)
+            are_equal(System.Threading.Thread.current_thread.managed_thread_id, threads[0])
+        si
+
+        sleeping_twice(journal: LIST[string]) -> COROUTINE is
+            await sleep(5)
+            journal.add("slept")
+            await sleep(5)
+            journal.add("slept again")
+        si
+
+        @Test()
+        A_sleeper_and_a_coroutine_awaiting_a_task_should_both_complete() is
+            let s = SCHEDULER()
+            let journal = LIST[string]()
+
+            let sleeper = s.spawn(_ => sleeping_twice(journal))
+            let waiter = s.spawn(_ => delaying(journal, "task", 2))
+
+            s.run()
+
+            is_true(sleeper.completed)
+            is_true(waiter.completed)
+            is_true(journal.contains("slept again"))
+            is_true(journal.contains("task 2"))
+        si
+
+        awaiting_a_fault() -> COROUTINE is
+            await Tasks.TASK.run(() -> void is
+                throw System.InvalidOperationException("task failed")
+            si)
+        si
+
+        @Test()
+        A_faulted_task_should_fail_the_coroutine_awaiting_it() is
+            let s = SCHEDULER()
+
+            let handle = s.spawn(_ => awaiting_a_fault())
+
+            s.run()
+
+            is_true(handle.completed)
+            is_true(handle.exception?)
+            are_equal("task failed", handle.exception!.message)
+        si
     si
 si
