@@ -337,9 +337,10 @@
       <AssemblyInfo Include="System.Reflection.AssemblyVersionAttribute" Condition="'$(AssemblyVersion)' != ''">
         <Parameter>$(AssemblyVersion)</Parameter>
       </AssemblyInfo>
+      <!-- The attribute takes a key and a value, which the compiler reads
+           from one parameter split at its first comma. -->
       <AssemblyInfo Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(RepositoryUrl)' != ''" >
-        <Parameter>$(RepositoryUrl)</Parameter>
-        <!-- TODO: common target supports multiple parameters here -->
+        <Parameter>RepositoryUrl,$(RepositoryUrl)</Parameter>
       </AssemblyInfo>
       <AssemblyInfo Include="System.Resources.NeutralResourcesLanguageAttribute" Condition="'$(NeutralLanguage)' != ''">
         <Parameter>$(NeutralLanguage)</Parameter>
