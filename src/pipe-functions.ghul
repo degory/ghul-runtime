@@ -241,6 +241,20 @@ namespace Ghul.Pipes is
         return result
     si
 
+    // How many elements satisfy the predicate.
+    count[T..](source: Iterable[T], predicate: T.. -> bool pure) -> int pure is
+        let it = source.iterator
+        let result mut = 0
+
+        while it.move_next() do
+            if predicate(it.current) then
+                result = result + 1
+            fi
+        od
+
+        return result
+    si
+
     find[T..](source: Iterable[T], predicate: T.. -> bool pure) -> MAYBE[T] pure is
         let it = source.iterator
 
