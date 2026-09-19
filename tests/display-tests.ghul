@@ -437,6 +437,23 @@ namespace Tests is
             are_equal("[1, 2]", Ghul.Pipes.render_elements(NAMED_BAG()))
         si
 
+        // Its members would include the result, and reading that waits
+        // for the task; a type ghūl did not compile says what it is itself.
+        @Test()
+        Render_a_type_from_another_language_by_its_own_to_string() is
+            let task = Tasks.TASK.from_result(42)
+
+            are_equal(task.to_string(), $(task))
+            are_equal("System.Random", $(System.Random(1)))
+        si
+
+        @Test()
+        Render_a_function_value_by_its_type() is
+            let double: object = (n: int) => n * 2
+
+            are_equal(double.to_string(), $(double))
+        si
+
         @Test()
         Render_a_range_by_its_own_to_string() is
             are_equal("0..3", $(0..3))
