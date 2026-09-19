@@ -93,6 +93,15 @@ namespace Tests is
         si
     si
 
+    // A sequence that says what it is in its own words.
+    class NAMED_BAG: Collections.Iterable[int] is
+        init() is si
+
+        iterator: Collections.Iterator[int] => Collections.LIST[int]([1, 2]).iterator
+
+        to_string() -> string => "a bag of two"
+    si
+
     @TestClass()
     class DisplayShould is
             init() is
@@ -377,6 +386,12 @@ namespace Tests is
             outer.add(outer)
 
             are_equal("[<cycle>]", inspect(outer))
+        si
+
+        @Test()
+        Render_a_sequence_by_the_to_string_it_declares() is
+            are_equal("a bag of two", $(NAMED_BAG()))
+            are_equal("[a bag of two]", $([NAMED_BAG()]))
         si
 
         @Test()
