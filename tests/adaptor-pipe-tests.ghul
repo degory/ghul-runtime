@@ -39,6 +39,34 @@ namespace Tests is
         si
 
         @Test()
+        Count_Predicate_CountsMatchingElements() is
+            let pipe = [1, 2, 3, 4, 5, 6]
+
+            are_equal(3, pipe |> count(n => n % 2 == 0))
+        si
+
+        @Test()
+        Count_PredicateMatchingNothing_ReturnsZero() is
+            let pipe = [1, 3, 5]
+
+            are_equal(0, pipe |> count(n => n % 2 == 0))
+        si
+
+        @Test()
+        Count_PredicateOverPairs_TakesTheElementApart() is
+            let pairs = [(1, 2), (3, 3), (4, 4)]
+
+            are_equal(2, pairs |> count((a, b) => a == b))
+        si
+
+        @Test()
+        Count_PredicateAfterAStage_CountsTheStageOutput() is
+            let pipe = [1, 2, 3, 4]
+
+            are_equal(2, pipe |> map(n => n * 2) |> count(n => n > 4))
+        si
+
+        @Test()
         Count_NonEmptyArray_ReturnsElementCount() is
             let pipe = ADAPTOR_PIPE[int]([1, 2, 3, 4, 5])
 
