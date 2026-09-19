@@ -171,9 +171,14 @@ namespace Ghul is
                 return
             fi
 
+            // What a type renders through the state is inside it, so a
+            // string it renders is quoted in the detailed mode, as a string
+            // inside any other value is.
             if isa Displayable(value) then
                 _mark(value)
+                _depth = _depth + 1
                 value.display(self)
+                _depth = _depth - 1
                 _release(value)
 
                 return
