@@ -1,0 +1,23 @@
+namespace Ghul is
+    // Implemented by a type that can be shown as something other than
+    // text: an image, a document, a chart. A host that shows values - a
+    // notebook, a REPL, the playground - shows one of these beside the
+    // text `$` and `inspect` give, where it can.
+    //
+    // Give each representation as a MIME type and its content, best
+    // first. Text formats are UTF-8. The host chooses which MIME types it
+    // honours and uses the first it does; a type implementing this cannot
+    // rely on any particular one being shown, and the text rendering is
+    // always there as the fallback.
+    //
+    // A host that shows output in a web page must not insert text/html or
+    // image/svg+xml from a value into its own document: either can carry
+    // script. Such a host shows raster image types only, as a data URL
+    // inside a sandboxed frame, or skips the representation.
+    //
+    // Open because a type controls how it is represented by implementing
+    // this, which downstream assemblies have to be able to do.
+    trait Representable open is
+        representations() -> Collections.Iterable[(mime: string, content: ubyte[])] pure
+    si
+si
