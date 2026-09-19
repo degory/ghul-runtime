@@ -1,0 +1,39 @@
+namespace Tests is
+    use Ghul
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    // A picture with a PNG and a text fallback of its own, best first.
+    class PICTURE(caption: string): Ghul.Renderable is
+        representations() -> Collections.Iterable[(mime: string, content: ubyte[])] pure =>
+            [
+                (mime = "image/png", content = [0x89`ub, 0x50`ub, 0x4E`ub, 0x47`ub]),
+                (mime = "text/plain", content = System.Text.Encoding.utf8.get_bytes(caption))
+            ]
+    si
+
+    @TestClass()
+    class RenderableShould is
+        init() is si
+
+        @Test()
+        Give_its_representations_best_first() is
+            let held: Ghul.Renderable = PICTURE("a picture")
+            let representations = Collections.LIST[(mime: string, content: ubyte[])](held.representations())
+
+            are_equal(2, representations.count)
+            are_equal("image/png", representations[0].mime)
+            are_equal("a picture", System.Text.Encoding.utf8.get_string(representations[1].content))
+        si
+
+        // Offering other media for a value leaves the text `$` writes for it
+        // unchanged, so a host with no use for the representations still has
+        // that to show.
+        @Test()
+        Leave_the_text_it_is_written_as_unchanged() is
+            are_equal("PICTURE(caption = a picture)", $(PICTURE("a picture")))
+        si
+    si
+si
