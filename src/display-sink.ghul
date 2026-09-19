@@ -1,0 +1,113 @@
+namespace Ghul is
+    // Where display() sends a value: a host that shows values - a REPL, a
+    // notebook, the playground - which shows it the way it shows a cell's
+    // value. `id` names a display that update_display can replace, and is
+    // null for one that cannot be. The sink receives the value itself, so
+    // a host can show it in whatever form suits it: the text `$` or
+    // `inspect` writes, or a Renderable's representations.
+    trait DisplaySink open is
+        show(value: object?, id: string?)
+
+        update(value: object?, id: string)
+    si
+
+    // The sink a host installed, if any. One sink serves the process: a
+    // host installs its own while it runs code, and takes it out again
+    // when it is done, so code still running afterwards writes to standard
+    // output rather than reaching a front end that has gone.
+    class DISPLAY_SINKS is
+        _current: DisplaySink? static
+        _lock: object static
+
+        init() static is
+            _lock = object()
+        si
+
+        current: DisplaySink? static is
+            System.Threading.Monitor.enter(_lock)
+
+            try
+                return _current
+            finally
+                System.Threading.Monitor.exit(_lock)
+            yrt
+        si
+
+        install(sink: DisplaySink) static is
+            System.Threading.Monitor.enter(_lock)
+
+            try
+                _current = sink
+            finally
+                System.Threading.Monitor.exit(_lock)
+            yrt
+        si
+
+        // Installs a sink made of two functions, and returns it for
+        // remove. A host whose own copy of this runtime is not the one
+        // the code it runs uses installs through this: function values
+        // cross between the two, where a type implementing DisplaySink
+        // from the host's copy would not.
+        install(show: (object?, string?) -> void, update: (object?, string) -> void) -> DisplaySink static is
+            let sink = _FUNCTION_DISPLAY_SINK(show, update)
+
+            install(sink)
+
+            return sink
+        si
+
+        // Takes `sink` out, if it is still the one installed.
+        remove(sink: DisplaySink) static is
+            System.Threading.Monitor.enter(_lock)
+
+            try
+                if _current == sink then
+                    _current = null
+                fi
+            finally
+                System.Threading.Monitor.exit(_lock)
+            yrt
+        si
+    si
+
+    class _FUNCTION_DISPLAY_SINK(_show: (object?, string?) -> void, _update: (object?, string) -> void): DisplaySink is
+        show(value: object?, id: string?) is
+            _show(value, id)
+        si
+
+        update(value: object?, id: string) is
+            _update(value, id)
+        si
+    si
+
+    // Shows a value now, while the code goes on running: through the sink
+    // a host installed, or with no host, as a line of standard output
+    // holding what `inspect` writes for it.
+    display(value: object?) is
+        if let sink = DISPLAY_SINKS.current then
+            sink.show(value, null)
+        else
+            IO.Std.write_line(inspect(value))
+        fi
+    si
+
+    // Shows a value now, under an id update_display can replace it by.
+    display(value: object?, id: string) is
+        if let sink = DISPLAY_SINKS.current then
+            sink.show(value, id)
+        else
+            IO.Std.write_line(inspect(value))
+        fi
+    si
+
+    // Shows a value in place of what display(value, id) showed under the
+    // same id. With no host there is nothing to replace, so the value is
+    // written as another line.
+    update_display(value: object?, id: string) is
+        if let sink = DISPLAY_SINKS.current then
+            sink.update(value, id)
+        else
+            IO.Std.write_line(inspect(value))
+        fi
+    si
+si
