@@ -1,0 +1,86 @@
+namespace Tests is
+    use Ghul
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    // Records what it was asked to show.
+    class RECORDING_SINK: Ghul.DisplaySink is
+        shown: Collections.LIST[string]
+
+        init() is
+            shown = Collections.LIST[string]()
+        si
+
+        show(value: object?, id: string?) is
+            shown.add("show {inspect(value)} {id ?? "-"}")
+        si
+
+        update(value: object?, id: string) is
+            shown.add("update {inspect(value)} {id}")
+        si
+    si
+
+    @TestClass()
+    class DisplaySinkShould is
+        init() is si
+
+        _written(action: () -> void) -> string is
+            let before = IO.Std.out
+            let writer = IO.StringWriter()
+
+            IO.Std.set_out(writer)
+
+            try
+                action()
+            finally
+                IO.Std.set_out(before)
+            yrt
+
+            return writer.to_string().replace("\r\n", "\n")
+        si
+
+        @Test()
+        Write_a_displayed_value_to_standard_output_with_no_sink() is
+            are_equal("[\"a\", 1]\n", _written(() => Ghul.display(["a", cast object(1)])))
+        si
+
+        @Test()
+        Write_an_update_as_another_line_with_no_sink() is
+            are_equal("2\n", _written(() => Ghul.update_display(2, "x")))
+        si
+
+        @Test()
+        Hand_the_value_to_an_installed_sink() is
+            let sink = RECORDING_SINK()
+
+            DISPLAY_SINKS.install(sink)
+
+            try
+                Ghul.display("one")
+                Ghul.display(2, "counter")
+                Ghul.update_display(3, "counter")
+            finally
+                DISPLAY_SINKS.remove(sink)
+            yrt
+
+            are_equal("show one -|show 2 counter|update 3 counter", sink.shown |> Ghul.Pipes.join("|"))
+        si
+
+        @Test()
+        Install_a_sink_made_of_functions_and_remove_it() is
+            let shown = Collections.LIST[string]()
+            let sink = DISPLAY_SINKS.install((value, id) => shown.add("show {value}"), (value, id) => shown.add("update {value}"))
+
+            Ghul.display(1)
+
+            DISPLAY_SINKS.remove(sink)
+
+            let after = _written(() => Ghul.display(2))
+
+            are_equal("show 1", shown |> Ghul.Pipes.join("|"))
+            are_equal("2\n", after)
+        si
+    si
+si
