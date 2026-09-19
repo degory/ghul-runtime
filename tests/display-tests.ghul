@@ -296,6 +296,12 @@ namespace Tests is
         si
     si
 
+    counting(n: int) -> Ghul.Pipes.Pipe[int] is
+        for i in 0..n do
+            yield i
+        od
+    si
+
     @TestClass()
     class DisplayModesShould is
         init() is si
@@ -419,6 +425,16 @@ namespace Tests is
 
             are_equal("[0, 1, ...]", state.to_string())
             are_equal("[0, 1, 2, 3, 4]", $(counting))
+        si
+
+        @Test()
+        Render_a_generator_as_its_elements() is
+            are_equal("[0, 1, 2]", $(counting(3)))
+        si
+
+        @Test()
+        Render_the_elements_of_a_sequence_that_declares_its_own_to_string() is
+            are_equal("[1, 2]", Ghul.Pipes.render_elements(NAMED_BAG()))
         si
 
         @Test()

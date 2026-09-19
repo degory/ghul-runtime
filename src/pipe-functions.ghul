@@ -476,6 +476,17 @@ namespace Ghul.Pipes is
         append_to(source, result, separator)
             .to_string()
 
+    // The elements of a sequence in brackets, as `[1, 2, 3]`, up to the
+    // display element limit, whatever to_string its type declares. It is
+    // how a pipe reads as text.
+    render_elements[T](source: Iterable[T]) -> string pure is
+        let state = DISPLAY_STATE()
+
+        state.render_elements(source)
+
+        return state.to_string()
+    si
+
     join[T](source: Iterable[T]) -> string pure =>
         join(source, ", ")
 
