@@ -216,6 +216,16 @@ namespace Ghul is
                 fi
             fi
 
+            // A type from an assembly ghūl did not compile is left to say
+            // what it is itself: reading its properties would run code whose
+            // effects nothing here knows, and a property as ordinary-looking
+            // as a task's result blocks.
+            if !_info(type).renders_members then
+                append(value.to_string() ?? "null")
+
+                return
+            fi
+
             _mark(value)
             _append_members(value, type)
             _release(value)
@@ -283,7 +293,27 @@ namespace Ghul is
                 fi
             od
 
-            return _DISPLAY_TYPE_INFO(_works_out_speaks_for_itself(type), members)
+            return _DISPLAY_TYPE_INFO(_works_out_speaks_for_itself(type), _is_compiled_by_ghul(type.assembly), members)
+        si
+
+        // The runtime itself, and any assembly referencing it, which is
+        // every assembly ghūl compiles.
+        _is_compiled_by_ghul(assembly: System.Reflection.Assembly) -> bool static is
+            let runtime = (typeof DISPLAY_STATE).assembly
+
+            if assembly == runtime then
+                return true
+            fi
+
+            let runtime_name = runtime.get_name().name
+
+            for reference in assembly.get_referenced_assemblies() do
+                if reference.name =~ runtime_name then
+                    return true
+                fi
+            od
+
+            return false
         si
 
         // Whether a value is rendered by its own to_string rather than by
@@ -638,6 +668,7 @@ namespace Ghul is
     // value of the type a render meets.
     class _DISPLAY_TYPE_INFO(
         speaks_for_itself: bool,
+        renders_members: bool,
         members: Collections.List[(name: string, read: object -> object?)]
     )
 si
