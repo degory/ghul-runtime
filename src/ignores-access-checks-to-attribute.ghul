@@ -1,0 +1,19 @@
+namespace System.Runtime.CompilerServices is
+    use System.Attribute
+
+    // Applied to an assembly, lets its code reach the non-public types
+    // and members of the named assembly. The runtime honours it by name,
+    // wherever the type is declared, so one declaration here serves
+    // every assembly that references this one. The compiler applies it
+    // to a REPL cell for each earlier cell of the session, whose
+    // assembly-private definitions a cell can use as if the session were
+    // one file; user code never spells this name.
+    @suppress("non-upper-snake-case-name")
+    class IgnoresAccessChecksToAttribute: Attribute is
+        assembly_name: string
+
+        init(assembly_name: string) is
+            self.assembly_name = assembly_name
+        si
+    si
+si
