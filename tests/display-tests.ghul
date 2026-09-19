@@ -193,7 +193,7 @@ namespace Tests is
         // unbounded sequence renders rather than never finishing.
         @Test()
         Render_at_most_the_element_limit() is
-            let rendered = $(0..1000)
+            let rendered = $(Ghul.Pipes.from(0))
 
             is_true(rendered.ends_with(", ...]"))
             is_true(rendered.starts_with("[0, 1, 2, "))
@@ -392,6 +392,39 @@ namespace Tests is
         Render_a_sequence_by_the_to_string_it_declares() is
             are_equal("a bag of two", $(NAMED_BAG()))
             are_equal("[a bag of two]", $([NAMED_BAG()]))
+        si
+
+        @Test()
+        Give_a_pipe_a_to_string_that_matches_its_rendering() is
+            let doubled = Ghul.Pipes.pipe([1, 2, 3]) |> Ghul.Pipes.map(x => x * 2)
+
+            are_equal("[2, 4, 6]", doubled.to_string())
+            are_equal("[2, 4, 6]", $(doubled))
+            are_equal("doubled: [2, 4, 6]", "doubled: {doubled}")
+        si
+
+        @Test()
+        Give_an_unbounded_pipe_a_to_string_that_finishes() is
+            is_true(Ghul.Pipes.from(0).to_string().ends_with(", ...]"))
+        si
+
+        // Stopping at the limit leaves the pipe where a full read would
+        // have: back at its start.
+        @Test()
+        Rewind_a_pipe_rendered_only_part_way() is
+            let counting = Ghul.Pipes.pipe(Collections.LIST[int](0..5))
+            let state = Ghul.DISPLAY_STATE(Ghul.DisplayMode.CLEAN, 2)
+
+            state.render_sequence(counting)
+
+            are_equal("[0, 1, ...]", state.to_string())
+            are_equal("[0, 1, 2, 3, 4]", $(counting))
+        si
+
+        @Test()
+        Render_a_range_by_its_own_to_string() is
+            are_equal("0..3", $(0..3))
+            are_equal("[0..3]", $([0..3]))
         si
 
         @Test()

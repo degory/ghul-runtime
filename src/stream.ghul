@@ -60,7 +60,7 @@ namespace Ghul.Pipes is
             _state = _initial
         si
 
-        to_string() -> string => Ghul.Pipes.join(self)
+        to_string() -> string => $(self)
 
         dispose() is
         si
