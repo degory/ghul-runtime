@@ -132,6 +132,19 @@ namespace Ghul.Pipes is
         return result
     si
 
+    // A map from a sequence of key and value pairs, as a map literal is
+    // written: `[("a", 1), ("b", 2)] |> collect_map()`. A key given
+    // twice throws, as adding it to the map twice would.
+    collect_map[K, V](source: Iterable[(K, V)]) -> MAP[K, V] pure is
+        let result = MAP[K, V]()
+
+        for (key, value) in source do
+            result.add(key, value)
+        od
+
+        return result
+    si
+
     partition[T..](source: Iterable[T], predicate: T.. -> bool pure) -> (LIST[T], LIST[T]) pure is
         let matching = LIST[T]()
         let non_matching = LIST[T]()
