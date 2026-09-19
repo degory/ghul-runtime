@@ -68,6 +68,40 @@ namespace Tests is
         si
     si
 
+    // A struct, a class and a union with no to_string of their own, which
+    // render as their members.
+    struct RENDERED_PAIR(a: int public, b: string public)
+
+    class RENDERED_POINT(x: int, y: int)
+
+    union RenderedTree is
+        LEAF(value: int)
+        NODE(left: RenderedTree, right: RenderedTree)
+    si
+
+    enum RenderedSuit is
+        HEARTS,
+        SPADES
+    si
+
+    // Asks the state which mode it is rendering in.
+    class MODE_AWARE: Ghul.Displayable is
+        init() is si
+
+        display(state: Ghul.DISPLAY_STATE) is
+            state.append(if state.mode == Ghul.DisplayMode.DETAILED then "detailed" else "clean" fi)
+        si
+    si
+
+    // A sequence that says what it is in its own words.
+    class NAMED_BAG: Collections.Iterable[int] is
+        init() is si
+
+        iterator: Collections.Iterator[int] => Collections.LIST[int]([1, 2]).iterator
+
+        to_string() -> string => "a bag of two"
+    si
+
     @TestClass()
     class DisplayShould is
             init() is
@@ -152,7 +186,7 @@ namespace Tests is
 
             map.add("a", 1)
 
-            are_equal("[[a, 1]]", $(map))
+            are_equal("[(a, 1)]", $(map))
         si
 
         // Beyond the limit an ellipsis stands for the rest, so an
@@ -259,6 +293,114 @@ namespace Tests is
             children.add(node)
 
             are_equal("(<cycle>)", $(node))
+        si
+    si
+
+    @TestClass()
+    class DisplayModesShould is
+        init() is si
+
+        @Test()
+        Render_booleans_as_ghul_spells_them() is
+            are_equal("true", $(true))
+            are_equal("[true, false]", $([true, false]))
+        si
+
+        @Test()
+        Render_a_tuple_as_its_parts() is
+            are_equal("(1, one, c, true)", $((1, "one", 'c', true)))
+            are_equal("(1, \"one\", 'c', true)", inspect((1, "one", 'c', true)))
+        si
+
+        @Test()
+        Render_strings_and_characters_bare_at_the_top_in_both_modes() is
+            are_equal("hello", inspect("hello"))
+            are_equal("c", inspect(cast object('c')))
+        si
+
+        @Test()
+        Quote_strings_inside_a_value_only_when_detailed() is
+            are_equal("[a, b]", $(["a", "b"]))
+            are_equal("[\"a\", \"b\"]", inspect(["a", "b"]))
+            are_equal("[\"say \\\"hi\\\"\"]", inspect(["say \"hi\""]))
+        si
+
+        @Test()
+        Render_a_map_as_key_value_pairs() is
+            let map = MAP[string, int]()
+
+            map.add("a", 1)
+
+            are_equal("[(a, 1)]", $(map))
+            are_equal("[(\"a\", 1)]", inspect(map))
+        si
+
+        @Test()
+        Render_a_struct_with_no_to_string_as_its_members() is
+            are_equal("RENDERED_PAIR(a = 1, b = x)", $(RENDERED_PAIR(1, "x")))
+            are_equal("RENDERED_PAIR(a = 1, b = \"x\")", inspect(RENDERED_PAIR(1, "x")))
+        si
+
+        @Test()
+        Render_a_class_with_no_to_string_as_its_members() is
+            are_equal("RENDERED_POINT(x = 3, y = 4)", $(RENDERED_POINT(3, 4)))
+        si
+
+        @Test()
+        Render_a_union_variant_after_its_union() is
+            let tree: RenderedTree = RenderedTree.NODE(RenderedTree.LEAF(1), RenderedTree.LEAF(2))
+
+            are_equal("RenderedTree.NODE(left = RenderedTree.LEAF(value = 1), right = RenderedTree.LEAF(value = 2))", $(tree))
+        si
+
+        @Test()
+        Render_an_enum_member_by_its_name() is
+            are_equal("HEARTS", $(RenderedSuit.HEARTS))
+            are_equal("HEARTS", inspect(RenderedSuit.HEARTS))
+        si
+
+        @Test()
+        Render_null_as_null_in_both_modes() is
+            let absent: object? = null
+
+            are_equal("null", $(absent))
+            are_equal("null", inspect(absent))
+        si
+
+        @Test()
+        Render_nested_lists_in_both_modes() is
+            are_equal("[[1, 2], [3]]", inspect([[1, 2], [3]]))
+            are_equal("[[a], [b]]", $([["a"], ["b"]]))
+        si
+
+        @Test()
+        Tell_a_displayable_which_mode_it_is_rendered_in() is
+            are_equal("clean", $(MODE_AWARE()))
+            are_equal("detailed", inspect(MODE_AWARE()))
+        si
+
+        @Test()
+        Render_a_cycle_in_the_detailed_mode() is
+            let outer = Collections.LIST[object]()
+
+            outer.add(outer)
+
+            are_equal("[<cycle>]", inspect(outer))
+        si
+
+        @Test()
+        Render_a_sequence_by_the_to_string_it_declares() is
+            are_equal("a bag of two", $(NAMED_BAG()))
+            are_equal("[a bag of two]", $([NAMED_BAG()]))
+        si
+
+        @Test()
+        Stop_at_the_element_limit_a_state_is_given() is
+            let state = Ghul.DISPLAY_STATE(Ghul.DisplayMode.CLEAN, 3)
+
+            state.render([1, 2, 3, 4, 5])
+
+            are_equal("[1, 2, 3, ...]", state.to_string())
         si
     si
 si

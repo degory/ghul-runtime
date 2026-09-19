@@ -8,8 +8,17 @@ namespace Ghul is
     // A type that implements `Displayable` renders however it says it
     // does. Otherwise a sequence renders as its elements in square
     // brackets, recursively, so a collection shows what it holds instead
-    // of the type name `to_string()` gives it, and anything else renders
-    // as its own `to_string()`.
+    // of the type name `to_string()` gives it; a tuple and a map entry
+    // render as their parts in parentheses; a value whose type has a
+    // `to_string()` of its own renders as that; and anything else renders
+    // as its type and its public members, the way a constructor call that
+    // built it would read.
+    //
+    // `inspect` renders in the detailed mode, which is the same except
+    // that a string or a character inside something else is quoted, so
+    // that `["a, b"]` and `["a", "b"]` read differently. The value itself
+    // is not quoted at the top: `inspect("hello")` is `hello`, as a REPL
+    // shows it.
     //
     // A type can be rendered by whichever overload fits it best. The
     // sequence overload catches anything whose static type says it is
@@ -18,13 +27,11 @@ namespace Ghul is
     // `object[]`, a nested collection - still renders as a sequence when
     // it is one.
     //
-    // At most `_max_elements` elements of any one sequence are rendered,
+    // At most `max_elements` elements of any one sequence are rendered,
     // and an ellipsis stands for the rest. Without a limit an unbounded
-    // sequence - a generator, a stream - would never finish rendering,
-    // and there is no length beyond which more elements help a person
-    // read the value. The limit is deliberately not configurable: `$`
-    // exists for showing a value, and anything wanting control over how
-    // much is shown wants its own rendering rather than this one.
+    // sequence - a generator, a stream - would never finish rendering.
+    // `$` and `inspect` use the default; a host showing values its own
+    // way can make a DISPLAY_STATE with a limit of its own.
     //
     // A graph that leads back to something already being rendered would
     // otherwise recurse until the stack ran out, so each value on the way
@@ -45,13 +52,41 @@ namespace Ghul is
         display(state: DISPLAY_STATE)
     si
 
+    // How a value is rendered: CLEAN as `$` renders it, for program
+    // output and interpolation, and DETAILED as `inspect` does, with the
+    // strings and characters inside a value quoted.
+    enum DisplayMode is
+        CLEAN,
+        DETAILED
+    si
+
+    // A value rendered in the detailed mode. The overloads mirror `$`'s,
+    // so a string and a sequence resolve the same way they do there.
+    inspect(value: object?) -> string is
+        let state = DISPLAY_STATE(DisplayMode.DETAILED, DISPLAY_STATE.default_max_elements)
+
+        state.render(value)
+
+        return state.to_string()
+    si
+
+    inspect(value: string) -> string => value
+
+    inspect[T](values: Collections.Iterable[T]) -> string is
+        let state = DISPLAY_STATE(DisplayMode.DETAILED, DISPLAY_STATE.default_max_elements)
+
+        state.render_sequence(values)
+
+        return state.to_string()
+    si
+
     // What an implementation of `Displayable` is handed. The buffer, the
     // element budget and the set of values already being rendered are
     // private: the surface is `append` and `render`, so how the text is
     // accumulated stays free to change - to write straight to a stream,
     // or to carry an indent - without any implementation noticing.
     class DISPLAY_STATE is
-        _max_elements: int static => 100
+        default_max_elements: int static => 100
 
         _cycle_marker: string static => "<cycle>"
 
@@ -61,9 +96,26 @@ namespace Ghul is
         // rendered rather than one per value seen, so it stays short.
         _open: Collections.LIST[object]
 
+        // How many levels below the value being rendered the render is,
+        // which decides whether a string is quoted in the detailed mode.
+        _depth: int
+
+        // Clean, as `$` renders, or detailed, as `inspect` does. A
+        // `Displayable` can ask, to render itself to match.
+        mode: DisplayMode
+
+        // The most elements of any one sequence rendered.
+        max_elements: int
+
         init() is
+            self.init(DisplayMode.CLEAN, default_max_elements)
+        si
+
+        init(mode: DisplayMode, max_elements: int) is
             _into = StringBuilder()
             _open = Collections.LIST[object]()
+            self.mode = mode
+            self.max_elements = max_elements
         si
 
         append(text: string) is
@@ -87,8 +139,22 @@ namespace Ghul is
 
             // A string is a sequence of characters, and rendering it as
             // one would be useless.
-            if isa string(value) then
-                append(value)
+            if let text: string = value then
+                append(if _is_quoted then _quote(text, '"') else text fi)
+
+                return
+            fi
+
+            let type = value.get_type()
+
+            if type == typeof(char) then
+                append(if _is_quoted then _quote(value.to_string() ?? "", '\'') else value.to_string() ?? "" fi)
+
+                return
+            fi
+
+            if type == typeof(bool) then
+                append(if cast bool(value) then "true" else "false" fi)
 
                 return
             fi
@@ -107,23 +173,253 @@ namespace Ghul is
                 return
             fi
 
-            let enumerator = _try_get_enumerator(value)
+            if let tuple = cast System.Runtime.CompilerServices.ITuple?(value) then
+                _mark(value)
+                _append_parts(tuple)
+                _release(value)
 
-            if !enumerator? then
+                return
+            fi
+
+            if type.is_generic_type /\ type.get_generic_type_definition() == typeof(Collections.KeyValuePair[_, _]) then
+                _append_pair(value, type)
+
+                return
+            fi
+
+            // A type that says what it is in its own words is taken at its
+            // word, even where it is also a sequence: structural rendering
+            // is for the types that say nothing useful, such as an array.
+            if _speaks_for_itself(type) then
                 append(value.to_string() ?? "null")
 
                 return
             fi
 
-            _mark(value)
+            let enumerator = _try_get_enumerator(value)
 
-            let rendered = _append_reflected(enumerator)
+            if enumerator? then
+                _mark(value)
 
-            _release(value)
+                let rendered = _append_reflected(enumerator)
 
-            if !rendered then
-                append(value.to_string() ?? "null")
+                _release(value)
+
+                if rendered then
+                    return
+                fi
             fi
+
+            _mark(value)
+            _append_members(value, type)
+            _release(value)
+        si
+
+        // Whether a string or a character rendered now is quoted: in the
+        // detailed mode, anywhere but at the top.
+        _is_quoted: bool => mode == DisplayMode.DETAILED /\ _depth > 0
+
+        _quote(text: string, mark: char) -> string static =>
+            "{mark}{text.replace("\\", "\\\\").replace("{mark}", "\\{mark}").replace("\n", "\\n").replace("\t", "\\t")}{mark}"
+
+        // A child value, one level further down.
+        _render_child(value: object?) is
+            _depth = _depth + 1
+
+            render(value)
+
+            _depth = _depth - 1
+        si
+
+        _append_parts(tuple: System.Runtime.CompilerServices.ITuple) is
+            append('(')
+
+            for i in 0..tuple.length do
+                if i > 0 then
+                    append(", ")
+                fi
+
+                _render_child(tuple[i])
+            od
+
+            append(')')
+        si
+
+        _append_pair(value: object, type: System.Type) is
+            append('(')
+            _render_child(type.get_property("Key")?.get_value(value))
+            append(", ")
+            _render_child(type.get_property("Value")?.get_value(value))
+            append(')')
+        si
+
+        // Whether a value is rendered by its own to_string rather than by
+        // what it holds: where its type declares one, unless the
+        // declaration is this runtime's own. A pipe's and a range's
+        // to_string join every element, which never finishes for an
+        // unbounded pipe, so those are rendered as their elements up to
+        // the limit.
+        _speaks_for_itself(type: System.Type) -> bool static is
+            if !_has_own_text(type) then
+                return false
+            fi
+
+            let declaring = type.get_method("ToString", System.Type.empty_types)?.declaring_type
+
+            return !declaring? \/ declaring.assembly != (typeof DISPLAY_STATE).assembly
+        si
+
+        // Whether a type says what it is in its own words. One that does
+        // not would only give back its .NET type name.
+        _has_own_text(type: System.Type) -> bool static is
+            let to_string = type.get_method("ToString", System.Type.empty_types)
+
+            if !to_string? then
+                return true
+            fi
+
+            let declaring = to_string.declaring_type
+
+            return declaring != typeof(object) /\ declaring != typeof(System.ValueType)
+        si
+
+        // The type and its public members, as the constructor call that
+        // would build it reads: `POINT(x = 3, y = 4)`, or the type alone
+        // for one with nothing public to show.
+        _append_members(value: object, type: System.Type) is
+            append(type_name(type))
+
+            let count mut = 0
+
+            for property in type.get_properties(_instance_flags()) do
+                if property.can_read /\ property.get_index_parameters().count == 0 /\ _is_user_name(property.name) then
+                    count = _append_member(property.name, property.get_value(value), count)
+                fi
+            od
+
+            for member in type.get_fields(_instance_flags()) do
+                if _is_user_name(member.name) then
+                    count = _append_member(member.name, member.get_value(value), count)
+                fi
+            od
+
+            if count > 0 then
+                append(')')
+            fi
+        si
+
+        _append_member(name: string, member: object?, count: int) -> int is
+            if count >= max_elements then
+                if count == max_elements then
+                    append(", ...")
+                fi
+
+                return count + 1
+            fi
+
+            append(if count == 0 then "(" else ", " fi)
+            append("{name} = ")
+            _render_child(member)
+
+            return count + 1
+        si
+
+        // A name the compiler made up for something it generated carries
+        // a `$`, which no name a program declares can.
+        _is_user_name(name: string) -> bool static => name.length > 0 /\ !name.contains('$')
+
+        _instance_flags() -> System.Reflection.BindingFlags static =>
+            cast System.Reflection.BindingFlags(
+                cast int(System.Reflection.BindingFlags.PUBLIC) |
+                cast int(System.Reflection.BindingFlags.INSTANCE))
+
+        // A type as a ghūl program names it: the built-in names for the
+        // types that have one, type arguments in square brackets, a union
+        // variant after its union's name, and no namespace otherwise.
+        type_name(type: System.Type) -> string static is
+            if type.is_array then
+                let element = type.get_element_type()
+
+                return "{if element? then type_name(element) else "?" fi}[]"
+            fi
+
+            if type.is_generic_type /\ type.get_generic_type_definition() == typeof(System.Nullable[_]) then
+                return "{type_name(type.get_generic_arguments()[0])}?"
+            fi
+
+            if let builtin = _builtin_name(type) then
+                return builtin
+            fi
+
+            let name mut = type.name
+
+            let tick = name.index_of('`')
+
+            if tick >= 0 then
+                name = name.substring(0, tick)
+            fi
+
+            if let owner = _union_name(type) then
+                name = "{owner}.{name}"
+            fi
+
+            if type.is_generic_type then
+                let arguments = Collections.LIST[string]()
+
+                for argument in type.get_generic_arguments() do
+                    arguments.add(type_name(argument))
+                od
+
+                return "{name}[{arguments |> Ghul.Pipes.join(", ")}]"
+            fi
+
+            return name
+        si
+
+        // A union's variant is declared in a namespace named for the union
+        // and extends the union's own class, which is what tells it apart
+        // from a class in a namespace that happens to share a class's name.
+        _union_name(type: System.Type) -> string? static is
+            let space = type.`namespace
+            let base = type.base_type
+
+            if !space? \/ !base? then
+                return null
+            fi
+
+            let dot = space.last_index_of('.')
+            let last = if dot >= 0 then space.substring(dot + 1) else space fi
+
+            let base_name mut = base.name
+            let tick = base_name.index_of('`')
+
+            if tick >= 0 then
+                base_name = base_name.substring(0, tick)
+            fi
+
+            return if last =~ base_name then last else null fi
+        si
+
+        _builtin_name(type: System.Type) -> string? static is
+            if type == typeof(int) then return "int" fi
+            if type == typeof(long) then return "long" fi
+            if type == typeof(short) then return "short" fi
+            if type == typeof(byte) then return "byte" fi
+            if type == typeof(uint) then return "uint" fi
+            if type == typeof(ulong) then return "ulong" fi
+            if type == typeof(ushort) then return "ushort" fi
+            if type == typeof(ubyte) then return "ubyte" fi
+            if type == typeof(word) then return "word" fi
+            if type == typeof(uword) then return "uword" fi
+            if type == typeof(double) then return "double" fi
+            if type == typeof(single) then return "single" fi
+            if type == typeof(decimal) then return "decimal" fi
+            if type == typeof(bool) then return "bool" fi
+            if type == typeof(char) then return "char" fi
+            if type == typeof(string) then return "string" fi
+            if type == typeof(object) then return "object" fi
+
+            return null
         si
 
         // Render a value already known to be a sequence, without the
@@ -134,6 +430,12 @@ namespace Ghul is
             // structural rendering the right one.
             if isa Displayable(values) then
                 render(values)
+
+                return
+            fi
+
+            if _speaks_for_itself(values.get_type()) then
+                append(values.to_string() ?? "null")
 
                 return
             fi
@@ -151,7 +453,7 @@ namespace Ghul is
             let count mut = 0
 
             for value in values do
-                if count >= _max_elements then
+                if count >= max_elements then
                     append(", ...")
 
                     break
@@ -161,7 +463,7 @@ namespace Ghul is
                     append(", ")
                 fi
 
-                render(value)
+                _render_child(value)
 
                 count = count + 1
             od
@@ -248,7 +550,7 @@ namespace Ghul is
             let count mut = 0
 
             while cast bool(move_next.invoke(enumerator, null) ?? false) do
-                if count >= _max_elements then
+                if count >= max_elements then
                     append(", ...")
 
                     break
@@ -258,7 +560,7 @@ namespace Ghul is
                     append(", ")
                 fi
 
-                render(current.get_value(enumerator))
+                _render_child(current.get_value(enumerator))
 
                 count = count + 1
             od
