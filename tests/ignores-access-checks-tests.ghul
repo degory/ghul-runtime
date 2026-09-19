@@ -1,0 +1,21 @@
+namespace Tests is
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    // The runtime honours IgnoresAccessChecksTo by its full name, so the
+    // declaration has to keep exactly that name and a constructor taking
+    // the assembly's name.
+    @TestClass()
+    class IGNORES_ACCESS_CHECKS_TESTS is
+        init() is si
+
+        @Test()
+        attribute__is_declared_under_the_name_the_runtime_looks_for() is
+            let type = typeof System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute
+
+            are_equal("System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute", type.full_name)
+            is_true(type.is_public)
+            is_true(type.get_constructor([typeof string])?)
+        si
+    si
+si
