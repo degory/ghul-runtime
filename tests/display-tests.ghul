@@ -84,6 +84,15 @@ namespace Tests is
         SPADES
     si
 
+    // Renders its label through the state, as a child value.
+    class TAG_OF(label: string): Ghul.Displayable is
+        display(state: Ghul.DISPLAY_STATE) is
+            state.append('<')
+            state.render(label)
+            state.append('>')
+        si
+    si
+
     // Asks the state which mode it is rendering in.
     class MODE_AWARE: Ghul.Displayable is
         init() is si
@@ -383,6 +392,12 @@ namespace Tests is
         Tell_a_displayable_which_mode_it_is_rendered_in() is
             are_equal("clean", $(MODE_AWARE()))
             are_equal("detailed", inspect(MODE_AWARE()))
+        si
+
+        @Test()
+        Quote_a_string_a_displayable_renders_only_when_detailed() is
+            are_equal("<a>", $(TAG_OF("a")))
+            are_equal("<\"a\">", inspect(TAG_OF("a")))
         si
 
         @Test()
