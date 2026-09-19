@@ -69,6 +69,6 @@ namespace Ghul.Pipes is
             return p
         si
 
-        to_string() -> string => Ghul.Pipes.join(self)
+        to_string() -> string => $(self)
     si
 si

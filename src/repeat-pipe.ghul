@@ -38,7 +38,7 @@ namespace Ghul.Pipes is
             _remaining = _count
         si
 
-        to_string() -> string => Ghul.Pipes.join(self)
+        to_string() -> string => $(self)
 
         dispose() is
         si

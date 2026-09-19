@@ -62,7 +62,7 @@ namespace Ghul is
 
     // A value rendered in the detailed mode. The overloads mirror `$`'s,
     // so a string and a sequence resolve the same way they do there.
-    inspect(value: object?) -> string is
+    inspect(value: object?) -> string pure is
         let state = DISPLAY_STATE(DisplayMode.DETAILED, DISPLAY_STATE.default_max_elements)
 
         state.render(value)
@@ -70,9 +70,9 @@ namespace Ghul is
         return state.to_string()
     si
 
-    inspect(value: string) -> string => value
+    inspect(value: string) -> string pure => value
 
-    inspect[T](values: Collections.Iterable[T]) -> string is
+    inspect[T](values: Collections.Iterable[T]) -> string pure is
         let state = DISPLAY_STATE(DisplayMode.DETAILED, DISPLAY_STATE.default_max_elements)
 
         state.render_sequence(values)
@@ -106,6 +106,12 @@ namespace Ghul is
 
         // The most elements of any one sequence rendered.
         max_elements: int
+
+        _type_info: System.Collections.Concurrent.ConcurrentDictionary[System.Type, _DISPLAY_TYPE_INFO] static
+
+        init() static is
+            _type_info = System.Collections.Concurrent.ConcurrentDictionary[System.Type, _DISPLAY_TYPE_INFO]()
+        si
 
         init() is
             self.init(DisplayMode.CLEAN, default_max_elements)
@@ -253,20 +259,69 @@ namespace Ghul is
             append(')')
         si
 
+        _speaks_for_itself(type: System.Type) -> bool static => _info(type).speaks_for_itself
+
+        _info(type: System.Type) -> _DISPLAY_TYPE_INFO static =>
+            _type_info.get_or_add(type, t => _work_out(t))
+
+        _work_out(type: System.Type) -> _DISPLAY_TYPE_INFO static is
+            let members = Collections.LIST[(name: string, read: object -> object?)]()
+
+            for property in type.get_properties(_instance_flags()) do
+                if property.can_read /\ property.get_index_parameters().count == 0 /\ _is_user_name(property.name) then
+                    let readable = property
+
+                    members.add((name = readable.name, read = (v: object) -> object? => readable.get_value(v)))
+                fi
+            od
+
+            for member in type.get_fields(_instance_flags()) do
+                if _is_user_name(member.name) then
+                    let readable = member
+
+                    members.add((name = readable.name, read = (v: object) -> object? => readable.get_value(v)))
+                fi
+            od
+
+            return _DISPLAY_TYPE_INFO(_works_out_speaks_for_itself(type), members)
+        si
+
         // Whether a value is rendered by its own to_string rather than by
-        // what it holds: where its type declares one, unless the
-        // declaration is this runtime's own. A pipe's and a range's
-        // to_string join every element, which never finishes for an
-        // unbounded pipe, so those are rendered as their elements up to
-        // the limit.
-        _speaks_for_itself(type: System.Type) -> bool static is
+        // what it holds: wherever its type declares one, except for this
+        // runtime's pipes, whose to_string is a render of their elements
+        // and so comes back here.
+        _works_out_speaks_for_itself(type: System.Type) -> bool static is
             if !_has_own_text(type) then
                 return false
             fi
 
             let declaring = type.get_method("ToString", System.Type.empty_types)?.declaring_type
 
-            return !declaring? \/ declaring.assembly != (typeof DISPLAY_STATE).assembly
+            return !declaring? \/ declaring.assembly != (typeof DISPLAY_STATE).assembly \/ !_is_pipe(type)
+        si
+
+        _is_pipe(type: System.Type) -> bool static is
+            for implemented in type.get_interfaces() do
+                if implemented.is_generic_type /\ implemented.get_generic_type_definition() == typeof(Ghul.Pipes.Pipe[_]) then
+                    return true
+                fi
+            od
+
+            return false
+        si
+
+        // A sequence left part way through by a render starts again from
+        // its beginning, as it would have had the render read to its end.
+        // An enumerator that cannot be reset is left where it stopped.
+        _rewind(values: object) static is
+            let reset = values.get_type().get_method("Reset", System.Type.empty_types)
+
+            if reset? then
+                try
+                    reset.invoke(values, null)
+                catch e: System.Reflection.TargetInvocationException
+                yrt
+            fi
         si
 
         // Whether a type says what it is in its own words. One that does
@@ -291,16 +346,8 @@ namespace Ghul is
 
             let count mut = 0
 
-            for property in type.get_properties(_instance_flags()) do
-                if property.can_read /\ property.get_index_parameters().count == 0 /\ _is_user_name(property.name) then
-                    count = _append_member(property.name, property.get_value(value), count)
-                fi
-            od
-
-            for member in type.get_fields(_instance_flags()) do
-                if _is_user_name(member.name) then
-                    count = _append_member(member.name, member.get_value(value), count)
-                fi
+            for member in _info(type).members do
+                count = _append_member(member.name, member.read(value), count)
             od
 
             if count > 0 then
@@ -455,6 +502,7 @@ namespace Ghul is
             for value in values do
                 if count >= max_elements then
                     append(", ...")
+                    _rewind(values)
 
                     break
                 fi
@@ -552,6 +600,7 @@ namespace Ghul is
             while cast bool(move_next.invoke(enumerator, null) ?? false) do
                 if count >= max_elements then
                     append(", ...")
+                    _rewind(enumerator)
 
                     break
                 fi
@@ -570,12 +619,20 @@ namespace Ghul is
             return true
         si
     si
+
+    // What rendering needs to know about a type. Finding it out takes
+    // reflection, so it is worked out once per type rather than for every
+    // value of the type a render meets.
+    class _DISPLAY_TYPE_INFO(
+        speaks_for_itself: bool,
+        members: Collections.List[(name: string, read: object -> object?)]
+    )
 si
 
 namespace Ghul.Intrinsics is
     use Ghul
 
-    $(value: object?) -> string is
+    $(value: object?) -> string pure is
         let state = DISPLAY_STATE()
 
         state.render(value)
@@ -589,9 +646,9 @@ namespace Ghul.Intrinsics is
     // string renders as its characters. Declared this way it wins for a
     // present string, and an absent one is answered by the object?
     // overload above.
-    $(value: string) -> string => value
+    $(value: string) -> string pure => value
 
-    $[T](values: Collections.Iterable[T]) -> string is
+    $[T](values: Collections.Iterable[T]) -> string pure is
         let state = DISPLAY_STATE()
 
         state.render_sequence(values)
