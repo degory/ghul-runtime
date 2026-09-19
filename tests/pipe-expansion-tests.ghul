@@ -195,5 +195,42 @@ namespace Tests is
             are_equal(2, result["bb"])
             are_equal(3, result["ccc"])
         si
+
+        @Test()
+        CollectMap_Pairs_BuildsMapFromKeysAndValues() is
+            let result = [("a", 1), ("bb", 2)] |> collect_map()
+
+            are_equal(2, result.count)
+            are_equal(1, result["a"])
+            are_equal(2, result["bb"])
+        si
+
+        @Test()
+        CollectMap_ComputedPairs_BuildsMapFromKeysAndValues() is
+            let squares = [1, 2, 3] |> map(n => n * n) |> collect_list()
+            let result = squares |> map(q => ("k{q}", q)) |> collect_map()
+
+            are_equal(9, result["k9"])
+        si
+
+        @Test()
+        CollectMap_NoPairs_BuildsEmptyMap() is
+            let pairs: Collections.List[(string, int)] = []
+
+            are_equal(0, (pairs |> collect_map()).count)
+        si
+
+        @Test()
+        CollectMap_RepeatedKey_Throws() is
+            let threw mut = false
+
+            try
+                let _ = [("a", 1), ("a", 2)] |> collect_map()
+            catch e: System.ArgumentException
+                threw = true
+            yrt
+
+            is_true(threw)
+        si
     si
 si
