@@ -1,0 +1,24 @@
+namespace Ghul.Internal is
+    use Collections
+
+    use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
+
+    // Constructors the language gives a .NET collection type it has no
+    // constructor of its own for. A `constructor.` intrinsic is offered as
+    // an overload of `init` on the type it returns, so `MAP(pairs)` reaches
+    // `from_pairs` the way `LIST(xs)` reaches List<T>'s own constructor.
+    /// Collection constructors the compiler offers as overloads of the collection type's own.
+    class COLLECTION_CONSTRUCTORS is
+        /// A map holding each key and value `pairs` gives. Throws if the same key appears twice.
+        @INTRINSIC_ATTRIBUTE("constructor.from_pairs")
+        from_pairs[K, V](pairs: Iterable[(K, V)]) -> MAP[K, V] static pure is
+            let result = MAP[K, V]()
+
+            for (key, value) in pairs do
+                result.add(key, value)
+            od
+
+            return result
+        si
+    si
+si
