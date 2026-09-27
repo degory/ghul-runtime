@@ -70,7 +70,7 @@ namespace Ghul.Pipes is
     // that problem, since the key type is a fresh per-call parameter.
     /// The least element of `values`, or absent when `values` is empty.
     min[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
-        let use it = values.iterator
+        let it = values.iterator
 
         if it.move_next() then
             let result mut = it.current
@@ -89,7 +89,7 @@ namespace Ghul.Pipes is
 
     /// The greatest element of `values`, or absent when `values` is empty.
     max[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
-        let use it = values.iterator
+        let it = values.iterator
 
         if it.move_next() then
             let result mut = it.current

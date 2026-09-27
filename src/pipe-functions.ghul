@@ -322,7 +322,7 @@ namespace Ghul.Pipes is
     /// The element of `source` with the smallest key `key_selector` produces, or absent
     /// if `source` has none. Keeps the first element reached when several share the smallest key.
     min_by[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> MAYBE[T] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             let result mut = it.current
@@ -346,7 +346,7 @@ namespace Ghul.Pipes is
     /// The element of `source` with the largest key `key_selector` produces, or absent
     /// if `source` has none. Keeps the first element reached when several share the largest key.
     max_by[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> MAYBE[T] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             let result mut = it.current
@@ -377,7 +377,7 @@ namespace Ghul.Pipes is
             return source.count
         fi
 
-        let use it = source.iterator
+        let it = source.iterator
         let result mut = 0
 
         while it.move_next() do
@@ -390,7 +390,7 @@ namespace Ghul.Pipes is
     // How many elements satisfy the predicate.
     /// The number of elements in `source` that `predicate` accepts.
     count[T..](source: Iterable[T], predicate: T.. -> bool pure) -> int pure is
-        let use it = source.iterator
+        let it = source.iterator
         let result mut = 0
 
         while it.move_next() do
@@ -404,7 +404,7 @@ namespace Ghul.Pipes is
 
     /// The first element of `source` that `predicate` accepts, or absent if none does.
     find[T..](source: Iterable[T], predicate: T.. -> bool pure) -> MAYBE[T] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             let element = it.current
@@ -419,7 +419,7 @@ namespace Ghul.Pipes is
 
     /// The first present result of applying `mapper` to the elements of `source`, in order.
     find_map[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> MAYBE[U] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             let element = it.current
@@ -435,7 +435,7 @@ namespace Ghul.Pipes is
 
     /// The first element of `source` that `predicate` accepts. Throws if none does.
     find_or_throw[T](source: Iterable[T], predicate: T -> bool pure) -> T pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             let element = it.current
@@ -451,7 +451,7 @@ namespace Ghul.Pipes is
     /// The first present result of applying `mapper` to the elements of `source`.
     /// Throws if none is present.
     find_map_or_throw[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> U pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             let element = it.current
@@ -469,7 +469,7 @@ namespace Ghul.Pipes is
     // counting it and jumping to the end.
     /// The final element of `source`, or absent if it has none.
     last[T](source: Iterable[T]) -> MAYBE[T] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if !it.move_next() then
             return MAYBE[T]()
@@ -486,7 +486,7 @@ namespace Ghul.Pipes is
 
     /// The first element of `source`, or absent if it has none.
     first[T](source: Iterable[T]) -> MAYBE[T] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             return MAYBE(it.current)
@@ -498,7 +498,7 @@ namespace Ghul.Pipes is
     /// The result of `mapper` applied to the first element of `source`, or absent
     /// if `source` has no elements or that result is absent.
     first_map[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> MAYBE[U] pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             let element = it.current
@@ -514,7 +514,7 @@ namespace Ghul.Pipes is
 
     /// The first element of `source`. Throws if it has none.
     first_or_throw[T](source: Iterable[T]) -> T pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             return it.current
@@ -526,7 +526,7 @@ namespace Ghul.Pipes is
     /// The result of `mapper` applied to the first element of `source`, if present.
     /// Throws if `source` has no elements or that result is absent.
     first_map_or_throw[T..,U](source: Iterable[T], mapper: T.. -> MAYBE[U] pure) -> U pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             let element = it.current
@@ -542,7 +542,7 @@ namespace Ghul.Pipes is
 
     /// The one element of `source`. Throws if it holds none or more than one.
     only[T](source: Iterable[T]) -> T pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         if it.move_next() then
             let result = it.current
@@ -559,7 +559,7 @@ namespace Ghul.Pipes is
 
     /// Whether `predicate` accepts any element of `source`.
     any[T..](source: Iterable[T], predicate: T.. -> bool pure) -> bool pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             let element = it.current
@@ -574,7 +574,7 @@ namespace Ghul.Pipes is
 
     /// Whether `predicate` accepts every element of `source`.
     all[T..](source: Iterable[T], predicate: T.. -> bool pure) -> bool pure is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             let element = it.current
@@ -589,7 +589,7 @@ namespace Ghul.Pipes is
 
     /// Calls `action` on each element of `source`, in order.
     each[T..](source: Iterable[T], action: T.. -> void) is
-        let use it = source.iterator
+        let it = source.iterator
 
         while it.move_next() do
             action(it.current)
@@ -669,7 +669,7 @@ namespace Ghul.Pipes is
     /// Writes the text of each element of `source` into `into`, separated by `separator`,
     /// and returns `into`.
     append_to[T](source: Iterable[T], into: StringBuilder, separator: string) -> StringBuilder is
-        let use it = source.iterator
+        let it = source.iterator
         let seen_any mut = false
 
         while it.move_next() do

@@ -72,7 +72,8 @@ namespace Tests is
     // The first read from the thread that built a stage is the stage
     // itself; any other read is a fresh stage over a fresh iterator from
     // the source. `reset()` has no effect and `dispose()` is explicit and
-    // reaches every held iterator. Nothing ever calls `Reset()` on a .NET
+    // reaches every held iterator; a terminal drives the iterator it takes
+    // and leaves it. Nothing ever calls `Reset()` on a .NET
     // enumerator: `File.read_lines` stands in for every BCL lazy source,
     // since its enumerators are compiler-generated and reject one.
     @TestClass()
@@ -256,14 +257,20 @@ namespace Tests is
             are_equal("<alpha> <beta> <gamma>", pipe |> join(" "))
         si
 
+        // A source that holds a file is held under `let use` before a pipe is
+        // built on it: the pipe reads that one iterator, so a read that stops
+        // part way leaves the next read to carry on, and the file is closed
+        // when the scope ends. Reading the file again means opening it again.
         @Test()
-        PartiallyWalkedPipeOverADotNetSource_StartsOverOnTheNextRead() is
+        LinesHeldUnderLetUse_AreOneCursor() is
             let path = write_lines_file()
 
-            let pipe = File.read_lines(path) |> map(line => line)
+            let use lines = File.read_lines(path).iterator
+
+            let pipe = cursor(lines) |> map(line => line)
 
             are_equal(MAYBE("alpha"), pipe |> first())
-            are_equal("alpha beta gamma", pipe |> join(" "))
+            are_equal("beta gamma", pipe |> join(" "))
         si
 
         @Test()
