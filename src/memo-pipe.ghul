@@ -27,6 +27,7 @@ namespace Ghul.Pipes is
                 return true
             fi
 
+            it?.dispose()
             iterator = null
 
             return false
@@ -72,12 +73,9 @@ namespace Ghul.Pipes is
         /// Renders the pipe's elements, in order, as text.
         to_string() -> string => $(self)
 
-        /// Disposes the source's iterator, if it hasn't already been
-        /// exhausted and dropped.
+        /// Has no effect: the source's iterator is shared by every read of
+        /// this memo, and is released when the source runs out.
         dispose() is
-            if let it = _cache.iterator then
-                it.dispose()
-            fi
         si
     si
 si

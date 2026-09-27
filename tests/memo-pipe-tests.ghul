@@ -119,6 +119,21 @@ namespace Tests is
         si
 
         @Test()
+        PartialRead_LeavesTheSharedSourceOpenForLaterReads() is
+            let source = DISPOSAL_SOURCE([1, 2, 3])
+            let p = memo(source)
+
+            are_equal("1", p |> take(1) |> join(", "))
+            are_equal(0, source.disposed)
+
+            are_equal("1, 2, 3", p |> join(", "))
+            are_equal(1, source.disposed)
+
+            are_equal("1, 2, 3", p |> join(", "))
+            are_equal(1, source.disposed)
+        si
+
+        @Test()
         Memo_OverInfiniteStream_PullsOnlyWhatIsConsumed() is
             let naturals = stream(0, n => n || n + 1)
             let p = memo(naturals)
