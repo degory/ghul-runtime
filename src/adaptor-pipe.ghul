@@ -2,52 +2,33 @@ namespace Ghul.Pipes is
     use Collections
 
     /// Wraps an `Iterable[T]` as a `Pipe[T]`, taking a fresh iterator from
-    /// the source each time the pipe is rewound.
-    class ADAPTOR_PIPE[T]: Pipe[T] is
+    /// the source for each read.
+    class ADAPTOR_PIPE[T]: PipeStage[T] is
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
 
         init(iterable: Iterable[T]) is
+            super.init()
+
             assert iterable?
 
             _source = iterable
             _iterator = iterable.iterator
         si
 
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[T] => ADAPTOR_PIPE[T](_source)
 
         /// The element at the cursor's current position.
         current: T => _iterator.current
 
-        /// Advances to the next element; rewinds when the source is exhausted.
+        /// Advances to the next element.
         move_next() -> bool is
             if _iterator.move_next() then
                 return true
             fi
 
-            reset()
-
             return false
-        si
-
-        /// Rewinds to a fresh iterator taken from the source.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

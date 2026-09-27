@@ -27,7 +27,6 @@ namespace Tests is
             let distinct = pipe |> distinct()
 
             distinct |> Ghul.Pipes.collect()
-            distinct.reset()
 
             assert_are_equal([1, 2, 3], distinct)
         si

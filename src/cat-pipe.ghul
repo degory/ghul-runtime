@@ -2,18 +2,13 @@ namespace Ghul.Pipes is
     use Collections
 
     /// The elements of `left` followed by the elements of `right`.
-    class CAT_PIPE[T]: Pipe[T] is
+    class CAT_PIPE[T]: PipeStage[T] is
         _left_source: Iterable[T]
         _right_source: Iterable[T]
         _left: Iterator[T]
         _right: Iterator[T]
-        _left_pending: PENDING_CURSOR[T]?
-        _right_pending: PENDING_CURSOR[T]?
 
         _take_from_left: bool
-
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
 
         /// The element at the cursor's current position, from whichever
         /// source it's currently drawing from.
@@ -26,6 +21,8 @@ namespace Ghul.Pipes is
         si
 
         init(left: Iterable[T], right: Iterable[T]) is
+            super.init()
+
             _left_source = left
             _right_source = right
             _left = left.iterator
@@ -33,8 +30,10 @@ namespace Ghul.Pipes is
             _take_from_left = true
         si
 
-        /// Advances within `left` until it's exhausted, then within `right`;
-        /// rewinds once both are exhausted.
+        /// A new stage over the same sources, not yet read.
+        fresh() -> PipeStage[T] => CAT_PIPE[T](_left_source, _right_source)
+
+        /// Advances within `left` until it's exhausted, then within `right`.
         move_next() -> bool is
             if _take_from_left then
                 _take_from_left = _left.move_next()
@@ -44,49 +43,7 @@ namespace Ghul.Pipes is
                 fi
             fi
 
-            if _right.move_next() then
-                return true
-            fi
-
-            reset()
-
-            return false
-        si
-
-        /// Rewinds both sources and returns to reading from `left`.
-        reset() is
-            _left = rewind(_left, left_pending())
-            _right = rewind(_right, right_pending())
-
-            _take_from_left = true
-        si
-
-        /// The placeholder cursor installed for `left` after a rewind,
-        /// created once and reused.
-        left_pending() -> PENDING_CURSOR[T] is
-            if let p = _left_pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_left_source, (it: Iterator[T]) is _left = it si)
-
-            _left_pending = p
-
-            return p
-        si
-
-        /// The placeholder cursor installed for `right` after a rewind,
-        /// created once and reused.
-        right_pending() -> PENDING_CURSOR[T] is
-            if let p = _right_pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_right_source, (it: Iterator[T]) is _right = it si)
-
-            _right_pending = p
-
-            return p
+            return _right.move_next()
         si
 
         /// Renders the pipe's elements, in order, as text.

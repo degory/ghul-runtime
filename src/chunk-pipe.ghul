@@ -3,27 +3,23 @@ namespace Ghul.Pipes is
 
     /// `source`'s elements grouped into lists of `size`, with a final
     /// shorter list when `source`'s count isn't a multiple of `size`.
-    class CHUNK_PIPE[T]: Pipe[List[T]] is
-        /// This pipe, as its own iterator.
-        iterator: Iterator[List[T]] => self
-
+    class CHUNK_PIPE[T]: PipeStage[List[T]] is
         /// The most recently produced chunk.
         current: List[T]
 
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
 
         _size: int
 
-        // Set when the source signals exhaustion partway through a chunk.
-        // The source rewinds itself at that point, so asking it again
-        // would start pulling from the beginning; this pipe ends the pass
-        // on its own instead.
+        // Set once the source has run out partway through a chunk, so
+        // the source is not asked again after it has said it is done.
         _done: bool
 
         /// Throws if `size` isn't positive.
         init(source: Iterable[T], size: int) is
+            super.init()
+
             assert size > 0 else "chunk size must be positive"
 
             _source = source
@@ -32,12 +28,12 @@ namespace Ghul.Pipes is
             _done = false
         si
 
-        /// Pulls up to `size` elements from the source into the next chunk;
-        /// rewinds once the source runs out.
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[List[T]] => CHUNK_PIPE[T](_source, _size)
+
+        /// Pulls up to `size` elements from the source into the next chunk.
         move_next() -> bool is
             if _done then
-                reset()
-
                 return false
             fi
 
@@ -52,33 +48,12 @@ namespace Ghul.Pipes is
             fi
 
             if chunk.count == 0 then
-                reset()
-
                 return false
             fi
 
             current = chunk
 
             return true
-        si
-
-        /// Rewinds the source and clears the exhaustion flag.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-            _done = false
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

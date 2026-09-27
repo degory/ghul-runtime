@@ -30,10 +30,7 @@ namespace Tests is
             is_true(p.move_next())
             are_equal(1, p.current)
             is_false(p.move_next())
-
-            // Ending the pass resets the pipe, so asking again starts a new one.
-            is_true(p.move_next())
-            are_equal(3, p.current)
+            is_false(p.move_next())
         si
 
         @Test()
@@ -48,24 +45,26 @@ namespace Tests is
         si
 
         @Test()
-        Reset_AfterFullEnumeration_ReinstallsInitialState() is
+        ReadAgain_AfterFullEnumeration_StartsFromTheInitialState() is
             let p = STREAM_PIPE[int, int](
                 2,
                 (s: int) =>
                     if s == 0 then DONE[int, int]() else YIELD(s, s - 1) fi
             )
 
-            is_true(p.move_next())
-            is_true(p.move_next())
-            is_false(p.move_next())
+            let first = p.iterator
 
-            p.reset()
+            is_true(first.move_next())
+            is_true(first.move_next())
+            is_false(first.move_next())
 
-            is_true(p.move_next())
-            are_equal(2, p.current)
-            is_true(p.move_next())
-            are_equal(1, p.current)
-            is_false(p.move_next())
+            let again = p.iterator
+
+            is_true(again.move_next())
+            are_equal(2, again.current)
+            is_true(again.move_next())
+            are_equal(1, again.current)
+            is_false(again.move_next())
         si
 
         @Test()

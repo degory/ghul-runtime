@@ -2,31 +2,31 @@ namespace Ghul.Pipes is
     use Collections
 
     /// The concatenation of `mapper(x)` for each element `x` of `source`, in order.
-    class FLAT_MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
-        /// This pipe, as its own iterator.
-        iterator: Iterator[TTo] => self
+    class FLAT_MAP_PIPE[TFrom,TTo]: PipeStage[TTo] is
 
         /// The most recently produced element.
         current: TTo
 
         _source: Iterable[TFrom]
         _iterator: Iterator[TFrom]
-        _pending: PENDING_CURSOR[TFrom]?
-        // Absent until the first source element supplies one, and
-        // again after reset.
+        // Absent until the first source element supplies one.
         _flat_iterator: Iterator[TTo]?
 
         _mapper: (TFrom) -> Iterable[TTo]
 
         init(source: Iterable[TFrom], mapper: (TFrom) -> Iterable[TTo]) is
+            super.init()
+
             _source = source
             _iterator = source.iterator
             _mapper = mapper
         si
 
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[TTo] => FLAT_MAP_PIPE[TFrom,TTo](_source, _mapper)
+
         /// Advances within the current inner sequence, moving to the next
-        /// source element's inner sequence when it runs out; rewinds once
-        /// the source is exhausted.
+        /// source element's inner sequence when it runs out.
         move_next() -> bool is
             do
                 // Read into a local: advancing the iterator is a call,
@@ -41,8 +41,6 @@ namespace Ghul.Pipes is
                 fi
 
                 if !_iterator.move_next() then
-                    reset()
-
                     return false
                 fi
 
@@ -50,25 +48,6 @@ namespace Ghul.Pipes is
 
                 _flat_iterator = flat_iterable.iterator
             od
-        si
-
-        /// Rewinds the source and drops the current inner iterator.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-            _flat_iterator = null
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[TFrom] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[TFrom](_source, (it: Iterator[TFrom]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

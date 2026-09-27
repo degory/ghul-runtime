@@ -33,7 +33,7 @@ namespace Tests is
 
         @Test()
         Pipe_OfSubclass_IsAcceptedWhereAPipeOfTheBaseIsExpected() is
-            let cats: Pipe[VARIANCE_CAT] = [VARIANCE_CAT("tom"), VARIANCE_CAT("felix")] |> map(cat => cat)
+            let cats: Pipe[VARIANCE_CAT] = [VARIANCE_CAT("tom"), VARIANCE_CAT("felix")] |> pipe()
 
             are_equal("tom,felix", names(cats))
         si

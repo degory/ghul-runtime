@@ -2,61 +2,40 @@ namespace Ghul.Pipes is
     use Collections
 
     /// `source`'s elements paired with a running index, starting at `index`.
-    class INDEX_PIPE[T]: Pipe[INDEXED_VALUE[T]] is
+    class INDEX_PIPE[T]: PipeStage[INDEXED_VALUE[T]] is
         _initial_index: int
         _index: int
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
-
-        /// This pipe, as its own iterator.
-        iterator: Iterator[INDEXED_VALUE[T]] => self
 
         /// The current element paired with its index.
         current: INDEXED_VALUE[T] =>
             INDEXED_VALUE(_index, _iterator.current)
 
         init(source: Iterable[T], index: int) is
+            super.init()
+
             _source = source
             _iterator = source.iterator
             _initial_index = index
             _index = index - 1
         si
 
-        /// Advances to the next element, incrementing the index; rewinds
-        /// when the source is exhausted.
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[INDEXED_VALUE[T]] => INDEX_PIPE[T](_source, _initial_index)
+
+        /// Advances to the next element, incrementing the index.
         move_next() -> bool is
             if _iterator.move_next() then
                 _index = _index + 1
                 return true
             fi
 
-            reset()
-
             return false
-        si
-
-        /// Rewinds the source and resets the index to its starting value.
-        reset() is
-            _index = _initial_index - 1
-            _iterator = rewind(_iterator, pending())
         si
 
         /// Disposes the underlying iterator.
         dispose() => _iterator.dispose()
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
-        si
 
         /// Renders the pipe's elements, in order, as text.
         to_string() -> string => $(self)

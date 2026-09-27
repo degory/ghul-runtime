@@ -1,62 +1,72 @@
 namespace Ghul.Pipes is
     use Collections
 
-    // A pipe that pulls its upstream once and replays what it pulled on
-    // every later pass. The first pass drives the source and appends
-    // each element to the cache; a later pass reads the cache and only
-    // asks the source again once it runs past the cached prefix. The
-    // source's iterator is dropped once the source is exhausted, since
-    // nothing will ask it for more. Rewinding never reaches the source:
-    // a fresh pass replays the cache.
-    /// A pipe that pulls its upstream once and replays the cached elements
-    /// on every later pass.
-    class MEMO_PIPE[T]: Pipe[T] is
-        _iterator: Iterator[T]?
-        _cache: LIST[T]
-        _at: int
+    // What every cursor over one `memo` shares: the source's iterator,
+    // until the source is exhausted, and the elements pulled from it so far.
+    class MEMO_CACHE[T] is
+        iterator: Iterator[T]?
+        elements: LIST[T]
 
         init(source: Iterable[T]) is
-            assert source?
-
-            _iterator = source.iterator
-            _cache = LIST[T]()
+            iterator = source.iterator
+            elements = LIST[T]()
         si
 
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
-
-        /// The most recently produced element.
-        current: T => _cache[_at - 1]
-
-        /// Advances within the cache while there's more of it, otherwise
-        /// pulls and caches the next source element; rewinds once the
-        /// source is exhausted.
-        move_next() -> bool is
-            if _at < _cache.count then
-                _at = _at + 1
-
+        // Makes sure the cache holds more than `at` elements, pulling from
+        // the source if it doesn't yet; false once the source can't supply it.
+        has_element(at: int) -> bool is
+            if at < elements.count then
                 return true
             fi
 
-            let it = _iterator
+            let it = iterator
 
             if it? /\ it.move_next() then
-                _cache.add(it.current)
-                _at = _at + 1
+                elements.add(it.current)
 
                 return true
             fi
 
-            _iterator = null
-
-            reset()
+            iterator = null
 
             return false
         si
+    si
 
-        /// Rewinds to the start of the cache without touching the source.
-        reset() is
-            _at = 0
+    // A pipe that pulls its upstream once and replays what it pulled on
+    // every later read. Each read is a cursor of its own over a cache the
+    // cursors share: a read runs through the cached prefix and only asks
+    // the source again once it runs past it. The source's iterator is
+    // dropped once the source is exhausted, since nothing will ask it
+    // for more.
+    /// A pipe that pulls its upstream once and replays the cached elements
+    /// on every later read.
+    class MEMO_PIPE[T]: PipeStage[T] is
+        _cache: MEMO_CACHE[T]
+        _at: int
+
+        init(cache: MEMO_CACHE[T]) is
+            super.init()
+
+            _cache = cache
+        si
+
+        /// A new read of the same cache, from its start.
+        fresh() -> PipeStage[T] => MEMO_PIPE[T](_cache)
+
+        /// The most recently produced element.
+        current: T => _cache.elements[_at - 1]
+
+        /// Advances within the cache while there's more of it, otherwise
+        /// pulls and caches the next source element.
+        move_next() -> bool is
+            if _cache.has_element(_at) then
+                _at = _at + 1
+
+                return true
+            fi
+
+            return false
         si
 
         /// Renders the pipe's elements, in order, as text.
@@ -65,7 +75,7 @@ namespace Ghul.Pipes is
         /// Disposes the source's iterator, if it hasn't already been
         /// exhausted and dropped.
         dispose() is
-            if let it = _iterator then
+            if let it = _cache.iterator then
                 it.dispose()
             fi
         si

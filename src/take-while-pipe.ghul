@@ -13,6 +13,9 @@ namespace Ghul.Pipes is
             _done = false
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => TAKE_WHILE_PIPE[T](source, _predicate)
+
         /// Stops the pass at the first element `predicate` rejects.
         should_continue() -> bool is
             if _done then
@@ -30,11 +33,5 @@ namespace Ghul.Pipes is
 
         /// Always accepts.
         should_include() -> bool => true
-
-        /// Rewinds the source and resumes taking while `predicate` accepts.
-        reset() is
-            super.reset()
-            _done = false
-        si
     si
 si

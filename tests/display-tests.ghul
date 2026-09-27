@@ -426,7 +426,9 @@ namespace Tests is
 
         @Test()
         Give_an_unbounded_pipe_a_to_string_that_finishes() is
-            is_true(Ghul.Pipes.from(0).to_string().ends_with(", ...]"))
+            let text = $(Ghul.Pipes.from(0))
+
+            is_true(text.ends_with(", ...]"))
         si
 
         // Stopping at the limit leaves the pipe where a full read would

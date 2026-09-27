@@ -3,27 +3,28 @@ namespace Ghul.Pipes is
 
     /// `source`'s elements, unchanged, with `action` called on each one as
     /// it's produced.
-    class PEEK_PIPE[T]: Pipe[T] is
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
+    class PEEK_PIPE[T]: PipeStage[T] is
 
         /// The most recently produced element.
         current: T
 
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
 
         _action: (T) -> void
 
         init(source: Iterable[T], action: (T) -> void) is
+            super.init()
+
             _source = source
             _iterator = source.iterator
             _action = action
         si
 
-        /// Advances the source and calls `action` on the current element;
-        /// rewinds when the source is exhausted.
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[T] => PEEK_PIPE[T](_source, _action)
+
+        /// Advances the source and calls `action` on the current element.
         move_next() -> bool is
             if _iterator.move_next() then
                 current = _iterator.current
@@ -32,27 +33,7 @@ namespace Ghul.Pipes is
                 return true
             fi
 
-            reset()
-
             return false
-        si
-
-        /// Rewinds the source.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

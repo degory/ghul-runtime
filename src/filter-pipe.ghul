@@ -11,6 +11,9 @@ namespace Ghul.Pipes is
             _predicate = predicate
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => FilterPipe[T](source, _predicate)
+
         /// Accepts an element when `predicate` does.
         should_include() -> bool => _predicate(current)
     si

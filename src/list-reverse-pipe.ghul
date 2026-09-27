@@ -2,24 +2,26 @@ namespace Ghul.Pipes is
     use Collections
 
     /// `list`'s elements in reverse order.
-    class LIST_REVERSE_PIPE[T]: Pipe[T] is
+    class LIST_REVERSE_PIPE[T]: PipeStage[T] is
         _list: List[T]
         _index: int
-
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
 
         /// The element at the cursor's current position.
         current: T => _list[_index]
 
         init(list: List[T]) is
+            super.init()
+
             assert list?
 
             _list = list
             _index = list.count
         si
 
-        /// Steps backward through `list`; rewinds once it reaches the start.
+        /// A new reverse walk over `list`, not yet read.
+        fresh() -> PipeStage[T] => LIST_REVERSE_PIPE[T](_list)
+
+        /// Steps backward through `list`; ends once it reaches the start.
         move_next() -> bool is
             if _index > 0 then
                 _index = _index - 1
@@ -27,14 +29,7 @@ namespace Ghul.Pipes is
                 return true
             fi
 
-            reset()
-
             return false
-        si
-
-        /// Rewinds to just past the last element.
-        reset() is
-            _index = _list.count
         si
 
         /// Renders the pipe's elements, in order, as text.

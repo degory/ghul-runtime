@@ -3,40 +3,39 @@ namespace Ghul.Pipes is
 
     /// `source`'s elements as runs of adjacent equal ones: a new run
     /// begins wherever an element is not `=~` to the one before it.
-    class GROUP_PIPE[T]: Pipe[List[T]] is
-        /// This pipe, as its own iterator.
-        iterator: Iterator[List[T]] => self
+    class GROUP_PIPE[T]: PipeStage[List[T]] is
 
         /// The most recently produced run.
         current: List[T]
 
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
 
         // The element that ended the previous run. It belongs to the next
         // one, and the source has already been advanced past it, so it is
         // held here rather than read again.
         _carried: MAYBE[T]
 
-        // Set when the source signalled exhaustion. It rewinds itself at
-        // that point, so asking again would restart it; this pipe ends the
-        // pass on its own instead.
+        // Set once the source has run out, so it is not asked again after
+        // it has said it is done.
         _done: bool
 
         init(source: Iterable[T]) is
+            super.init()
+
             _source = source
             _iterator = source.iterator
             _carried = MAYBE[T]()
             _done = false
         si
 
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[List[T]] => GROUP_PIPE[T](_source)
+
         /// Collects elements equal to the run's first until one differs,
         /// which is carried over to start the run after it.
         move_next() -> bool is
             if _done then
-                reset()
-
                 return false
             fi
 
@@ -50,8 +49,6 @@ namespace Ghul.Pipes is
                 run.add(_iterator.current)
             else
                 _done = true
-
-                reset()
 
                 return false
             fi
@@ -74,26 +71,6 @@ namespace Ghul.Pipes is
             current = run
 
             return true
-        si
-
-        /// Rewinds the source and drops any carried element.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-            _carried = MAYBE[T]()
-            _done = false
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

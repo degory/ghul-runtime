@@ -12,6 +12,9 @@ namespace Ghul.Pipes is
             _skipping = true
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => SKIP_WHILE_PIPE[T](source, _predicate)
+
         /// Rejects elements while `predicate` accepts them, and accepts
         /// every element from its first rejection onward.
         should_include() -> bool is
@@ -22,12 +25,6 @@ namespace Ghul.Pipes is
             _skipping = false
 
             return true
-        si
-
-        /// Rewinds the source and resumes skipping while `predicate` accepts.
-        reset() is
-            super.reset()
-            _skipping = true
         si
     si
 si

@@ -53,70 +53,29 @@ namespace Tests is
 
             assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result)
         si
-
         @Test()
-        FlatMap_ResetBeforeIteration_HasNoEffect() is
-            let pipe =
-                [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-
+        FlatMap_StoppedPartWay_NextReadStartsFromTheBeginning() is
             let result =
-                pipe
+                [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
                     |> flat_map(a => a)
 
-            result.reset()
+            let iterator = result.iterator
+
+            iterator.move_next()
+            iterator.move_next()
+            iterator.move_next()
+            iterator.move_next()
 
             assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result)
         si
 
         @Test()
-        FlatMap_ResetAfterIncompleteIteration_StartsAgainFromBeginning() is
-            let pipe =
-                [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-
+        FlatMap_ReadToTheEnd_PlaysAgain() is
             let result =
-                pipe
+                [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
                     |> flat_map(a => a)
 
-            result.move_next()
-            result.move_next()
-            result.move_next()
-            result.move_next()
-
-            result.reset()
-
-            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result)
-        si
-
-        @Test()
-        FlatMap_CompleteIteration_ResetsPipe() is
-            let pipe =
-                [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-
-            let result =
-                pipe
-                    |> flat_map(a => a)
-
-            // count consumes the whole pipe and then resets it:
-            let count = result |> count()
-
-            assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result)
-        si
-
-
-        @Test()
-        FlatMap_ResetAfterIteration_HasNoEffect() is
-            let pipe =
-                [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-
-            let result =
-                pipe
-                    |> flat_map(a => a)
-
-            // count consumes the whole pipe and then resets it:
-            let count = result |> count()
-
-            // this reset is a no-op:
-            result.reset()
+            are_equal(9, result |> count())
 
             assert_are_equal([1, 2, 3, 4, 5, 6, 7, 8, 9], result)
         si

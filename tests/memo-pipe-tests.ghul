@@ -8,11 +8,11 @@ namespace Tests is
     use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
     use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
 
-    drain[T](pipe: Pipe[T]) -> LIST[T] is
+    drain[T](pipe: Iterable[T]) -> LIST[T] is
         let elements = LIST[T]()
 
-        while pipe.move_next() do
-            elements.add(pipe.current)
+        for element in pipe do
+            elements.add(element)
         od
 
         return elements
@@ -54,8 +54,8 @@ namespace Tests is
         si
     si
 
-    // Coverage for `memo`: the first pass caches, later passes replay the
-    // cache without asking the source again, a pass that runs past the
+    // Coverage for `memo`: the first read caches, later reads replay the
+    // cache without asking the source again, a read that runs past the
     // cached prefix extends it, and infinite sources stay lazy.
     @TestClass()
     class MEMO_PIPEShould is
@@ -63,9 +63,9 @@ namespace Tests is
         si
 
         @Test()
-        MoveNext_ReplaysCachedElementsWithoutRereadingSource() is
+        Read_ReplaysCachedElementsWithoutRereadingSource() is
             let source = COUNTING_SOURCE[int]([1, 2, 3])
-            let p = MEMO_PIPE[int](source)
+            let p = memo(source)
 
             assert_elements([1, 2, 3], drain(p))
             are_equal(3, source.handed_out)
@@ -76,33 +76,35 @@ namespace Tests is
         si
 
         @Test()
-        MoveNext_EmptySource_ReturnsFalseOnEveryPass() is
+        Read_EmptySource_YieldsNothingOnEveryRead() is
             let empty: int[] = []
-            let p = MEMO_PIPE[int](COUNTING_SOURCE[int](empty))
+            let p = memo(COUNTING_SOURCE[int](empty))
 
-            is_false(p.move_next())
-            is_false(p.move_next())
+            is_false(p.iterator.move_next())
+            is_false(p.iterator.move_next())
         si
 
         @Test()
-        MoveNext_PartialPass_ExtendsCacheWhenALaterPassRunsFurther() is
+        Read_PartialRead_ExtendsCacheWhenALaterReadRunsFurther() is
             let source = COUNTING_SOURCE[string](["a", "b", "c", "d"])
-            let p = MEMO_PIPE[string](source)
+            let p = memo(source)
 
-            is_true(p.move_next())
-            are_equal("a", p.current)
-            is_true(p.move_next())
-            are_equal("b", p.current)
+            let part_read = p.iterator
+
+            is_true(part_read.move_next())
+            are_equal("a", part_read.current)
+            is_true(part_read.move_next())
+            are_equal("b", part_read.current)
             are_equal(2, source.handed_out)
 
-            // A partially-drained pipe resumes where it left off, so
-            // finishing this pass pulls only the remaining two elements
-            // into the cache.
-            assert_elements(["c", "d"], drain(p))
+            // The next read starts from the beginning, replays the two
+            // cached elements and pulls only the remaining two.
+            assert_elements(["a", "b", "c", "d"], drain(p))
             are_equal(4, source.handed_out)
 
-            // The next pass replays all four without the source.
-            assert_elements(["a", "b", "c", "d"], drain(p))
+            // The part_read read carries on from the shared cache.
+            is_true(part_read.move_next())
+            are_equal("c", part_read.current)
             are_equal(4, source.handed_out)
         si
 
@@ -121,18 +123,11 @@ namespace Tests is
             let naturals = stream(0, n => n || n + 1)
             let p = memo(naturals)
 
-            is_true(p.move_next())
-            are_equal(0, p.current)
-            is_true(p.move_next())
-            are_equal(1, p.current)
-            is_true(p.move_next())
-            are_equal(2, p.current)
+            are_equal("0, 1, 2", p |> take(3) |> join(", "))
 
-            // A later pass that runs past the cached three elements asks
+            // A later read that runs past the cached three elements asks
             // the stream for more.
-            is_true(p.move_next())
-            are_equal(3, p.current)
+            are_equal("0, 1, 2, 3", p |> take(4) |> join(", "))
         si
-
     si
 si

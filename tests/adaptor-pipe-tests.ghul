@@ -16,7 +16,7 @@ namespace Tests is
 
     iv[T](index: int, value: T) -> INDEXED_VALUE[T] => INDEXED_VALUE[T](index, value)
 
-    assert_are_equal[T](expected: Iterable[T], actual: Pipe[T]) is
+    assert_are_equal[T](expected: Iterable[T], actual: Iterable[T]) is
         let expected_elements = LIST[T]()
         let actual_elements = LIST[T]()
 
