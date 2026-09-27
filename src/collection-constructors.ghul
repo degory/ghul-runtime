@@ -27,3 +27,22 @@ namespace Ghul.Internal is
             System.Linq.Enumerable.to_array(source)
     si
 si
+
+namespace Ghul.Internal is
+    use Collections
+
+    use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
+
+    /// String constructors the compiler offers as overloads of string's own.
+    class STRING_CONSTRUCTORS is
+        /// `values` rendered as `join` renders them, with nothing between them.
+        @INTRINSIC_ATTRIBUTE("constructor.from_joined")
+        from_joined[T](values: Iterable[T]) -> string static pure =>
+            Ghul.Pipes.join(values, "")
+
+        /// `values` rendered as `join` renders them, with `separator` between each pair.
+        @INTRINSIC_ATTRIBUTE("constructor.from_joined")
+        from_joined[T](values: Iterable[T], separator: string) -> string static pure =>
+            Ghul.Pipes.join(values, separator)
+    si
+si
