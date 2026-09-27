@@ -22,7 +22,7 @@ namespace Tests is
             _other = [3, 4, 9]
         si
 
-        _assert_repeatable[T](expected: string, pipe: Pipe[T]) is
+        _assert_repeatable[T](expected: string, pipe: Iterable[T]) is
             are_equal(expected, "{$(pipe |> collect_mutable())}", "first pass")
             are_equal(expected, "{$(pipe |> collect_mutable())}", "second pass")
             are_equal(expected, "{$(pipe |> collect_mutable())}", "third pass")

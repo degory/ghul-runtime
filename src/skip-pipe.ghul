@@ -12,6 +12,9 @@ namespace Ghul.Pipes is
             _skip_count = skip_count
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => SKIP_PIPE[T](source, _initial_skip_count)
+
         /// Counts down towards the point where elements start being included.
         have_moved() is
             _skip_count = _skip_count - 1
@@ -22,11 +25,5 @@ namespace Ghul.Pipes is
 
         /// Accepts an element once `skip_count` elements have been skipped.
         should_include() -> bool => _skip_count < 0
-
-        /// Rewinds the source and restores the skip count to `skip_count`.
-        reset() is
-            super.reset()
-            _skip_count = _initial_skip_count
-        si
     si
 si

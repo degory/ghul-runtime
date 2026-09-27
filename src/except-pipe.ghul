@@ -13,6 +13,9 @@ namespace Ghul.Pipes is
             _seen = SET[T]()
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => EXCEPT_PIPE[T](source, _excluded)
+
         /// Rejects an element that's in `excluded` or already seen, and
         /// accepts it otherwise.
         should_include() -> bool is
@@ -23,12 +26,6 @@ namespace Ghul.Pipes is
             _seen.add(current)
 
             return true
-        si
-
-        /// Rewinds the source and clears the set of elements seen so far.
-        reset() is
-            super.reset()
-            _seen.clear()
         si
     si
 si

@@ -12,6 +12,9 @@ namespace Ghul.Pipes is
             _take_count = take_count
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => TAKE_PIPE[T](source, _initial_take_count)
+
         /// Whether the quota of `take_count` elements has yet to be reached.
         should_pull() -> bool => _take_count > 0
 
@@ -22,11 +25,5 @@ namespace Ghul.Pipes is
 
         /// Always accepts.
         should_include() -> bool => true
-
-        /// Rewinds the source and restores the quota to `take_count`.
-        reset() is
-            super.reset()
-            _take_count = _initial_take_count
-        si
     si
 si

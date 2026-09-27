@@ -3,26 +3,29 @@ namespace Ghul.Pipes is
 
     /// Base for pipe stages that decide, element by element, whether to
     /// pull from the source and whether to include what they pull.
-    class FilterPipeBase[T]: Pipe[T] is
+    class FilterPipeBase[T]: PipeStage[T] abstract is
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
-
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
 
         /// The element at the cursor's current position.
         current: T => _iterator.current
 
         init(source: Iterable[T]) is
+            super.init()
+
             _source = source
             _iterator = source.iterator
         si
 
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[T] => fresh_over(_source)
+
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T]
+
         /// Pulls from the source while `should_pull` allows it and
         /// `should_continue` doesn't stop it, returning the first element
-        /// `should_include` accepts; rewinds once the source is exhausted
-        /// or the pass stops.
+        /// `should_include` accepts.
         move_next() -> bool is
             while should_pull() /\ _iterator.move_next() do
                 have_moved()
@@ -36,15 +39,11 @@ namespace Ghul.Pipes is
                 fi
             od
 
-            reset()
-
             return false
         si
 
-        // Whether to ask the source for another element at all: a
-        // stage that has yielded its quota stops without pulling the
-        // element it would have discarded, leaving it for whoever reads
-        // the source next.
+        // A stage that has yielded its quota stops without pulling the
+        // element it would have discarded.
         /// Whether to pull another element from the source at all.
         should_pull() -> bool => true
 
@@ -57,24 +56,6 @@ namespace Ghul.Pipes is
 
         /// Whether the element just pulled belongs in this stage's output.
         should_include() -> bool
-
-        /// Rewinds the source.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
-        si
 
         /// Renders the pipe's elements, in order, as text.
         to_string() -> string => $(self)

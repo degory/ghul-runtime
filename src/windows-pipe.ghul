@@ -3,16 +3,13 @@ namespace Ghul.Pipes is
 
     /// Overlapping lists of `size` consecutive elements of `source`,
     /// sliding one element at a time.
-    class WINDOWS_PIPE[T]: Pipe[List[T]] is
-        /// This pipe, as its own iterator.
-        iterator: Iterator[List[T]] => self
+    class WINDOWS_PIPE[T]: PipeStage[List[T]] is
 
         /// The most recently produced window.
         current: List[T]
 
         _source: Iterable[T]
         _iterator: Iterator[T]
-        _pending: PENDING_CURSOR[T]?
 
         _size: int
 
@@ -20,6 +17,8 @@ namespace Ghul.Pipes is
 
         /// Throws if `size` isn't positive.
         init(source: Iterable[T], size: int) is
+            super.init()
+
             assert size > 0 else "window size must be positive"
 
             _source = source
@@ -28,16 +27,17 @@ namespace Ghul.Pipes is
             _buffer = LIST[T]()
         si
 
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[List[T]] => WINDOWS_PIPE[T](_source, _size)
+
         /// Fills the buffer to `size` elements and drops the oldest one
-        /// after producing the window; rewinds once the source can't fill it.
+        /// after producing the window.
         move_next() -> bool is
             while _buffer.count < _size /\ _iterator.move_next() do
                 _buffer.add(_iterator.current)
             od
 
             if _buffer.count < _size then
-                reset()
-
                 return false
             fi
 
@@ -46,25 +46,6 @@ namespace Ghul.Pipes is
             _buffer.remove_at(0)
 
             return true
-        si
-
-        /// Rewinds the source and clears the buffer.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-            _buffer = LIST[T]()
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[T] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[T](_source, (it: Iterator[T]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

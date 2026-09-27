@@ -10,6 +10,9 @@ namespace Ghul.Pipes is
             _seen = SET[T]()
         si
 
+        /// A new stage of this kind over `source`, not yet read.
+        fresh_over(source: Iterable[T]) -> FilterPipeBase[T] => DISTINCT_PIPE[T](source)
+
         /// Accepts an element the first time it's seen and rejects it afterwards.
         should_include() -> bool is
             if _seen.contains(current) then
@@ -19,12 +22,6 @@ namespace Ghul.Pipes is
             _seen.add(current)
 
             return true
-        si
-
-        /// Rewinds the source and clears the set of elements seen so far.
-        reset() is
-            super.reset()
-            _seen.clear()
         si
     si
 si

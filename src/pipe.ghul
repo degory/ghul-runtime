@@ -14,73 +14,41 @@ namespace Ghul.Pipes is
     use System.Numerics.IAdditionOperators.`+
     use System.Numerics.IMultiplyOperators.`*
 
-    // A pipe is a cursor over its source that rewinds itself at its end:
-    // driven part way it carries on from wherever the last consumer
-    // stopped, whoever that consumer was, and once it has run out the
-    // next pull starts it over. A pipe source is rewound in place, so
-    // every holder of that pipe sees it start over too. Nothing ever
-    // calls `reset()` on a .NET enumerator - they are permitted to reject
-    // it, and compiler-generated ones must - and none is fetched on the
-    // rewind itself: the spent one is released and a fresh one is taken
-    // from the source only when something next pulls.
+    // Each read of a pipe starts from the beginning. A stage is its own
+    // iterator for the first read from the thread that made it, as a C#
+    // iterator is, so a pipe read once - almost every pipe - allocates
+    // nothing more; every read after that gets a fresh copy of the stage,
+    // which takes a fresh iterator from its source in turn.
+    /// Base for the pipe stages: each read starts from the beginning.
+    class PipeStage[T]: Pipe[T] abstract is
+        _claimed: bool
+        _thread: int
 
-    // Stands in for a stage's cursor between the end of one pass and the
-    // first pull of the next. That pull takes a fresh iterator from the
-    // source, installs it as the stage's cursor so every later pull goes
-    // straight to it, and forwards itself. One per stage, made the first
-    // time the stage runs out and kept for every rewind after.
-    /// The cursor a pipe stage uses between the end of one pass and the first
-    /// pull of the next. The first `move_next` call takes a fresh iterator
-    /// from the source and installs it as the stage's own cursor.
-    class PENDING_CURSOR[T]: Iterator[T] is
-        _source: Iterable[T]
-        _install: (Iterator[T]) -> void
-
-        init(source: Iterable[T], install: (Iterator[T]) -> void) is
-            _source = source
-            _install = install
+        init() is
+            _thread = System.Environment.current_managed_thread_id
         si
 
-        /// Always throws: this cursor never holds an element of its own.
-        current: T => throw InvalidOperationException("no current element")
+        /// This stage, on its first read from the thread that made it;
+        /// otherwise a fresh copy of it, starting from the beginning.
+        iterator: Iterator[T] is
+            if !_claimed /\ _thread == System.Environment.current_managed_thread_id then
+                _claimed = true
 
-        /// Takes a fresh iterator from the source, installs it as the
-        /// stage's cursor, and asks that iterator to move.
-        move_next() -> bool is
-            let it = _source.iterator
+                return self
+            fi
 
-            _install(it)
-
-            return it.move_next()
+            return fresh().iterator
         si
 
-        /// Has no effect.
+        /// A new stage over the same sources, not yet read.
+        fresh() -> PipeStage[T]
+
+        /// Has no effect: a read that starts again takes a fresh iterator.
         reset() is
         si
 
-        /// Has no effect.
-        dispose() is
-        si
-    si
-
-    // Rewind a stage's cursor at the end of a pass. A pipe is rewound in
-    // place, which rewinds whatever it draws from in turn, and stays the
-    // cursor. Any other iterator is released, and `pending` takes its
-    // place until the next pull.
-    /// Rewinds `cursor` in place if it's itself a pipe; otherwise disposes
-    /// it and returns `pending` for the stage to use until its next pull.
-    rewind[T](cursor: Iterator[T], pending: PENDING_CURSOR[T]) -> Iterator[T] is
-        if isa Pipe[T](cursor) then
-            cursor.reset()
-
-            return cursor
-        fi
-
-        if cursor != pending then
-            cursor.dispose()
-        fi
-
-        return pending
+        /// Renders the pipe's elements, in order, as text.
+        to_string() -> string => $(self)
     si
 
     // Lift an `Iterable[T]` (any producer with a `.iterator` —
@@ -102,7 +70,7 @@ namespace Ghul.Pipes is
     // that problem, since the key type is a fresh per-call parameter.
     /// The least element of `values`, or absent when `values` is empty.
     min[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
-        let it = values.iterator
+        let use it = values.iterator
 
         if it.move_next() then
             let result mut = it.current
@@ -121,7 +89,7 @@ namespace Ghul.Pipes is
 
     /// The greatest element of `values`, or absent when `values` is empty.
     max[T: Ghul.Comparable[T]](values: Iterable[T]) -> MAYBE[T] pure is
-        let it = values.iterator
+        let use it = values.iterator
 
         if it.move_next() then
             let result mut = it.current

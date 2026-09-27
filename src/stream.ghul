@@ -24,13 +24,12 @@ namespace Ghul.Pipes is
     // surface. Each `move_next` calls `advance(_state)`; the result is
     // either `DONE` (sequence over) or `YIELD(value, next_state)` —
     // the yielded element and the state to feed into the next call.
-    // `reset()` reinstates the initial state.
     //
     // The mutable state cursor lives on the class; the user's
     // `advance` is a pure `S -> STREAM[T, S]` — no recursion, no
     // closure-per-step allocation.
     /// Drives a state-stepping `advance` function through the `Pipe[T]` surface.
-    class STREAM_PIPE[T, S]: Pipe[T] is
+    class STREAM_PIPE[T, S]: PipeStage[T] is
         _initial: S
         _state:   S
         _advance: S -> STREAM[T, S]
@@ -38,10 +37,9 @@ namespace Ghul.Pipes is
         /// The most recently yielded element.
         current: T
 
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
-
         init(initial: S, advance: S -> STREAM[T, S]) is
+            super.init()
+
             assert advance?
 
             _initial = initial
@@ -49,8 +47,11 @@ namespace Ghul.Pipes is
             _advance = advance
         si
 
+        /// A new sequence from the initial state, not yet read.
+        fresh() -> PipeStage[T] => STREAM_PIPE[T, S](_initial, _advance)
+
         /// Calls `advance` with the current state; on `YIELD` advances and
-        /// returns true, on `DONE` rewinds and returns false.
+        /// returns true, on `DONE` returns false.
         move_next() -> bool is
             let step = _advance(_state)
 
@@ -58,16 +59,9 @@ namespace Ghul.Pipes is
                 current = next.value
                 _state  = next.state
                 return true
-            else
-                reset()
-
-                return false
             fi
-        si
 
-        /// Restores the initial state, so the next pull starts the sequence over.
-        reset() is
-            _state = _initial
+            return false
         si
 
         /// Renders the pipe's elements, in order, as text.
@@ -88,7 +82,7 @@ namespace Ghul.Pipes is
     /// Builds a `Pipe[T]` from an initial state and a step function that
     /// returns `STREAM.DONE` to end the sequence or `STREAM.YIELD` to
     /// produce the next element and state.
-    stream[T, S..](initial: S, advance: S.. -> STREAM[T, S]) -> Pipe[T] is
+    stream[T, S..](initial: S, advance: S.. -> STREAM[T, S]) -> Iterable[T] is
         return STREAM_PIPE[T, S](initial, advance)
     si
 si

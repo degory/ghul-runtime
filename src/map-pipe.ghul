@@ -2,54 +2,34 @@ namespace Ghul.Pipes is
     use Collections
 
     /// `mapper` applied to each element of `source`, in order.
-    class MAP_PIPE[TFrom,TTo]: Pipe[TTo] is
-        /// This pipe, as its own iterator.
-        iterator: Iterator[TTo] => self
-
+    class MAP_PIPE[TFrom,TTo]: PipeStage[TTo] is
         /// The most recently produced element.
         current: TTo
 
         _source: Iterable[TFrom]
         _iterator: Iterator[TFrom]
-        _pending: PENDING_CURSOR[TFrom]?
 
         _mapper: (TFrom) -> TTo
 
         init(source: Iterable[TFrom], mapper: (TFrom) -> TTo) is
+            super.init()
+
             _source = source
             _iterator = source.iterator
             _mapper = mapper
         si
 
-        /// Advances the source and maps its current element; rewinds when
-        /// the source is exhausted.
+        /// A new stage over the same source, not yet read.
+        fresh() -> PipeStage[TTo] => MAP_PIPE[TFrom,TTo](_source, _mapper)
+
+        /// Advances the source and maps its current element.
         move_next() -> bool is
             if _iterator.move_next() then
                 current = _mapper(_iterator.current)
                 return true
             fi
 
-            reset()
-
             return false
-        si
-
-        /// Rewinds the source.
-        reset() is
-            _iterator = rewind(_iterator, pending())
-        si
-
-        /// The placeholder cursor installed after a rewind, created once and reused.
-        pending() -> PENDING_CURSOR[TFrom] is
-            if let p = _pending then
-                return p
-            fi
-
-            let p = PENDING_CURSOR[TFrom](_source, (it: Iterator[TFrom]) is _iterator = it si)
-
-            _pending = p
-
-            return p
         si
 
         /// Renders the pipe's elements, in order, as text.

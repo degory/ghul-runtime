@@ -6,7 +6,7 @@ namespace Ghul.Pipes is
     // stops pulling.
     /// An unbounded arithmetic sequence of `int`s starting at `start` and
     /// advancing by `step` each time.
-    class COUNT_PIPE: Pipe[int] is
+    class COUNT_PIPE: PipeStage[int] is
         _start: int
         _step: int
         _started: bool
@@ -14,15 +14,17 @@ namespace Ghul.Pipes is
         /// The current value in the sequence.
         current: int
 
-        /// This pipe, as its own iterator.
-        iterator: Iterator[int] => self
-
         init(start: int, step: int) is
+            super.init()
+
             _start = start
             _step = step
             _started = false
             current = start
         si
+
+        /// A new sequence from `start`, not yet read.
+        fresh() -> PipeStage[int] => COUNT_PIPE(_start, _step)
 
         /// Advances to the next value; never ends.
         move_next() -> bool is
@@ -33,12 +35,6 @@ namespace Ghul.Pipes is
             fi
 
             return true
-        si
-
-        /// Restores the sequence to `start`.
-        reset() is
-            _started = false
-            current = _start
         si
 
         /// Renders the pipe's elements, in order, as text.
@@ -51,7 +47,7 @@ namespace Ghul.Pipes is
 
     /// An unbounded arithmetic sequence of `long`s starting at `start` and
     /// advancing by `step` each time.
-    class LONG_COUNT_PIPE: Pipe[long] is
+    class LONG_COUNT_PIPE: PipeStage[long] is
         _start: long
         _step: long
         _started: bool
@@ -59,15 +55,17 @@ namespace Ghul.Pipes is
         /// The current value in the sequence.
         current: long
 
-        /// This pipe, as its own iterator.
-        iterator: Iterator[long] => self
-
         init(start: long, step: long) is
+            super.init()
+
             _start = start
             _step = step
             _started = false
             current = start
         si
+
+        /// A new sequence from `start`, not yet read.
+        fresh() -> PipeStage[long] => LONG_COUNT_PIPE(_start, _step)
 
         /// Advances to the next value; never ends.
         move_next() -> bool is
@@ -78,12 +76,6 @@ namespace Ghul.Pipes is
             fi
 
             return true
-        si
-
-        /// Restores the sequence to `start`.
-        reset() is
-            _started = false
-            current = _start
         si
 
         /// Renders the pipe's elements, in order, as text.

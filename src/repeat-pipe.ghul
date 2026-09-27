@@ -5,7 +5,7 @@ namespace Ghul.Pipes is
     // negative. A count of zero yields nothing.
     /// `value`, yielded `count` times, or without end when `count` is
     /// negative; a count of zero yields no elements.
-    class REPEAT_PIPE[T]: Pipe[T] is
+    class REPEAT_PIPE[T]: PipeStage[T] is
         _value: T
         _count: int
         _remaining: int
@@ -13,16 +13,18 @@ namespace Ghul.Pipes is
         /// Always `value`.
         current: T => _value
 
-        /// This pipe, as its own iterator.
-        iterator: Iterator[T] => self
-
         init(value: T, count: int) is
+            super.init()
+
             _value = value
             _count = count
             _remaining = count
         si
 
-        /// Advances to the next repetition; rewinds once `count`
+        /// A new repetition of `value`, not yet read.
+        fresh() -> PipeStage[T] => REPEAT_PIPE[T](_value, _count)
+
+        /// Advances to the next repetition; ends once `count`
         /// repetitions have been yielded.
         move_next() -> bool is
             if _remaining < 0 then
@@ -30,19 +32,12 @@ namespace Ghul.Pipes is
             fi
 
             if _remaining == 0 then
-                reset()
-
                 return false
             fi
 
             _remaining = _remaining - 1
 
             return true
-        si
-
-        /// Restores the remaining count to `count`.
-        reset() is
-            _remaining = _count
         si
 
         /// Renders the pipe's elements, in order, as text.
