@@ -3,8 +3,8 @@ namespace Ghul.Internal is
 
     use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
 
-    // Constructors the language gives a .NET collection type it has no
-    // constructor of its own for. A `constructor.` intrinsic is offered as
+    // Constructors the language gives a collection type that has none of its own
+    // for the source. A `constructor.` intrinsic is offered as
     // an overload of `init` on the type it returns, so `MAP(pairs)` reaches
     // `from_pairs` the way `LIST(xs)` reaches List<T>'s own constructor.
     /// Collection constructors the compiler offers as overloads of the collection type's own.
@@ -20,5 +20,10 @@ namespace Ghul.Internal is
 
             return result
         si
+
+        /// An array holding `source`'s elements in order, sized up front when `source` knows its count.
+        @INTRINSIC_ATTRIBUTE("constructor.from_iterable")
+        from_iterable[E](source: Iterable[E]) -> E[] static pure =>
+            System.Linq.Enumerable.to_array(source)
     si
 si
