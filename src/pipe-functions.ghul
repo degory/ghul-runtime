@@ -207,11 +207,13 @@ namespace Ghul.Pipes is
 
     // the same as collect, which is the name to use
     /// The same as `collect`. Use `collect` instead.
+    @System.Obsolete("use collect instead")
     collect_array[T](source: Iterable[T]) -> T[] pure =>
         collect(source)
 
     // the same as collect_mutable, which is the name to use
     /// The same as `collect_mutable`. Use `collect_mutable` instead.
+    @System.Obsolete("use collect_mutable instead")
     collect_list[T](source: Iterable[T]) -> LIST[T] pure =>
         collect_mutable(source)
 
