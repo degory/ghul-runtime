@@ -142,6 +142,7 @@ namespace Tests is
         si
 
         @Test()
+        @suppress("deprecated")
         CollectList_DirectCallOnArray_ReturnsSameElements() is
             let result = Ghul.Pipes.collect_list([1, 2, 3])
 
