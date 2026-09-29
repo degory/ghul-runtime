@@ -1,11 +1,15 @@
 namespace Ghul.Pipes is
     use Collections
 
-    // An unbounded arithmetic sequence: `start`, `start + step`, and so on.
-    // Nothing bounds it, so a chain over one is bounded by a stage that
-    // stops pulling.
-    /// An unbounded arithmetic sequence of `int`s starting at `start` and
-    /// advancing by `step` each time.
+    // An arithmetic sequence: `start`, `start + step`, and so on, with no
+    // end other than the type's own. It ends on the last value the type
+    // can hold rather than wrap round to the far end of the range, which
+    // would read as a sequence that has gone back on itself; a step of 0
+    // never ends. Short of that limit nothing bounds it, so a chain over
+    // one is bounded by a stage that stops pulling.
+    /// An arithmetic sequence of `int`s starting at `start` and advancing
+    /// by `step` each time, ending at the last value before it would pass
+    /// `int`'s largest value (or its smallest, for a negative step).
     class COUNT_PIPE: PipeStage[int] is
         _start: int
         _step: int
@@ -26,13 +30,24 @@ namespace Ghul.Pipes is
         /// A new sequence from `start`, not yet read.
         fresh() -> PipeStage[int] => COUNT_PIPE(_start, _step)
 
-        /// Advances to the next value; never ends.
+        /// Advances to the next value; ends where the next value would
+        /// overflow `int`.
         move_next() -> bool is
-            if _started then
-                current = current + _step
-            else
+            if !_started then
                 _started = true
+
+                return true
             fi
+
+            // The addition wraps on overflow, and a wrapped result lands
+            // on the wrong side of `current` for the step's sign.
+            let next = current + _step
+
+            if (_step > 0 /\ next < current) \/ (_step < 0 /\ next > current) then
+                return false
+            fi
+
+            current = next
 
             return true
         si
@@ -45,8 +60,9 @@ namespace Ghul.Pipes is
         si
     si
 
-    /// An unbounded arithmetic sequence of `long`s starting at `start` and
-    /// advancing by `step` each time.
+    /// An arithmetic sequence of `long`s starting at `start` and advancing
+    /// by `step` each time, ending at the last value before it would pass
+    /// `long`'s largest value (or its smallest, for a negative step).
     class LONG_COUNT_PIPE: PipeStage[long] is
         _start: long
         _step: long
@@ -67,13 +83,24 @@ namespace Ghul.Pipes is
         /// A new sequence from `start`, not yet read.
         fresh() -> PipeStage[long] => LONG_COUNT_PIPE(_start, _step)
 
-        /// Advances to the next value; never ends.
+        /// Advances to the next value; ends where the next value would
+        /// overflow `long`.
         move_next() -> bool is
-            if _started then
-                current = current + _step
-            else
+            if !_started then
                 _started = true
+
+                return true
             fi
+
+            // The addition wraps on overflow, and a wrapped result lands
+            // on the wrong side of `current` for the step's sign.
+            let next = current + _step
+
+            if (_step > 0L /\ next < current) \/ (_step < 0L /\ next > current) then
+                return false
+            fi
+
+            current = next
 
             return true
         si

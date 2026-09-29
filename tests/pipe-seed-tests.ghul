@@ -39,6 +39,57 @@ namespace Tests is
             assert_are_equal([100L, 90L, 80L], from(100L, -10L) |> take(3))
         si
 
+        // A counter ends on the last value its type holds, rather than
+        // wrap round to the far end of the range and keep going.
+        @Test()
+        From_ReachingIntMaximum_EndsThere() is
+            assert_are_equal([2147483645, 2147483646, 2147483647], from(2147483645))
+        si
+
+        @Test()
+        From_WithAStepThatWouldPassIntMaximum_EndsBeforeIt() is
+            assert_are_equal([2147483638, 2147483643], from(2147483638, 5))
+        si
+
+        @Test()
+        From_WithANegativeStepReachingIntMinimum_EndsThere() is
+            let minimum = -2147483647 - 1
+
+            assert_are_equal([minimum + 2, minimum + 1, minimum], from(minimum + 2, -1))
+        si
+
+        @Test()
+        From_OverLongReachingLongMaximum_EndsThere() is
+            assert_are_equal([9223372036854775806L, 9223372036854775807L], from(9223372036854775806L))
+        si
+
+        @Test()
+        From_OverLongWithANegativeStepThatWouldPassLongMinimum_EndsBeforeIt() is
+            let minimum = -9223372036854775807L - 1L
+
+            assert_are_equal([minimum + 3L], from(minimum + 3L, -4L))
+        si
+
+        // Filtering an unbounded counter down to fewer matches than are
+        // asked for still finishes, once the counter reaches its limit.
+        @Test()
+        From_FilteredToFewerMatchesThanTaken_EndsAtTheLimit() is
+            assert_are_equal([2147483640, 2147483641, 2147483642], from(2147483640) |> filter(n => n < 2147483643) |> take(20))
+        si
+
+        @Test()
+        From_WithAStepOfZero_NeverEnds() is
+            assert_are_equal([3, 3, 3, 3], from(3, 0) |> take(4))
+        si
+
+        @Test()
+        From_ReachingItsLimit_ReadTwice_YieldsTheSameElements() is
+            let counting = from(2147483646)
+
+            assert_are_equal([2147483646, 2147483647], counting)
+            assert_are_equal([2147483646, 2147483647], counting)
+        si
+
         // What a seed is for: search an unbounded sequence and stop at the
         // first answer, rather than build a range large enough to hold it.
         @Test()

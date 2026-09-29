@@ -788,15 +788,18 @@ namespace Ghul.Pipes is
     // chain is bounded by a stage that stops pulling - `take`,
     // `take_while`, or a terminal that stops at the first match like
     // `find` or `first`. Collecting an unbounded one does not return.
+    // `from` is bounded only by its type: it ends on the last value the
+    // type holds rather than wrap round past it.
 
     // `start`, `start + step`, and so on. The step defaults to 1 and may
     // be negative; a step of 0 repeats `start`, which `repeat` says more
     // directly.
-    /// An unbounded sequence counting up from `start` in steps of 1.
+    /// A sequence counting up from `start` in steps of 1, ending at `int`'s largest value.
     from(start: int) -> Iterable[int] pure =>
         COUNT_PIPE(start, 1)
 
-    /// An unbounded sequence counting from `start` in steps of `step`, which can be negative.
+    /// A sequence counting from `start` in steps of `step`, which can be negative. Ends at the
+    /// last value before one that would overflow `int`; a step of 0 never ends.
     from(start: int, step: int) -> Iterable[int] pure =>
         COUNT_PIPE(start, step)
 
