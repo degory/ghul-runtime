@@ -47,8 +47,7 @@ namespace Ghul.Pipes is
     cursor[T](source: Iterator[T]) -> Pipe[T] pure => ITERATOR_PIPE[T](source)
 
     /// Advances `iter` and returns the element it reaches, or absent once
-    /// `iter` is at its end. An element that is itself absent is returned
-    /// present, so the end is the only absent result.
+    /// `iter` is at its end.
     ///
     /// - iter: the iterator to advance
     next[T](iter: Iterator[T]) -> MAYBE[T] is
