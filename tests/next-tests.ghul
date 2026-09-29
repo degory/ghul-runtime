@@ -1,0 +1,162 @@
+namespace Tests is
+    use Ghul
+
+    use Collections
+
+    use Microsoft.VisualStudio.TestTools.UnitTesting
+
+    use Ghul.Pipes
+
+    use TestClass = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    use Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+
+    class NEXT_ANIMAL is
+        init() is si
+    si
+
+    class NEXT_CAT: NEXT_ANIMAL is
+        name: string
+
+        init(name: string) is
+            super.init()
+            self.name = name
+        si
+    si
+
+    class NEXT_DOG: NEXT_ANIMAL is
+        init() is super.init() si
+    si
+
+    @TestClass()
+    class NEXT_SHOULD is
+        init() is si
+
+        @Test()
+        next__given_reference_elements__returns_each_then_absent() is
+            let items: Iterable[string] = ["a", "b"]
+            let it = items.iterator
+
+            let first = it |> next()
+            let second = it |> next()
+            let end = it |> next()
+
+            is_true(first?)
+            are_equal("a", first!)
+            is_true(second?)
+            are_equal("b", second!)
+            is_false(end?)
+        si
+
+        @Test()
+        next__given_value_elements__returns_each_then_absent() is
+            let items: Iterable[int] = [1, 2]
+            let it = items.iterator
+
+            let first = it |> next()
+            let second = it |> next()
+            let end = it |> next()
+
+            is_true(first?)
+            are_equal(1, first!)
+            is_true(second?)
+            are_equal(2, second!)
+            is_false(end?)
+        si
+
+        @Test()
+        next__given_optional_elements__returns_an_absent_element_as_present() is
+            let items: Iterable[string?] = ["a", null]
+            let it = items.iterator
+
+            let first = it |> next()
+            let second = it |> next()
+            let end = it |> next()
+
+            is_true(first?)
+            are_equal("a", first!)
+            is_true(second?)
+            is_null(second!)
+
+            if let element = second then
+                is_null(element)
+            else
+                is_true(false)
+            fi
+            is_false(end?)
+        si
+
+        @Test()
+        next__given_optional_value_elements__returns_an_absent_element_as_present() is
+            let items: Iterable[int?] = [1, null]
+            let it = items.iterator
+
+            let first = it |> next()
+            let second = it |> next()
+            let end = it |> next()
+
+            is_true(first?)
+            are_equal(1, (first!)!)
+            is_true(second?)
+            is_false((second!)?)
+
+            if let element = second then
+                is_false(element?)
+            else
+                is_true(false)
+            fi
+            is_false(end?)
+        si
+
+        @Test()
+        next__drives_while_let_over_optional_value_elements() is
+            let items: Iterable[int?] = [1, null, 3]
+            let it = items.iterator
+            let seen = LIST[int]()
+
+            while let i = it |> next() do
+                seen.add(i ?? -1)
+            od
+
+            are_equal(3, seen.count)
+            are_equal(1, seen[0])
+            are_equal(-1, seen[1])
+            are_equal(3, seen[2])
+        si
+
+        @Test()
+        next__drives_while_let_over_optional_reference_elements() is
+            let items: Iterable[string?] = ["a", null, "c"]
+            let it = items.iterator
+            let seen = LIST[string]()
+
+            while let w = it |> next() do
+                seen.add(w ?? "<none>")
+            od
+
+            are_equal(3, seen.count)
+            are_equal("<none>", seen[1])
+        si
+
+        @Test()
+        next__given_empty_iterator__returns_absent() is
+            let items: Iterable[string] = LIST[string]()
+
+            is_false((items.iterator |> next())?)
+        si
+
+        @Test()
+        next__drives_while_let_until_the_pattern_fails() is
+            let items: Iterable[NEXT_ANIMAL] = [NEXT_CAT("tom"), NEXT_CAT("felix"), NEXT_DOG(), NEXT_CAT("garfield")]
+            let animals = items.iterator
+            let names = LIST[string]()
+
+            while let cat: NEXT_CAT = animals |> next() do
+                names.add(cat.name)
+            od
+
+            are_equal(2, names.count)
+            are_equal("tom", names[0])
+            are_equal("felix", names[1])
+        si
+    si
+si
