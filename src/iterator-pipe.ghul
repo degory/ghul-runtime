@@ -45,4 +45,17 @@ namespace Ghul.Pipes is
     // ambiguous at every call site a pipe reaches.
     /// Lifts a bare `Iterator[T]` into a `Pipe[T]` so the combinators can drive it.
     cursor[T](source: Iterator[T]) -> Pipe[T] pure => ITERATOR_PIPE[T](source)
+
+    /// Advances `iter` and returns the element it reaches, or absent once
+    /// `iter` is at its end. An element that is itself absent is returned
+    /// present, so the end is the only absent result.
+    ///
+    /// - iter: the iterator to advance
+    next[T](iter: Iterator[T]) -> MAYBE[T] is
+        if iter.move_next() then
+            return MAYBE(iter.current)
+        fi
+
+        return MAYBE[T]()
+    si
 si
