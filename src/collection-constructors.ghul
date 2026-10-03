@@ -1,7 +1,6 @@
 namespace Ghul.Internal is
     use Collections
 
-    use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
 
     // Constructors the language gives a collection type that has none of its own
     // for the source. A `constructor.` intrinsic is offered as
@@ -10,7 +9,7 @@ namespace Ghul.Internal is
     /// Collection constructors the compiler offers as overloads of the collection type's own.
     class COLLECTION_CONSTRUCTORS is
         /// A map holding each key and value `pairs` gives. Throws if the same key appears twice.
-        @INTRINSIC_ATTRIBUTE("constructor.from_pairs")
+        @intrinsic("constructor.from_pairs")
         from_pairs[K, V](pairs: Iterable[(K, V)]) -> MAP[K, V] static pure is
             let result = MAP[K, V]()
 
@@ -22,7 +21,7 @@ namespace Ghul.Internal is
         si
 
         /// An array holding `source`'s elements in order, sized up front when `source` knows its count.
-        @INTRINSIC_ATTRIBUTE("constructor.from_iterable")
+        @intrinsic("constructor.from_iterable")
         from_iterable[E](source: Iterable[E]) -> E[] static pure =>
             System.Linq.Enumerable.to_array(source)
     si
@@ -31,17 +30,16 @@ si
 namespace Ghul.Internal is
     use Collections
 
-    use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
 
     /// String constructors the compiler offers as overloads of string's own.
     class STRING_CONSTRUCTORS is
         /// `values` rendered as `join` renders them, with nothing between them.
-        @INTRINSIC_ATTRIBUTE("constructor.from_joined")
+        @intrinsic("constructor.from_joined")
         from_joined[T](values: Iterable[T]) -> string static pure =>
             Ghul.Pipes.join(values, "")
 
         /// `values` rendered as `join` renders them, with `separator` between each pair.
-        @INTRINSIC_ATTRIBUTE("constructor.from_joined")
+        @intrinsic("constructor.from_joined")
         from_joined[T](values: Iterable[T], separator: string) -> string static pure =>
             Ghul.Pipes.join(values, separator)
     si

@@ -1,9 +1,8 @@
 namespace Ghul.Intrinsics.Staging is
-    use INTRINSIC_ATTRIBUTE = Ghul.Internal.INTRINSIC_ATTRIBUTE
-    // The compiler's intrinsic operators and magic types. Each carries
-    // `INTRINSIC_ATTRIBUTE`, which is what makes the compiler reconstruct
-    // it as an intrinsic — a call lowers straight to IL opcodes rather
-    // than to a call of the method emitted here.
+    // The compiler's intrinsic operators and magic types. Each is marked
+    // with the `@intrinsic` pragma, which is what makes the compiler
+    // reconstruct it as an intrinsic — a call lowers straight to IL
+    // opcodes rather than to a call of the method emitted here.
     //
     // They are declared under `Ghul.Intrinsics.Staging` but the compiler
     // registers them in `Ghul.Intrinsics`, the namespace every
@@ -14,7 +13,7 @@ namespace Ghul.Intrinsics.Staging is
     // neither hides the other.
 
     /// The type of a `T ref` argument or local: a managed reference to a value of type `E`.
-    @INTRINSIC_ATTRIBUTE("type.reference")
+    @intrinsic("type.reference")
     struct REFERENCE[E] is
         /// Reads or writes the referenced value.
         value: E => throw System.NotImplementedException(), = value is si
@@ -24,12 +23,12 @@ namespace Ghul.Intrinsics.Staging is
     si
 
     /// The type of an array, `E[]`.
-    @INTRINSIC_ATTRIBUTE("type.array")
+    @intrinsic("type.array")
     trait ARRAY[E]: Collections.List[E] is
     si
 
     /// The type of an unmanaged pointer to a value of type `E`, used at a native interop boundary.
-    @INTRINSIC_ATTRIBUTE("type.pointer")
+    @intrinsic("type.pointer")
     struct POINTER[E] is
         /// Reads or writes the pointed-to value.
         value: E => throw System.NotImplementedException(), = value is si
@@ -44,7 +43,7 @@ namespace Ghul.Intrinsics.Staging is
     // reference types (compares references). Also covers `bool`,
     // which has no dedicated overload.
     /// Whether `a` and `b` are the same value, bit for bit.
-    @INTRINSIC_ATTRIBUTE("compare.value") ==[T](a: T, b: T) -> bool pure
+    @intrinsic("compare.value") ==[T](a: T, b: T) -> bool pure
 
     // Handles null comparisons (`x == null`), where inference cannot
     // pin the generic's T, and explicit cross-type reference
@@ -54,357 +53,357 @@ namespace Ghul.Intrinsics.Staging is
     // null == ref is false). Mixed value/ref operands box and still
     // compare correctly.
     /// Whether `a` and `b` are the same object, or both null.
-    @INTRINSIC_ATTRIBUTE("compare.reference") ==(a: object?, b: object?) -> bool pure
+    @intrinsic("compare.reference") ==(a: object?, b: object?) -> bool pure
 
     /// Logical negation.
-    @INTRINSIC_ATTRIBUTE("bool.not") !(a: bool) -> bool pure
+    @intrinsic("bool.not") !(a: bool) -> bool pure
     /// Logical negation.
-    @INTRINSIC_ATTRIBUTE("bool.not") ¬(a: bool) -> bool pure
+    @intrinsic("bool.not") ¬(a: bool) -> bool pure
 
     /// Logical and, evaluating `b` only if `a` is true.
-    @INTRINSIC_ATTRIBUTE("bool.and_then") /\ (a: bool, b: bool) -> bool pure
+    @intrinsic("bool.and_then") /\ (a: bool, b: bool) -> bool pure
     /// Logical or, evaluating `b` only if `a` is false.
-    @INTRINSIC_ATTRIBUTE("bool.or_else") \/ (a: bool, b: bool) -> bool pure
+    @intrinsic("bool.or_else") \/ (a: bool, b: bool) -> bool pure
 
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: char) -> char pure
+    @intrinsic("arithmetic.neg") -(a: char) -> char pure
     /// Adds two `char` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: char, b: char) -> char pure
+    @intrinsic("arithmetic.add") +(a: char, b: char) -> char pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: char, b: char) -> char pure
+    @intrinsic("arithmetic.sub") -(a: char, b: char) -> char pure
     /// Multiplies two `char` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: char, b: char) -> char pure
+    @intrinsic("arithmetic.mul") *(a: char, b: char) -> char pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: char, b: char) -> char pure
+    @intrinsic("arithmetic.div") /(a: char, b: char) -> char pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: char, b: char) -> char pure
+    @intrinsic("arithmetic.rem") %(a: char, b: char) -> char pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: char, b: char) -> int pure
+    @intrinsic("compare.order") <>(a: char, b: char) -> int pure
 
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: byte) -> byte pure
+    @intrinsic("arithmetic.not") \(a: byte) -> byte pure
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: byte) -> byte pure
+    @intrinsic("arithmetic.neg") -(a: byte) -> byte pure
     /// Adds two `byte` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.add") +(a: byte, b: byte) -> byte pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.sub") -(a: byte, b: byte) -> byte pure
     /// Multiplies two `byte` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.mul") *(a: byte, b: byte) -> byte pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.div") /(a: byte, b: byte) -> byte pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.rem") %(a: byte, b: byte) -> byte pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: byte, b: byte) -> int pure
+    @intrinsic("compare.order") <>(a: byte, b: byte) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: byte, b: int) -> byte pure
+    @intrinsic("arithmetic.shl") <<(a: byte, b: int) -> byte pure
     /// Shifts `a` right by `b` bits, keeping its sign.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: byte, b: int) -> byte pure
+    @intrinsic("arithmetic.shr") >>(a: byte, b: int) -> byte pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: byte, b: int) -> byte pure
+    @intrinsic("arithmetic.ushr") >>>(a: byte, b: int) -> byte pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.and") &(a: byte, b: byte) -> byte pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.or") |(a: byte, b: byte) -> byte pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: byte, b: byte) -> byte pure
+    @intrinsic("arithmetic.xor") ^(a: byte, b: byte) -> byte pure
 
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.not") \(a: ubyte) -> ubyte pure
     /// Adds two `ubyte` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.add") +(a: ubyte, b: ubyte) -> ubyte pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.sub") -(a: ubyte, b: ubyte) -> ubyte pure
     /// Multiplies two `ubyte` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.mul") *(a: ubyte, b: ubyte) -> ubyte pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div_un") /(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.div_un") /(a: ubyte, b: ubyte) -> ubyte pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem_un") %(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.rem_un") %(a: ubyte, b: ubyte) -> ubyte pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: ubyte, b: ubyte) -> int pure
+    @intrinsic("compare.uorder") <>(a: ubyte, b: ubyte) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: ubyte, b: int) -> ubyte pure
+    @intrinsic("arithmetic.shl") <<(a: ubyte, b: int) -> ubyte pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>(a: ubyte, b: int) -> ubyte pure
+    @intrinsic("arithmetic.ushr") >>(a: ubyte, b: int) -> ubyte pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: ubyte, b: int) -> ubyte pure
+    @intrinsic("arithmetic.ushr") >>>(a: ubyte, b: int) -> ubyte pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.and") &(a: ubyte, b: ubyte) -> ubyte pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.or") |(a: ubyte, b: ubyte) -> ubyte pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: ubyte, b: ubyte) -> ubyte pure
+    @intrinsic("arithmetic.xor") ^(a: ubyte, b: ubyte) -> ubyte pure
 
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: short) -> short pure
+    @intrinsic("arithmetic.not") \(a: short) -> short pure
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: short) -> short pure
+    @intrinsic("arithmetic.neg") -(a: short) -> short pure
     /// Adds two `short` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.add") +(a: short, b: short) -> short pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.sub") -(a: short, b: short) -> short pure
     /// Multiplies two `short` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.mul") *(a: short, b: short) -> short pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.div") /(a: short, b: short) -> short pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.rem") %(a: short, b: short) -> short pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: short, b: short) -> int pure
+    @intrinsic("compare.order") <>(a: short, b: short) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: short, b: int) -> short pure
+    @intrinsic("arithmetic.shl") <<(a: short, b: int) -> short pure
     /// Shifts `a` right by `b` bits, keeping its sign.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: short, b: int) -> short pure
+    @intrinsic("arithmetic.shr") >>(a: short, b: int) -> short pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: short, b: int) -> short pure
+    @intrinsic("arithmetic.ushr") >>>(a: short, b: int) -> short pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.and") &(a: short, b: short) -> short pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.or") |(a: short, b: short) -> short pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: short, b: short) -> short pure
+    @intrinsic("arithmetic.xor") ^(a: short, b: short) -> short pure
 
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: ushort) -> ushort pure
+    @intrinsic("arithmetic.not") \(a: ushort) -> ushort pure
     /// Adds two `ushort` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.add") +(a: ushort, b: ushort) -> ushort pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.sub") -(a: ushort, b: ushort) -> ushort pure
     /// Multiplies two `ushort` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.mul") *(a: ushort, b: ushort) -> ushort pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div_un") /(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.div_un") /(a: ushort, b: ushort) -> ushort pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem_un") %(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.rem_un") %(a: ushort, b: ushort) -> ushort pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: ushort, b: ushort) -> int pure
+    @intrinsic("compare.uorder") <>(a: ushort, b: ushort) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: ushort, b: int) -> ushort pure
+    @intrinsic("arithmetic.shl") <<(a: ushort, b: int) -> ushort pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>(a: ushort, b: int) -> ushort pure
+    @intrinsic("arithmetic.ushr") >>(a: ushort, b: int) -> ushort pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: ushort, b: int) -> ushort pure
+    @intrinsic("arithmetic.ushr") >>>(a: ushort, b: int) -> ushort pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.and") &(a: ushort, b: ushort) -> ushort pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.or") |(a: ushort, b: ushort) -> ushort pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: ushort, b: ushort) -> ushort pure
+    @intrinsic("arithmetic.xor") ^(a: ushort, b: ushort) -> ushort pure
 
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: int) -> int pure
+    @intrinsic("arithmetic.neg") -(a: int) -> int pure
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: int) -> int pure
+    @intrinsic("arithmetic.not") \(a: int) -> int pure
     /// Adds two `int` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.add") +(a: int, b: int) -> int pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.sub") -(a: int, b: int) -> int pure
     /// Multiplies two `int` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.mul") *(a: int, b: int) -> int pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.div") /(a: int, b: int) -> int pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.rem") %(a: int, b: int) -> int pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: int, b: int) -> int pure
+    @intrinsic("compare.order") <>(a: int, b: int) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.shl") <<(a: int, b: int) -> int pure
     /// Shifts `a` right by `b` bits, keeping its sign.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.shr") >>(a: int, b: int) -> int pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.ushr") >>>(a: int, b: int) -> int pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.and") &(a: int, b: int) -> int pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.or") |(a: int, b: int) -> int pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: int, b: int) -> int pure
+    @intrinsic("arithmetic.xor") ^(a: int, b: int) -> int pure
 
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: uint) -> uint pure
+    @intrinsic("arithmetic.not") \(a: uint) -> uint pure
     /// Adds two `uint` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.add") +(a: uint, b: uint) -> uint pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.sub") -(a: uint, b: uint) -> uint pure
     /// Multiplies two `uint` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.mul") *(a: uint, b: uint) -> uint pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div_un") /(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.div_un") /(a: uint, b: uint) -> uint pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem_un") %(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.rem_un") %(a: uint, b: uint) -> uint pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: uint, b: uint) -> int pure
+    @intrinsic("compare.uorder") <>(a: uint, b: uint) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: uint, b: int) -> uint pure
+    @intrinsic("arithmetic.shl") <<(a: uint, b: int) -> uint pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>(a: uint, b: int) -> uint pure
+    @intrinsic("arithmetic.ushr") >>(a: uint, b: int) -> uint pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: uint, b: int) -> uint pure
+    @intrinsic("arithmetic.ushr") >>>(a: uint, b: int) -> uint pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.and") &(a: uint, b: uint) -> uint pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.or") |(a: uint, b: uint) -> uint pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: uint, b: uint) -> uint pure
+    @intrinsic("arithmetic.xor") ^(a: uint, b: uint) -> uint pure
 
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: long) -> long pure
+    @intrinsic("arithmetic.neg") -(a: long) -> long pure
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: long) -> long pure
+    @intrinsic("arithmetic.not") \(a: long) -> long pure
     /// Adds two `long` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.add") +(a: long, b: long) -> long pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.sub") -(a: long, b: long) -> long pure
     /// Multiplies two `long` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.mul") *(a: long, b: long) -> long pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.div") /(a: long, b: long) -> long pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.rem") %(a: long, b: long) -> long pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: long, b: long) -> int pure
+    @intrinsic("compare.order") <>(a: long, b: long) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: long, b: int) -> long pure
+    @intrinsic("arithmetic.shl") <<(a: long, b: int) -> long pure
     /// Shifts `a` right by `b` bits, keeping its sign.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: long, b: int) -> long pure
+    @intrinsic("arithmetic.shr") >>(a: long, b: int) -> long pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: long, b: int) -> long pure
+    @intrinsic("arithmetic.ushr") >>>(a: long, b: int) -> long pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.and") &(a: long, b: long) -> long pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.or") |(a: long, b: long) -> long pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: long, b: long) -> long pure
+    @intrinsic("arithmetic.xor") ^(a: long, b: long) -> long pure
 
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: ulong) -> ulong pure
+    @intrinsic("arithmetic.not") \(a: ulong) -> ulong pure
     /// Adds two `ulong` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.add") +(a: ulong, b: ulong) -> ulong pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.sub") -(a: ulong, b: ulong) -> ulong pure
     /// Multiplies two `ulong` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.mul") *(a: ulong, b: ulong) -> ulong pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div_un") /(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.div_un") /(a: ulong, b: ulong) -> ulong pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem_un") %(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.rem_un") %(a: ulong, b: ulong) -> ulong pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: ulong, b: ulong) -> int pure
+    @intrinsic("compare.uorder") <>(a: ulong, b: ulong) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: ulong, b: int) -> ulong pure
+    @intrinsic("arithmetic.shl") <<(a: ulong, b: int) -> ulong pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>(a: ulong, b: int) -> ulong pure
+    @intrinsic("arithmetic.ushr") >>(a: ulong, b: int) -> ulong pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: ulong, b: int) -> ulong pure
+    @intrinsic("arithmetic.ushr") >>>(a: ulong, b: int) -> ulong pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.and") &(a: ulong, b: ulong) -> ulong pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.or") |(a: ulong, b: ulong) -> ulong pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: ulong, b: ulong) -> ulong pure
+    @intrinsic("arithmetic.xor") ^(a: ulong, b: ulong) -> ulong pure
 
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: word) -> word pure
+    @intrinsic("arithmetic.neg") -(a: word) -> word pure
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: word) -> word pure
+    @intrinsic("arithmetic.not") \(a: word) -> word pure
     /// Adds two `word` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.add") +(a: word, b: word) -> word pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.sub") -(a: word, b: word) -> word pure
     /// Multiplies two `word` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.mul") *(a: word, b: word) -> word pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.div") /(a: word, b: word) -> word pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem") %(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.rem") %(a: word, b: word) -> word pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: word, b: word) -> int pure
+    @intrinsic("compare.order") <>(a: word, b: word) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: word, b: int) -> word pure
+    @intrinsic("arithmetic.shl") <<(a: word, b: int) -> word pure
     /// Shifts `a` right by `b` bits, keeping its sign.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shr") >>(a: word, b: int) -> word pure
+    @intrinsic("arithmetic.shr") >>(a: word, b: int) -> word pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: word, b: int) -> word pure
+    @intrinsic("arithmetic.ushr") >>>(a: word, b: int) -> word pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.and") &(a: word, b: word) -> word pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.or") |(a: word, b: word) -> word pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: word, b: word) -> word pure
+    @intrinsic("arithmetic.xor") ^(a: word, b: word) -> word pure
 
     /// Adds two `uword` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.add") +(a: uword, b: uword) -> uword pure
     /// Bitwise complement.
-    @INTRINSIC_ATTRIBUTE("arithmetic.not") \(a: uword) -> uword pure
+    @intrinsic("arithmetic.not") \(a: uword) -> uword pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.sub") -(a: uword, b: uword) -> uword pure
     /// Multiplies two `uword` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.mul") *(a: uword, b: uword) -> uword pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div_un") /(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.div_un") /(a: uword, b: uword) -> uword pure
     /// The remainder of dividing `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.rem_un") %(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.rem_un") %(a: uword, b: uword) -> uword pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.uorder") <>(a: uword, b: uword) -> int pure
+    @intrinsic("compare.uorder") <>(a: uword, b: uword) -> int pure
     /// Shifts `a` left by `b` bits.
-    @INTRINSIC_ATTRIBUTE("arithmetic.shl") <<(a: uword, b: int) -> uword pure
+    @intrinsic("arithmetic.shl") <<(a: uword, b: int) -> uword pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>(a: uword, b: int) -> uword pure
+    @intrinsic("arithmetic.ushr") >>(a: uword, b: int) -> uword pure
     /// Shifts `a` right by `b` bits, filling with zero.
-    @INTRINSIC_ATTRIBUTE("arithmetic.ushr") >>>(a: uword, b: int) -> uword pure
+    @intrinsic("arithmetic.ushr") >>>(a: uword, b: int) -> uword pure
     /// Bitwise and.
-    @INTRINSIC_ATTRIBUTE("arithmetic.and") &(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.and") &(a: uword, b: uword) -> uword pure
     /// Bitwise or.
-    @INTRINSIC_ATTRIBUTE("arithmetic.or") |(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.or") |(a: uword, b: uword) -> uword pure
     /// Bitwise xor.
-    @INTRINSIC_ATTRIBUTE("arithmetic.xor") ^(a: uword, b: uword) -> uword pure
+    @intrinsic("arithmetic.xor") ^(a: uword, b: uword) -> uword pure
 
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: single) -> single pure
+    @intrinsic("arithmetic.neg") -(a: single) -> single pure
     /// Adds two `single` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: single, b: single) -> single pure
+    @intrinsic("arithmetic.add") +(a: single, b: single) -> single pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: single, b: single) -> single pure
+    @intrinsic("arithmetic.sub") -(a: single, b: single) -> single pure
     /// Multiplies two `single` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: single, b: single) -> single pure
+    @intrinsic("arithmetic.mul") *(a: single, b: single) -> single pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: single, b: single) -> single pure
+    @intrinsic("arithmetic.div") /(a: single, b: single) -> single pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: single, b: single) -> int pure
+    @intrinsic("compare.order") <>(a: single, b: single) -> int pure
 
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.neg") -(a: double) -> double pure
+    @intrinsic("arithmetic.neg") -(a: double) -> double pure
     /// Adds two `double` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.add") +(a: double, b: double) -> double pure
+    @intrinsic("arithmetic.add") +(a: double, b: double) -> double pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.sub") -(a: double, b: double) -> double pure
+    @intrinsic("arithmetic.sub") -(a: double, b: double) -> double pure
     /// Multiplies two `double` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic.mul") *(a: double, b: double) -> double pure
+    @intrinsic("arithmetic.mul") *(a: double, b: double) -> double pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic.div") /(a: double, b: double) -> double pure
+    @intrinsic("arithmetic.div") /(a: double, b: double) -> double pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare.order") <>(a: double, b: double) -> int pure
+    @intrinsic("compare.order") <>(a: double, b: double) -> int pure
 
     // System.Decimal is a 128-bit value type with no IL arithmetic
     // or compare opcodes. Each operator below routes to the matching
     // System.Decimal static method via the decimal-specific innate
     // handlers in IR.INNATE_OPERATION_GENERATOR.
     /// Negates `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.neg") -(a: decimal) -> decimal pure
+    @intrinsic("arithmetic_decimal.neg") -(a: decimal) -> decimal pure
     /// Adds two `decimal` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.add") +(a: decimal, b: decimal) -> decimal pure
+    @intrinsic("arithmetic_decimal.add") +(a: decimal, b: decimal) -> decimal pure
     /// Subtracts `b` from `a`.
-    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.sub") -(a: decimal, b: decimal) -> decimal pure
+    @intrinsic("arithmetic_decimal.sub") -(a: decimal, b: decimal) -> decimal pure
     /// Multiplies two `decimal` values.
-    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.mul") *(a: decimal, b: decimal) -> decimal pure
+    @intrinsic("arithmetic_decimal.mul") *(a: decimal, b: decimal) -> decimal pure
     /// Divides `a` by `b`.
-    @INTRINSIC_ATTRIBUTE("arithmetic_decimal.div") /(a: decimal, b: decimal) -> decimal pure
+    @intrinsic("arithmetic_decimal.div") /(a: decimal, b: decimal) -> decimal pure
     /// Orders `a` against `b`: negative, zero or positive as `a` is less than, equal to or greater than `b`.
-    @INTRINSIC_ATTRIBUTE("compare_decimal.order") <>(a: decimal, b: decimal) -> int pure
+    @intrinsic("compare_decimal.order") <>(a: decimal, b: decimal) -> int pure
     /// Whether `a` and `b` are numerically equal.
-    @INTRINSIC_ATTRIBUTE("compare_decimal.equality") ==(a: decimal, b: decimal) -> bool pure
+    @intrinsic("compare_decimal.equality") ==(a: decimal, b: decimal) -> bool pure
 
     // Both operands are `string?`: `System.String.op_Equality(string, string)`
     // (the underlying innate) is null-safe — `null =~ null` is true, `null =~ "x"`
@@ -412,13 +411,13 @@ namespace Ghul.Intrinsics.Staging is
     // against BCL APIs that legitimately return `string?` (e.g. Environment
     // variables, `Path.get_directory_name`).
     /// Whether `a` and `b` have the same characters, treating two absent values as equal.
-    @INTRINSIC_ATTRIBUTE("string.equals") =~(a: string?, b: string?) -> bool pure
+    @intrinsic("string.equals") =~(a: string?, b: string?) -> bool pure
 
     // The range operators return the runtime's own range structs, so they
     // are declared here rather than beside the rest: the type they name
     // has to be in scope.
     /// The range from `from` up to but not including `to`.
-    @INTRINSIC_ATTRIBUTE("range.exclusive") ..(from: int, to: int) -> INT_RANGE pure
+    @intrinsic("range.exclusive") ..(from: int, to: int) -> INT_RANGE pure
     /// The range from `from` to `to`, including both.
-    @INTRINSIC_ATTRIBUTE("range.inclusive") ::(from: int, to: int) -> INT_RANGE_INCLUSIVE pure
+    @intrinsic("range.inclusive") ::(from: int, to: int) -> INT_RANGE_INCLUSIVE pure
 si
