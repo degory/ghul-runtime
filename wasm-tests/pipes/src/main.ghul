@@ -11,6 +11,8 @@ entry() is
     write_line("{xs |> reduce(0, (a, b) => a + b)}")
     write_line("{xs |> count(x => x > 3)}")
     write_line("{xs |> any(x => x == 9)} {xs |> all(x => x > 0)}")
+    write_line("{xs |> first()} {xs |> count()}")
+    write_line(xs |> join(", "))
 
     xs |> filter(x => x < 3) |> each(x => write_line("{x}"))
 
