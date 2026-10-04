@@ -138,6 +138,30 @@ jobs:
           exit 1
         fi
 
+  wasm-tests:
+    name: Run wasm tests
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v6
+
+    # A wasm program runs under Node.js, which needs WebAssembly GC: on by
+    # default from Node.js 22.
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '24'
+
+    - name: Install ghul.cli
+      run: |
+        dotnet tool install --global ghul.cli
+        echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+    - name: Build and run the wasm tests
+      run: ./wasm-tests/run.sh
+
   publish-beta-package:
     # for pull requests, only publish the beta package
     name: Publish beta NuGet package
