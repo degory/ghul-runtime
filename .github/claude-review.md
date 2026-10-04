@@ -34,6 +34,7 @@ root is a smoke test against a freshly-packed runtime.
   names not surviving cross-assembly, named-tuple member resolution failing
   across assemblies, the `IList`/`IReadOnlyList` diamond. Be alert to similar.
 - **Missing tests** where a behavioural change wants one.
+- **Doc comments on the stable surface.** For the shared doc-comment rule, the stable surface here is the public types and members of `Ghul.Runtime`.
 
 ## Versioning
 
