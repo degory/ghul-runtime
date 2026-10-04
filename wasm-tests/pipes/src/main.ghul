@@ -17,4 +17,12 @@ entry() is
     let incremented = xs |> map(x => x + 1) |> collect()
 
     write_line("{incremented.count} {incremented[0]} {incremented[7]}")
+
+    for column in transpose([[1, 2, 3], [4, 5, 6]]) do
+        write_line("{column[0]} {column[1]}")
+    od
+
+    for ordering in permutations([1, 2, 3]) do
+        write_line("{ordering[0]}{ordering[1]}{ordering[2]}")
+    od
 si

@@ -81,7 +81,6 @@ namespace Ghul.Pipes is
     /// `rows` with its rows and columns exchanged, each column a read-only list, so the
     /// nth element of the result is the nth element of each row in turn. Stops at the
     /// shortest row, so a ragged input is read as its rectangular part.
-    @IF.dotnet()
     transpose[T](rows: Iterable[Iterable[T]]) -> Pipe[List[T]] is
         let indexed = LIST[List[T]]()
 
@@ -119,7 +118,6 @@ namespace Ghul.Pipes is
     /// Every ordering of `source`'s elements, each as a read-only list. Produced in
     /// the order of the input's own positions, which is lexicographic when the
     /// input is sorted.
-    @IF.dotnet()
     permutations[T](source: Iterable[T]) -> Pipe[List[T]] is
         let items = source |> collect_mutable()
 
