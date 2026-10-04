@@ -46,9 +46,9 @@ available on the wasm target is tracked on
 [ghul-lang/ghul#3319](https://github.com/ghul-lang/ghul/issues/3319).
 
 `wasm-tests/` holds programs that build for the wasm target from this
-checkout's sources and run under Node. `wasm-tests/run.sh` builds each with
-`ghul` (ghul.cli), runs it, and compares its output with the `run.expected`
-beside it, which is what the same program prints on .NET.
+checkout's sources and run under Node, each a ghul-cli project whose
+`run.expected` is what the same program prints on .NET. Run them with
+`dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" --target wasm wasm-tests`.
 
 ## Issues
 

@@ -154,13 +154,11 @@ jobs:
       with:
         node-version: '24'
 
-    - name: Install ghul.cli
-      run: |
-        dotnet tool install --global ghul.cli
-        echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+    - name: Restore local .NET tools
+      run: dotnet tool restore
 
     - name: Build and run the wasm tests
-      run: ./wasm-tests/run.sh
+      run: dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" --target wasm wasm-tests
 
   publish-beta-package:
     # for pull requests, only publish the beta package
