@@ -22,6 +22,7 @@ src/zip-pipe.ghul
 src/box.ghul
 src/pipe.ghul
 src/pipe-functions.ghul
+src/range-operators.ghul
 src/pipe-totals-wasm.ghul
 src/list-slice.ghul
 src/functional.ghul
