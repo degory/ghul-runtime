@@ -380,6 +380,18 @@
     <OnError ExecuteTargets="_DeleteGhulBuildResponseFile" />
   </Target>
 
+  <!-- A build for the wasm target writes, beside the module, the JavaScript
+       loader that runs it. The loader goes to the output directory with the
+       module, which is where it finds the module. -->
+  <Target Name="_CopyGhulWasmLoader" AfterTargets="CopyFilesToOutputDirectory"
+          Condition="Exists('$(IntermediateOutputPath)$(AssemblyName).mjs')">
+    <Copy SourceFiles="$(IntermediateOutputPath)$(AssemblyName).mjs" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <FileWrites Include="$(OutDir)$(AssemblyName).mjs" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="_DeleteGhulBuildResponseFile">
     <Delete Files="$(_GhulBuildResponseFile)" />
   </Target>
