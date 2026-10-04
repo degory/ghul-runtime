@@ -34,7 +34,16 @@ Other values are rejected. To choose directly, regardless of `OutputType`, set
 </PropertyGroup>
 ```
 
+## The WebAssembly target
 
+Under `--target wasm` the runtime is compiled from source together with
+[ghul-core](https://github.com/ghul-lang/ghul-core), which supplies the types
+.NET supplies on the other target. `wasm-sources.rsp` lists the files a wasm
+build compiles, one a line, to be passed to the compiler after ghul-core's
+sources. Within those files, `@IF.dotnet()` marks what is compiled only for .NET
+and `@IF.wasm()` what is compiled only for WebAssembly. What is not yet
+available on the wasm target is tracked on
+[ghul-lang/ghul#3319](https://github.com/ghul-lang/ghul/issues/3319).
 
 ## Issues
 

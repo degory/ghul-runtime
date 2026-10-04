@@ -1,0 +1,268 @@
+namespace Ghul.Pipes is
+    use Collections
+
+    // On the wasm target the scalar types cannot satisfy the generic-math
+    // bounds `sum`, `product` and `sum_by` take on .NET, since a ghūl type
+    // cannot implement an interface's static members. They are declared
+    // here once per scalar type instead, so a call reads the same on both
+    // targets.
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[int]) -> int pure is
+        let total mut = 0
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[int]) -> int pure is
+        let running mut = 1
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> int pure) -> int pure is
+        let total mut = 0
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[uint]) -> uint pure is
+        let total mut = 0u
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[uint]) -> uint pure is
+        let running mut = 1u
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> uint pure) -> uint pure is
+        let total mut = 0u
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[long]) -> long pure is
+        let total mut = 0L
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[long]) -> long pure is
+        let running mut = 1L
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> long pure) -> long pure is
+        let total mut = 0L
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[ulong]) -> ulong pure is
+        let total mut = 0ul
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[ulong]) -> ulong pure is
+        let running mut = 1ul
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> ulong pure) -> ulong pure is
+        let total mut = 0ul
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[single]) -> single pure is
+        let total mut = 0.0s
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[single]) -> single pure is
+        let running mut = 1.0s
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> single pure) -> single pure is
+        let total mut = 0.0s
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[double]) -> double pure is
+        let total mut = 0.0
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[double]) -> double pure is
+        let running mut = 1.0
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> double pure) -> double pure is
+        let total mut = 0.0
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[decimal]) -> decimal pure is
+        let total mut = 0m
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[decimal]) -> decimal pure is
+        let running mut = 1m
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
+
+    /// The total of what `selector` returns for each of `source`'s elements,
+    /// or zero when it's empty.
+    @IF.wasm()
+    sum_by[T..](source: Iterable[T], selector: T.. -> decimal pure) -> decimal pure is
+        let total mut = 0m
+
+        for value in source do
+            total = total + selector(value)
+        od
+
+        return total
+    si
+si

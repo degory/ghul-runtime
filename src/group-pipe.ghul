@@ -74,6 +74,7 @@ namespace Ghul.Pipes is
         si
 
         /// Renders the pipe's elements, in order, as text.
+        @IF.dotnet()
         to_string() -> string => $(self)
 
         /// Disposes the underlying iterator.
