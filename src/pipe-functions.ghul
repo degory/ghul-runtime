@@ -1,11 +1,7 @@
 namespace Ghul.Pipes is
     use Ghul.InvalidOperationException
 
-    @IF.dotnet()
     use System.Text.StringBuilder
-
-    @IF.wasm()
-    use StringBuilder = Ghul.STRING_BUILDER
 
     use Collections
 
