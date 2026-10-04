@@ -1,0 +1,20 @@
+// The pipe functions over an int array, compiled for the wasm target from
+// the runtime's own sources, print what the same program prints on .NET.
+use IO.Std.write_line
+use Ghul.Pipes
+
+entry() is
+    let xs = [3, 1, 4, 1, 5, 9, 2, 6]
+
+    write_line("{xs |> map(x => x * 2) |> sum()}")
+    write_line("{xs |> filter(x => x % 2 == 0) |> sum()}")
+    write_line("{xs |> reduce(0, (a, b) => a + b)}")
+    write_line("{xs |> count(x => x > 3)}")
+    write_line("{xs |> any(x => x == 9)} {xs |> all(x => x > 0)}")
+
+    xs |> filter(x => x < 3) |> each(x => write_line("{x}"))
+
+    let incremented = xs |> map(x => x + 1) |> collect()
+
+    write_line("{incremented.count} {incremented[0]} {incremented[7]}")
+si
