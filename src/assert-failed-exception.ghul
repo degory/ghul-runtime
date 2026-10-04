@@ -1,6 +1,6 @@
 namespace Ghul is
     /// Thrown when a failing `assert` has a string message rather than an exception value.
-    class AssertFailedException: System.Exception is
+    class AssertFailedException: Ghul.Exception is
         /// Creates the exception with `message`.
         init(message: string) is
             super.init(message)

@@ -47,6 +47,7 @@ namespace Ghul is
     // pack binds to: single-threaded use.
     /// `f`, wrapped to remember each call's result and skip calling `f` again for
     /// arguments already seen. Not safe to call from more than one thread at a time.
+    @IF.dotnet()
     memoize[T.., U](f: T.. -> U) -> T.. -> U is
         let cache mut = MAP[T, U]()
 
@@ -72,7 +73,7 @@ namespace Ghul is
             while true do
                 try
                     return f(v)
-                catch e: System.Exception
+                catch e: Ghul.Exception
                     n = n - 1
 
                     if n <= 0 then
@@ -81,7 +82,7 @@ namespace Ghul is
                 yrt
             od
 
-            throw System.Exception("unreachable")
+            throw Ghul.Exception("unreachable")
         )
     si
 si

@@ -1,17 +1,25 @@
 namespace Ghul.Pipes is
-    use System.InvalidOperationException
-    use System.NotImplementedException
+    use Ghul.InvalidOperationException
+    use Ghul.NotImplementedException
 
+    @IF.dotnet()
     use System.Text.StringBuilder
+
+    @IF.wasm()
+    use StringBuilder = Ghul.STRING_BUILDER
 
     use Collections
 
+    @IF.dotnet()
     use System.Numerics.INumber
 
     // The arithmetic operators on a bounded type parameter are reachable
     // only once imported by name, and each comes from the interface that
     // declares it rather than from the bound.
+    @IF.dotnet()
     use System.Numerics.IAdditionOperators.`+
+
+    @IF.dotnet()
     use System.Numerics.IMultiplyOperators.`*
 
     // Each read of a pipe starts from the beginning. A stage is its own
@@ -25,13 +33,23 @@ namespace Ghul.Pipes is
         _thread: int
 
         init() is
+            @IF.dotnet()
             _thread = System.Environment.current_managed_thread_id
         si
 
         /// This stage, on its first read from the thread that made it;
         /// otherwise a fresh copy of it, starting from the beginning.
         iterator: Iterator[T] is
+            @IF.dotnet()
             if !_claimed /\ _thread == System.Environment.current_managed_thread_id then
+                _claimed = true
+
+                return self
+            fi
+
+            // The wasm target has one thread.
+            @IF.wasm()
+            if !_claimed then
                 _claimed = true
 
                 return self
@@ -48,6 +66,7 @@ namespace Ghul.Pipes is
         si
 
         /// Renders the pipe's elements, in order, as text.
+        @IF.dotnet()
         to_string() -> string => $(self)
     si
 
@@ -114,6 +133,7 @@ namespace Ghul.Pipes is
     // operators. As with `min` and `max`, these are free functions
     // because `Pipe[T]` cannot bound its own `T`.
     /// The total of `source`'s elements, or `T.zero` when it's empty.
+    @IF.dotnet()
     sum[T: INumber[T]](source: Iterable[T]) -> T pure is
         let total mut = T.zero
 
@@ -125,6 +145,7 @@ namespace Ghul.Pipes is
     si
 
     /// The product of `source`'s elements, or `T.one` when it's empty.
+    @IF.dotnet()
     product[T: INumber[T]](source: Iterable[T]) -> T pure is
         let running mut = T.one
 
@@ -137,6 +158,7 @@ namespace Ghul.Pipes is
 
     /// The total of what `selector` returns for each of `source`'s elements,
     /// or `N.zero` when it's empty.
+    @IF.dotnet()
     sum_by[T..,N: INumber[N]](source: Iterable[T], selector: T.. -> N pure) -> N pure is
         let total mut = N.zero
 
@@ -158,6 +180,7 @@ namespace Ghul.Pipes is
         iterator: Iterator[T] => self
 
         /// Renders the pipe's elements, in order, as text.
+        @IF.dotnet()
         to_string() -> string =>
             $(self)
 

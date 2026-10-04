@@ -1,6 +1,11 @@
 namespace Ghul.Pipes is
-    use System.InvalidOperationException
+    use Ghul.InvalidOperationException
+
+    @IF.dotnet()
     use System.Text.StringBuilder
+
+    @IF.wasm()
+    use StringBuilder = Ghul.STRING_BUILDER
 
     use Collections
 
@@ -47,6 +52,7 @@ namespace Ghul.Pipes is
         TAKE_WHILE_PIPE[T](source, predicate)
 
     /// The elements of `source` with duplicates removed, keeping each one's first occurrence.
+    @IF.dotnet()
     distinct[T](source: Iterable[T]) -> Iterable[T] pure =>
         DISTINCT_PIPE[T](source)
 
@@ -69,6 +75,7 @@ namespace Ghul.Pipes is
     // one only ever joins neighbours.
     /// `source`'s elements as runs of adjacent equal ones, each a read-only list, comparing
     /// with `=~`. A new run starts wherever an element differs from the one before it.
+    @IF.dotnet()
     group[T](source: Iterable[T]) -> Iterable[List[T]] pure =>
         GROUP_PIPE[T](source)
 
@@ -78,6 +85,7 @@ namespace Ghul.Pipes is
     /// `rows` with its rows and columns exchanged, each column a read-only list, so the
     /// nth element of the result is the nth element of each row in turn. Stops at the
     /// shortest row, so a ragged input is read as its rectangular part.
+    @IF.dotnet()
     transpose[T](rows: Iterable[Iterable[T]]) -> Pipe[List[T]] is
         let indexed = LIST[List[T]]()
 
@@ -115,6 +123,7 @@ namespace Ghul.Pipes is
     /// Every ordering of `source`'s elements, each as a read-only list. Produced in
     /// the order of the input's own positions, which is lexicographic when the
     /// input is sorted.
+    @IF.dotnet()
     permutations[T](source: Iterable[T]) -> Pipe[List[T]] is
         let items = source |> collect_mutable()
 
@@ -150,22 +159,27 @@ namespace Ghul.Pipes is
         CAT_PIPE[T](source, right)
 
     /// The elements of `source` and `right` combined, with duplicates removed.
+    @IF.dotnet()
     union_with[T](source: Iterable[T], right: Iterable[T]) -> Iterable[T] pure =>
         distinct(cat(source, right))
 
     /// The elements of `source` that also appear in `right`, with duplicates removed.
+    @IF.dotnet()
     intersect_with[T](source: Iterable[T], right: Iterable[T]) -> Iterable[T] pure =>
         INTERSECT_PIPE[T](source, right)
 
     /// The elements of `source` that don't appear in `right`, with duplicates removed.
+    @IF.dotnet()
     except[T](source: Iterable[T], right: Iterable[T]) -> Iterable[T] pure =>
         EXCEPT_PIPE[T](source, right)
 
     /// The elements of `source` paired with their position, counting from 0.
+    @IF.dotnet()
     index[T](source: Iterable[T]) -> Iterable[INDEXED_VALUE[T]] pure =>
         INDEX_PIPE[T](source, 0)
 
     /// The elements of `source` paired with their position, counting from `index`.
+    @IF.dotnet()
     index[T](source: Iterable[T], index: int) -> Iterable[INDEXED_VALUE[T]] pure =>
         INDEX_PIPE[T](source, index)
 
@@ -208,12 +222,14 @@ namespace Ghul.Pipes is
 
     // the same as collect, which is the name to use
     /// The same as `collect`. Use `collect` instead.
+    @IF.dotnet()
     @System.Obsolete("use collect instead")
     collect_array[T](source: Iterable[T]) -> T[] pure =>
         collect(source)
 
     // the same as collect_mutable, which is the name to use
     /// The same as `collect_mutable`. Use `collect_mutable` instead.
+    @IF.dotnet()
     @System.Obsolete("use collect_mutable instead")
     collect_list[T](source: Iterable[T]) -> LIST[T] pure =>
         collect_mutable(source)
@@ -230,6 +246,7 @@ namespace Ghul.Pipes is
     si
 
     /// The elements of `source`, collected into a set, with duplicates removed.
+    @IF.dotnet()
     collect_set[T](source: Iterable[T]) -> SET[T] pure is
         let result = SET[T]()
 
@@ -243,12 +260,14 @@ namespace Ghul.Pipes is
     /// A read-only map built from `source`, with `key_selector` and `value_selector`
     /// producing each entry's key and value. Throws if `key_selector` produces the same
     /// key twice. `collect_mutable_map` gives back a mutable `MAP` instead.
+    @IF.dotnet()
     collect_map[T..,K,V](source: Iterable[T], key_selector: T.. -> K pure, value_selector: T.. -> V pure) -> Map[K,V] pure =>
         collect_mutable_map(source, key_selector, value_selector)
 
     /// A mutable map built from `source`, with `key_selector` and `value_selector`
     /// producing each entry's key and value. Throws if `key_selector` produces the same
     /// key twice.
+    @IF.dotnet()
     collect_mutable_map[T..,K,V](source: Iterable[T], key_selector: T.. -> K pure, value_selector: T.. -> V pure) -> MAP[K,V] pure is
         let result = MAP[K,V]()
 
@@ -265,11 +284,13 @@ namespace Ghul.Pipes is
     /// A read-only map built from a sequence of key and value pairs, as a map literal is
     /// written: `[("a", 1), ("b", 2)] |> collect_map()`. Throws if the same key appears
     /// twice. `collect_mutable_map` gives back a mutable `MAP` instead.
+    @IF.dotnet()
     collect_map[K, V](source: Iterable[(K, V)]) -> Map[K, V] pure =>
         collect_mutable_map(source)
 
     /// A mutable map built from a sequence of key and value pairs. Throws if the same
     /// key appears twice.
+    @IF.dotnet()
     collect_mutable_map[K, V](source: Iterable[(K, V)]) -> MAP[K, V] pure is
         let result = MAP[K, V]()
 
@@ -299,6 +320,7 @@ namespace Ghul.Pipes is
 
     /// Groups the elements of `source` into a read-only map keyed by `key_selector`,
     /// each entry a read-only list of every element with that key, in order.
+    @IF.dotnet()
     group_by[T..,K](source: Iterable[T], key_selector: T.. -> K pure) -> Map[K, List[T]] pure is
         let result = MAP[K, List[T]]()
         let groups = MAP[K, LIST[T]]()
@@ -602,9 +624,11 @@ namespace Ghul.Pipes is
         LIST_REVERSE_PIPE(list)
 
     /// The elements of `source` sorted in ascending order.
+    @IF.dotnet()
     sort[T: Ghul.Comparable[T]](source: Iterable[T]) -> Iterable[T] pure =>
         _sort_ascending(source)
 
+    @IF.dotnet()
     _sort_ascending[T](source: Iterable[T]) -> Iterable[T] pure is
         let list = collect_mutable(source)
 
@@ -614,6 +638,7 @@ namespace Ghul.Pipes is
     si
 
     /// The elements of `source` sorted according to `comparer`.
+    @IF.dotnet()
     sort[T](source: Iterable[T], comparer: IComparer[T]) -> Iterable[T] pure is
         let list = collect_mutable(source)
 
@@ -623,13 +648,16 @@ namespace Ghul.Pipes is
     si
 
     /// The elements of `source` sorted according to `compare`.
+    @IF.dotnet()
     sort[T](source: Iterable[T], compare: (T, T) -> int pure) -> Iterable[T] pure =>
         sort(source, FUNCTION_COMPARER[T](compare))
 
     /// The elements of `source` sorted in descending order.
+    @IF.dotnet()
     sort_descending[T: Ghul.Comparable[T]](source: Iterable[T]) -> Iterable[T] pure =>
         _sort_descending(source)
 
+    @IF.dotnet()
     _sort_descending[T](source: Iterable[T]) -> Iterable[T] pure is
         let list = collect_mutable(source)
 
@@ -639,15 +667,18 @@ namespace Ghul.Pipes is
     si
 
     /// The elements of `source` sorted in ascending order of the key `key_selector` produces.
+    @IF.dotnet()
     sort_by[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> Iterable[T] pure =>
         _sort_by(source, key_selector, false)
 
     /// The elements of `source` sorted in descending order of the key `key_selector` produces.
+    @IF.dotnet()
     sort_by_descending[T..,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: T.. -> K pure) -> Iterable[T] pure =>
         _sort_by(source, key_selector, true)
 
     // Computes each element's key once (into `keyed`) rather than
     // re-deriving it on every comparison inside the sort.
+    @IF.dotnet()
     _sort_by[T,K: Ghul.Comparable[K]](source: Iterable[T], key_selector: (T) -> K pure, descending: bool) -> Iterable[T] pure is
         let keyed = LIST[(K,T)]()
 
@@ -699,6 +730,7 @@ namespace Ghul.Pipes is
     // display element limit, whatever to_string its type declares. It is
     // how a pipe reads as text.
     /// The elements of `source` in brackets, as `[1, 2, 3]`, up to the display element limit.
+    @IF.dotnet()
     render_elements[T](source: Iterable[T]) -> string pure is
         let state = DISPLAY_STATE()
 
@@ -728,10 +760,12 @@ namespace Ghul.Pipes is
 
     /// The part of `source` from `r`'s start up to but not including its end. Nothing is copied,
     /// so a later change to `source` shows through.
+    @IF.dotnet()
     slice[T](source: T[], r: INT_RANGE) -> List[T] pure =>
         System.ArraySegment[T](source, r.from, r.to - r.from)
 
     /// The same as the `INT_RANGE` overload, with `r`'s end included.
+    @IF.dotnet()
     slice[T](source: T[], r: INT_RANGE_INCLUSIVE) -> List[T] pure =>
         System.ArraySegment[T](source, r.from, r.to - r.from + 1)
 
@@ -761,6 +795,7 @@ namespace Ghul.Pipes is
 
     /// The part of `source` that `r` selects, resolving `r`'s from-the-end
     /// endpoints against `source`'s length.
+    @IF.dotnet()
     slice[T](source: T[], r: System.Range) -> List[T] pure is
         let (offset, count) = r.get_offset_and_length(source.count)
 
@@ -769,6 +804,7 @@ namespace Ghul.Pipes is
 
     /// The part of `source` that `r` selects, resolving `r`'s from-the-end
     /// endpoints against `source`'s length.
+    @IF.dotnet()
     slice[T](source: List[T], r: System.Range) -> List[T] pure is
         let (offset, count) = r.get_offset_and_length(source.count)
 
@@ -777,6 +813,7 @@ namespace Ghul.Pipes is
 
     /// The substring of `source` that `r` selects, resolving `r`'s from-the-end
     /// endpoints against `source`'s length.
+    @IF.dotnet()
     slice(source: string, r: System.Range) -> string pure is
         let (offset, count) = r.get_offset_and_length(source.length)
 

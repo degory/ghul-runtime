@@ -18,7 +18,7 @@ namespace Ghul.Pipes is
         init(source: List[T], from: int, count: int) is
             if from < 0 \/ count < 0 \/ from + count > source.count then
                 throw
-                    System.ArgumentOutOfRangeException(
+                    Ghul.ArgumentOutOfRangeException(
                         "from",
                         "{from} for {count} is not within a source of {source.count}")
             fi
@@ -31,7 +31,7 @@ namespace Ghul.Pipes is
         /// The element at `i` within the slice.
         [i: int]: T is
             if i < 0 \/ i >= _count then
-                throw System.ArgumentOutOfRangeException("i", "{i} is not within a slice of {_count}")
+                throw Ghul.ArgumentOutOfRangeException("i", "{i} is not within a slice of {_count}")
             fi
 
             return _source[_from + i]
