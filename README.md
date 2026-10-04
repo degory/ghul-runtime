@@ -45,6 +45,11 @@ and `@IF.wasm()` what is compiled only for WebAssembly. What is not yet
 available on the wasm target is tracked on
 [ghul-lang/ghul#3319](https://github.com/ghul-lang/ghul/issues/3319).
 
+`wasm-tests/` holds programs that build for the wasm target from this
+checkout's sources and run under Node. `wasm-tests/run.sh` builds each with
+`ghul` (ghul.cli), runs it, and compares its output with the `run.expected`
+beside it, which is what the same program prints on .NET.
+
 ## Issues
 
 [View open issues](https://github.com/degory/ghul/issues?q=is%3Aopen+is%3Aissue+label%3Aghul-runtime) or [raise a new one](https://github.com/degory/ghul/issues/new?labels=ghul-runtime).
