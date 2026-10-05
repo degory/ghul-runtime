@@ -1,6 +1,7 @@
 {
     "name": "constructors",
     "targets": ["wasm"],
+    "compiler": "64.29.1",
     "dependencies": {
         "ghul-runtime": { "path": "../.." },
         "ghul-core": { "git": "https://github.com/ghul-lang/ghul-core", "tag": "v0.28.0" }
