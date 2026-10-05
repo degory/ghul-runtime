@@ -1,0 +1,7 @@
+use default
+
+let fibonacci = stream((0, 1), (a, b) => a || (b, a + b))
+write_line(fibonacci |> take(10) |> join(","))
+
+let counted = stream(1, n => if n > 5 then STREAM.DONE else n || n + 1 fi)
+write_line(counted |> join(","))

@@ -1,5 +1,5 @@
 {
-    "name": "pipes",
+    "name": "stream",
     "targets": ["wasm"],
     "compiler": "65.1.4",
     "dependencies": {
