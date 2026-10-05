@@ -1,0 +1,24 @@
+// The constructors the runtime gives arrays, maps and string, compiled for
+// the wasm target from the runtime's own sources, print what the same program
+// prints on .NET.
+use IO.Std.write_line
+use Ghul.Pipes
+use Collections.MAP
+
+entry() is
+    let chars = ['a', 'b', 'c']
+
+    write_line(string(chars))
+    write_line(string(chars |> map(c => c)))
+    write_line(string([1, 2, 3]))
+    write_line(string([1, 2, 3], ", "))
+    write_line(string(["x", "y"] |> map(s => "<{s}>"), "-"))
+
+    let doubled = ARRAY([1, 2, 3] |> map(n => n * 2))
+
+    write_line("{doubled.count} {doubled[2]}")
+
+    let ages = MAP([("ann", 31), ("bob", 42)])
+
+    write_line("{ages.count} {ages["bob"]}")
+si
