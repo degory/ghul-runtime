@@ -38,13 +38,16 @@ namespace Ghul is
             _value =~ other._value
         si
 
-        // Absent hashes as zero, as `Nullable[T]` does. The comparer rather
-        // than `_value.get_hash_code()` because `T` is unconstrained and can
-        // be an optional reference, so a present value can still be null.
+        // Absent hashes as zero, as `Nullable[T]` does. `T` is unconstrained
+        // and can be an optional reference, so a present value can still be
+        // null, which also hashes as zero. The null test is the only place
+        // the value is viewed as an object, and the JIT folds that box away
+        // for a value type, so hashing an optional value type allocates
+        // nothing.
         /// Hashes like `Nullable[T]`: zero when absent, otherwise the value's hash.
         get_hash_code() -> int pure =>
-            if _has_value then
-                Collections.EqualityComparer[T].`default.get_hash_code(_value)
+            if _has_value /\ cast object?(_value)? then
+                _value.get_hash_code()
             else
                 0
             fi
