@@ -21,9 +21,16 @@ namespace Ghul.Internal is
         si
 
         /// An array holding `source`'s elements in order, sized up front when `source` knows its count.
+        @IF.dotnet()
         @intrinsic("constructor.from_iterable")
         from_iterable[E](source: Iterable[E]) -> E[] static pure =>
             System.Linq.Enumerable.to_array(source)
+
+        /// An array holding `source`'s elements in order.
+        @IF.wasm()
+        @intrinsic("constructor.from_iterable")
+        from_iterable[E](source: Iterable[E]) -> E[] static pure =>
+            LIST[E](source).to_array()
     si
 si
 

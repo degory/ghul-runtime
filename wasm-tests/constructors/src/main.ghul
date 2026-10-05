@@ -1,0 +1,14 @@
+// The constructors the runtime gives string, compiled for the wasm target
+// from the runtime's own sources, print what the same program prints on .NET.
+use IO.Std.write_line
+use Ghul.Pipes
+
+entry() is
+    let chars = ['a', 'b', 'c']
+
+    write_line(string(chars))
+    write_line(string(chars |> map(c => c)))
+    write_line(string([1, 2, 3]))
+    write_line(string([1, 2, 3], ", "))
+    write_line(string(["x", "y"] |> map(s => "<{s}>"), "-"))
+si
