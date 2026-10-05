@@ -6,7 +6,7 @@ namespace Ghul.Pipes is
     // selector once per element (O(n)) rather than once per comparison
     // (O(n log n)).
     /// Orders a pre-computed `(key, value)` pair by its key, ascending or descending as `descending` says.
-    class PAIR_KEY_COMPARER[K: Ghul.Comparable[K],T]: IComparer[(K,T)] is
+    class PAIR_KEY_COMPARER[K: Ghul.Comparable[K],T]: Comparer[(K,T)] is
         _descending: bool
 
         /// Creates a comparer ordering by key ascending, or descending when `descending` is true.

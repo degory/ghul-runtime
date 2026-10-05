@@ -1,8 +1,8 @@
 namespace Ghul.Pipes is
     use Collections
 
-    /// An `IComparer[T]` that orders by calling `comparer`.
-    class FUNCTION_COMPARER[T]: IComparer[T] is
+    /// A `Comparer[T]` that orders by calling `comparer`.
+    class FUNCTION_COMPARER[T]: Comparer[T] is
         _comparer: (T, T) -> int
 
         /// Creates a comparer that orders by calling `comparer`.
@@ -20,8 +20,8 @@ si
 namespace Ghul.Pipes is
     use Collections
 
-    /// An `IComparer[T]` that orders by `T`'s own `<>`.
-    class COMPARABLE_COMPARER[T: Ghul.Comparable[T]]: IComparer[T] is
+    /// A `Comparer[T]` that orders by `T`'s own `<>`.
+    class COMPARABLE_COMPARER[T: Ghul.Comparable[T]]: Comparer[T] is
         /// Creates a comparer ordering by `<>`.
         init() is si
 
