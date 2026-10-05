@@ -1,0 +1,25 @@
+// The pipe functions that sort, group, index, collect into maps and sets
+// and combine sequences, compiled for the wasm target, print what the same
+// program prints on .NET, ties in a sort included.
+use IO.Std.write_line
+use Ghul.Pipes
+
+let xs = [5, 3, 8, 1, 3]
+write_line("{xs |> sort() |> join(", ")}")
+write_line("{xs |> distinct() |> join(", ")}")
+write_line("{xs |> index() |> map(iv => iv.index * iv.value) |> join(", ")}")
+let m = xs |> distinct() |> collect_map(x => x, x => x * x)
+write_line("{m[8]}")
+let g = xs |> group_by(x => x % 2)
+write_line("{g[1].count}")
+write_line("{xs |> collect_set() |> count()}")
+write_line("{xs |> sort_by(x => -x) |> join(", ")}")
+let words = ["pear", "fig", "kiwi", "apple", "date", "plum", "lime", "nut", "yam"]
+write_line("{words |> sort_by(w => w.length) |> join(" ")}")
+write_line("{words |> sort_by_descending(w => w.length) |> join(" ")}")
+write_line("{words |> group_by(w => w.length) |> map(kv => "{kv.key}:{kv.value.count}") |> join(" ")}")
+write_line("{xs |> sort_descending() |> join(", ")}")
+write_line("{xs |> sort((a, b) => b - a) |> join(", ")}")
+write_line("{[1, 2, 3] |> except([2]) |> join(", ")} {[1, 2, 3] |> intersect_with([2, 3, 4]) |> join(", ")} {[1, 2] |> union_with([2, 3]) |> join(", ")}")
+write_line("{[1, 1, 2, 2, 2, 3] |> group() |> map(g => g.count) |> join(", ")}")
+write_line("{xs |> index(10) |> map(iv => iv.index) |> join(", ")}")

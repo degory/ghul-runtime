@@ -16,3 +16,16 @@ namespace Ghul.Pipes is
         si
     si
 si
+
+namespace Ghul.Pipes is
+    use Collections
+
+    /// An `IComparer[T]` that orders by `T`'s own `<>`.
+    class COMPARABLE_COMPARER[T: Ghul.Comparable[T]]: IComparer[T] is
+        /// Creates a comparer ordering by `<>`.
+        init() is si
+
+        /// Compares `x` and `y` with `<>`.
+        compare(x: T, y: T) -> int => x <> y
+    si
+si
