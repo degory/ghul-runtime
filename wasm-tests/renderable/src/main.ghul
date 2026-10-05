@@ -1,0 +1,15 @@
+use default
+use Ghul.Renderable
+
+class SWATCH: Renderable is
+    init() is si
+
+    representations() -> Collections.Iterable[(mime: string, content: ubyte[])] =>
+        [("text/plain", [104ub, 105ub])]
+si
+
+let renderable: Renderable = SWATCH()
+
+for (mime, content) in renderable.representations() do
+    write_line("{mime} {content.count}")
+od
