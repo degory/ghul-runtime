@@ -26,3 +26,11 @@ src/range-operators.ghul
 src/pipe-totals-wasm.ghul
 src/list-slice.ghul
 src/functional.ghul
+src/distinct-pipe.ghul
+src/except-pipe.ghul
+src/group-pipe.ghul
+src/index-pipe.ghul
+src/indexed-value.ghul
+src/intersect-pipe.ghul
+src/key-comparer.ghul
+src/function-comparer.ghul

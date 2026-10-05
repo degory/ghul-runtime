@@ -1,5 +1,5 @@
 {
-    "name": "pipes",
+    "name": "pipe-functions",
     "targets": ["wasm"],
     "compiler": "64.28.1",
     "dependencies": {
