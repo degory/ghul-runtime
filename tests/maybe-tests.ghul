@@ -216,14 +216,14 @@ namespace Tests is
 
         @Test()
         Maybe_ComparesThroughTheDefaultEqualityComparer() is
-            // The route generic code reaches, including `=~` on an
-            // unconstrained type parameter.
-            let comparer = Collections.EqualityComparer[MAYBE[int]].`default
-
-            is_true(comparer.equals(MAYBE[int](1), MAYBE[int](1)))
-            is_false(comparer.equals(MAYBE[int](1), MAYBE[int](2)))
-            is_true(comparer.equals(MAYBE[int](), MAYBE[int]()))
+            // `=~` on an unconstrained type parameter compiles to the default
+            // equality comparer, the route generic code reaches.
+            is_true(_equal_through_comparer(MAYBE[int](1), MAYBE[int](1)))
+            is_false(_equal_through_comparer(MAYBE[int](1), MAYBE[int](2)))
+            is_true(_equal_through_comparer(MAYBE[int](), MAYBE[int]()))
         si
+
+        _equal_through_comparer[T](a: T, b: T) -> bool => a =~ b
 
         @Test()
         OptionalOfAnUnconstrainedTypeParameter_StillComparesByPresenceAndValue() is
