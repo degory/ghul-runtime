@@ -138,6 +138,48 @@ jobs:
           exit 1
         fi
 
+  # Native AOT needs a platform linker, which the SDK container lacks and the
+  # runner image has. Rendering takes a path of its own there, so the same
+  # program is run both ways and each has to print run.expected.
+  native-aot-tests:
+    name: Test package with Native AOT
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 15
+    needs: [version,build]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up .NET 10
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Download package
+      uses: actions/download-artifact@v8
+      with:
+        name: package
+        path: nupkg
+
+    - name: Restore local .NET tools
+      run: dotnet tool restore
+
+    - name: Set version
+      run: dotnet setversion ${{ needs.version.outputs.package }} Directory.Build.props
+
+    - name: Run under the JIT and verify output
+      working-directory: native-aot-tests
+      run: dotnet run | diff - run.expected
+
+    - name: Publish with Native AOT
+      working-directory: native-aot-tests
+      run: dotnet publish -r linux-x64 -o out
+
+    - name: Run the Native AOT build and verify output
+      working-directory: native-aot-tests
+      run: timeout 60 out/native-aot-tests | diff - run.expected
+
   wasm-tests:
     name: Run wasm tests
     runs-on: ubuntu-latest
@@ -174,7 +216,7 @@ jobs:
       image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
-    needs: [version,build,integration-tests]
+    needs: [version,build,integration-tests,native-aot-tests]
 
     steps:
     # not convinced we actually need to checkout the code here
@@ -206,7 +248,7 @@ jobs:
       image: mcr.microsoft.com/dotnet/sdk:10.0-noble
 
     timeout-minutes: 10
-    needs: [version,build,integration-tests]
+    needs: [version,build,integration-tests,native-aot-tests]
 
     steps:
     - uses: actions/checkout@v6
@@ -229,7 +271,7 @@ jobs:
         NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
 
   create-release:
-    needs: [version, build, integration-tests, publish-release-package]
+    needs: [version, build, integration-tests, native-aot-tests, publish-release-package]
     name: Create release
     runs-on: ubuntu-latest
 
