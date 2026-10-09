@@ -1,9 +1,9 @@
 {
     "name": "ranges",
     "targets": ["wasm"],
-    "compiler": "65.1.4",
+    "compiler": "65.4.5",
     "dependencies": {
         "ghul-runtime": { "path": "../.." },
-        "ghul-core": { "git": "https://github.com/ghul-lang/ghul-core", "tag": "v0.33.0" }
+        "ghul-core": { "git": "https://github.com/ghul-lang/ghul-core", "tag": "v0.40.0" }
     }
 }

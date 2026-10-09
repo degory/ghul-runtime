@@ -63,19 +63,16 @@ namespace Ghul.Coroutines is
         _sleepers: Collections.LIST[SLEEPER]
 
         // Continuations of awaits the scheduler does not own, posted
-        // from whichever thread completed them, and the signal that
-        // says one has arrived. The count is of those registered and
-        // not yet taken from the inbox, and is only touched from the
-        // scheduler's own thread.
-        _posted: System.Collections.Concurrent.ConcurrentQueue[() -> void]
-        _signal: System.Threading.ManualResetEventSlim
+        // from whichever thread completed them. The count is of those
+        // registered and not yet taken from the inbox, and is only
+        // touched from the scheduler's own thread.
+        _inbox: _INBOX
         _outstanding: int
 
         init() is
             _ready = Collections.Queue[() -> void]()
             _sleepers = Collections.LIST[SLEEPER]()
-            _posted = System.Collections.Concurrent.ConcurrentQueue[() -> void]()
-            _signal = System.Threading.ManualResetEventSlim(false)
+            _inbox = _INBOX()
         si
 
         // The scheduler coroutines park on, created on first use.
@@ -129,12 +126,10 @@ namespace Ghul.Coroutines is
         external(continuation: () -> void) -> () -> void is
             _outstanding = _outstanding + 1
 
-            let posted = _posted
-            let signal = _signal
+            let inbox = _inbox
 
             return () is
-                posted.enqueue(continuation)
-                signal.set()
+                inbox.post(continuation)
             si
         si
 
@@ -206,19 +201,11 @@ namespace Ghul.Coroutines is
 
         // Moves every posted continuation onto the ready queue.
         _take_posted() is
-            let continuation: () -> void mut = () is si
-
-            while _posted.try_dequeue(continuation ref) do
-                _ready.enqueue(continuation)
-                _outstanding = _outstanding - 1
-            od
+            _outstanding = _outstanding - _inbox.take_all(_ready)
         si
 
         // Blocks until something is posted to the inbox, or until the
-        // earliest sleeper's deadline when there is one. The inbox is
-        // always emptied before this is reached, so resetting the
-        // signal afterwards cannot lose a post: one arriving after the
-        // reset is still in the queue for the next pass to take.
+        // earliest sleeper's deadline when there is one.
         _wait_for_post() is
             let timeout mut = -1
 
@@ -235,15 +222,7 @@ namespace Ghul.Coroutines is
                 timeout = if remaining > 0L then cast int(remaining) else 0 fi
             fi
 
-            try
-                _signal.wait(timeout)
-            catch e: System.PlatformNotSupportedException
-                throw System.InvalidOperationException(
-                    "a coroutine is awaiting something the scheduler does not own, "
-                    "and this thread cannot block waiting for it", e)
-            yrt
-
-            _signal.reset()
+            _inbox.wait(timeout)
         si
 
         // Queues every sleeper whose deadline has passed. With nothing
@@ -269,7 +248,7 @@ namespace Ghul.Coroutines is
                 let remaining = earliest - now
 
                 if remaining > 0L then
-                    System.Threading.Thread.sleep(cast int(remaining))
+                    _pause_thread(cast int(remaining))
                 fi
             fi
 
@@ -285,6 +264,106 @@ namespace Ghul.Coroutines is
             od
 
             _sleepers = still_waiting
+        si
+    si
+
+    // Blocks the scheduler's thread until `milliseconds` have passed.
+    @IF.dotnet()
+    _pause_thread(milliseconds: int) is
+        System.Threading.Thread.sleep(milliseconds)
+    si
+
+    // A program on the wasm target has one thread, which waits for the
+    // deadline on the clock.
+    @IF.wasm()
+    _pause_thread(milliseconds: int) is
+        let deadline = SCHEDULER.now + cast long(milliseconds)
+
+        while SCHEDULER.now < deadline do
+        od
+    si
+
+    // The scheduler's inbox: continuations posted from whichever thread
+    // completed an await the scheduler does not own, and the signal that
+    // says one has arrived.
+    @IF.dotnet()
+    class _INBOX is
+        _posted: System.Collections.Concurrent.ConcurrentQueue[() -> void]
+        _signal: System.Threading.ManualResetEventSlim
+
+        init() is
+            _posted = System.Collections.Concurrent.ConcurrentQueue[() -> void]()
+            _signal = System.Threading.ManualResetEventSlim(false)
+        si
+
+        // Posts `continuation`, from any thread.
+        post(continuation: () -> void) is
+            _posted.enqueue(continuation)
+            _signal.set()
+        si
+
+        // Moves every posted continuation onto `ready`, and answers how
+        // many there were.
+        take_all(ready: Collections.Queue[() -> void]) -> int is
+            let continuation: () -> void mut = () is si
+            let count mut = 0
+
+            while _posted.try_dequeue(continuation ref) do
+                ready.enqueue(continuation)
+                count = count + 1
+            od
+
+            return count
+        si
+
+        // Blocks until something is posted, or for `timeout` milliseconds
+        // where it is not -1. The inbox is always emptied before this is
+        // reached, so resetting the signal afterwards cannot lose a post:
+        // one arriving after the reset is still in the queue for the next
+        // pass to take.
+        wait(timeout: int) is
+            try
+                _signal.wait(timeout)
+            catch e: System.PlatformNotSupportedException
+                throw Ghul.InvalidOperationException(
+                    "a coroutine is awaiting something the scheduler does not own, "
+                    "and this thread cannot block waiting for it", e)
+            yrt
+
+            _signal.reset()
+        si
+    si
+
+    // On the wasm target there is no other thread to post from, so a
+    // coroutine awaiting something the scheduler does not own would wait
+    // for ever, and waiting is reported instead.
+    @IF.wasm()
+    class _INBOX is
+        _posted: Collections.Queue[() -> void]
+
+        init() is
+            _posted = Collections.Queue[() -> void]()
+        si
+
+        post(continuation: () -> void) is
+            _posted.enqueue(continuation)
+        si
+
+        take_all(ready: Collections.Queue[() -> void]) -> int is
+            let count mut = 0
+
+            while _posted.count > 0 do
+                ready.enqueue(_posted.dequeue())
+                count = count + 1
+            od
+
+            return count
+        si
+
+        wait(timeout: int) is
+            throw Ghul.InvalidOperationException(
+                "a coroutine is awaiting something the scheduler does not own, "
+                "and this thread cannot block waiting for it")
         si
     si
 
@@ -370,7 +449,7 @@ namespace Ghul.Coroutines is
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER[_]))
     class COROUTINE[T]: ICriticalNotifyCompletion, SchedulerAwaiter is
         /// The coroutine's failure, if it failed.
-        exception: System.Exception?
+        exception: Ghul.Exception?
 
         /// Whether the coroutine has finished, successfully or not.
         completed: bool
@@ -422,7 +501,7 @@ namespace Ghul.Coroutines is
 
         // Records a failure.
         /// Records a failure and wakes everything waiting on it.
-        fail(e: System.Exception) is
+        fail(e: Ghul.Exception) is
             exception = e
             completed = true
             _wake()
@@ -454,7 +533,7 @@ namespace Ghul.Coroutines is
     @System.Runtime.CompilerServices.AsyncMethodBuilder(typeof(COROUTINE_BUILDER))
     class COROUTINE: ICriticalNotifyCompletion, SchedulerAwaiter is
         /// The coroutine's failure, if it failed.
-        exception: System.Exception?
+        exception: Ghul.Exception?
 
         /// Whether the coroutine has finished, successfully or not.
         completed: bool
@@ -499,7 +578,7 @@ namespace Ghul.Coroutines is
 
         // Records a failure.
         /// Records a failure and wakes everything waiting on it.
-        fail(e: System.Exception) is
+        fail(e: Ghul.Exception) is
             exception = e
             completed = true
             _wake()
@@ -533,7 +612,7 @@ namespace Ghul.Coroutines is
     /// The builder the compiler drives for a function that returns `COROUTINE[T]`.
     class COROUTINE_BUILDER[T] is
         _result: Ghul.MAYBE[T]
-        _exception: System.Exception?
+        _exception: Ghul.Exception?
         _done: bool
         _coroutine: COROUTINE[T]?
 
@@ -569,7 +648,7 @@ namespace Ghul.Coroutines is
         si
 
         /// Records the coroutine's failure. Called by the compiler's async lowering when the body throws.
-        set_exception(e: System.Exception) is
+        set_exception(e: Ghul.Exception) is
             _exception = e
             _done = true
             if let handle = _coroutine then
@@ -613,7 +692,7 @@ namespace Ghul.Coroutines is
     // COROUTINE drive.
     /// The builder the compiler drives for a function that returns `COROUTINE`.
     class COROUTINE_BUILDER is
-        _exception: System.Exception?
+        _exception: Ghul.Exception?
         _done: bool
         _coroutine: COROUTINE?
 
@@ -648,7 +727,7 @@ namespace Ghul.Coroutines is
         si
 
         /// Records the coroutine's failure. Called by the compiler's async lowering when the body throws.
-        set_exception(e: System.Exception) is
+        set_exception(e: Ghul.Exception) is
             _exception = e
             _done = true
             if let handle = _coroutine then

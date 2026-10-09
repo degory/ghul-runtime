@@ -1,0 +1,114 @@
+// Coroutines compiled for the wasm target from the runtime's own sources
+// print what the same program prints on .NET: two that interleave at their
+// pauses, one that awaits another's value, a channel between a producer and
+// a consumer, a semaphore and a mutex taking turns, sleepers waking in
+// deadline order, and a failure rethrown where the coroutine is awaited.
+use IO.Std.write_line
+use Ghul.Coroutines
+
+worker(name: string, turns: int) -> COROUTINE is
+    for i in 0..turns do
+        write_line("{name} {i}")
+        await pause()
+    od
+si
+
+square_later(n: int) -> COROUTINE[int] is
+    await pause()
+
+    return n * n
+si
+
+sum_of_squares() -> COROUTINE is
+    let a = await square_later(3)
+    let b = await square_later(4)
+
+    write_line("sum of squares {a + b}")
+si
+
+producer(channel: CHANNEL[int]) -> COROUTINE is
+    for i in 1::3 do
+        write_line("send {i}")
+        channel.send(i)
+        await pause()
+    od
+
+    channel.send(0)
+si
+
+consumer(channel: CHANNEL[int]) -> COROUTINE is
+    let value mut = await channel.receive()
+
+    while value != 0 do
+        write_line("received {value}")
+        value = await channel.receive()
+    od
+
+    write_line("consumer done")
+si
+
+guarded(name: string, lock: SEMAPHORE) -> COROUTINE is
+    await lock.acquire()
+
+    write_line("{name} in")
+    await pause()
+    write_line("{name} out")
+
+    lock.release()
+si
+
+sleeper(name: string, milliseconds: int) -> COROUTINE is
+    await sleep(milliseconds)
+
+    write_line("{name} woke")
+si
+
+fails() -> COROUTINE is
+    await pause()
+
+    throw Ghul.InvalidOperationException("failed inside")
+si
+
+catches() -> COROUTINE is
+    try
+        await fails()
+    catch e: Ghul.InvalidOperationException
+        write_line("caught {e.message}")
+    yrt
+si
+
+entry() is
+    worker("a", 3)
+    worker("b", 2)
+    run()
+
+    sum_of_squares()
+    run()
+
+    let channel = CHANNEL[int]()
+
+    consumer(channel)
+    producer(channel)
+    run()
+
+    let semaphore = SEMAPHORE(1)
+
+    guarded("first", semaphore)
+    guarded("second", semaphore)
+    run()
+
+    let mutex = MUTEX()
+
+    guarded("left", mutex)
+    guarded("right", mutex)
+    run()
+
+    sleeper("late", 30)
+    sleeper("early", 10)
+    run()
+
+    catches()
+    run()
+
+    write_line("done")
+si
