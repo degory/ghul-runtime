@@ -37,3 +37,4 @@ src/function-comparer.ghul
 src/collection-constructors.ghul
 src/stream.ghul
 src/renderable.ghul
+src/coroutines.ghul

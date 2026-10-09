@@ -1,0 +1,25 @@
+a 0
+b 0
+a 1
+b 1
+a 2
+sum of squares 25
+send 1
+received 1
+send 2
+received 2
+send 3
+received 3
+consumer done
+first in
+first out
+second in
+second out
+left in
+left out
+right in
+right out
+early woke
+late woke
+caught failed inside
+done
