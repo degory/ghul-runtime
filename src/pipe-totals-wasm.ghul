@@ -265,4 +265,28 @@ namespace Ghul.Pipes is
 
         return total
     si
+
+    /// The total of `source`'s elements, or zero when it's empty.
+    @IF.wasm()
+    sum(source: Iterable[bigint]) -> bigint pure is
+        let total mut = 0n
+
+        for value in source do
+            total = total + value
+        od
+
+        return total
+    si
+
+    /// The product of `source`'s elements, or one when it's empty.
+    @IF.wasm()
+    product(source: Iterable[bigint]) -> bigint pure is
+        let running mut = 1n
+
+        for value in source do
+            running = running * value
+        od
+
+        return running
+    si
 si
