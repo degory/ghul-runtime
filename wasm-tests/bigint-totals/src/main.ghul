@@ -1,0 +1,13 @@
+// sum and product over bigint, compiled for the wasm target from the
+// runtime's own sources, print what the same program prints on .NET.
+use IO.Std.write_line
+use Ghul.Pipes
+
+entry() is
+    let values = [123456789012345678901234567890n, -7n, 2n]
+
+    write_line("{values |> sum()} {values |> product()}")
+    write_line("{values |> map(v => v * v) |> sum()}")
+    write_line("{(1::30) |> map(n => bigint(n)) |> product()}")
+    write_line("{Collections.LIST[bigint]() |> sum()} {Collections.LIST[bigint]() |> product()}")
+si
