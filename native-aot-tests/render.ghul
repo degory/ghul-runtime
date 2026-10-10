@@ -1,0 +1,95 @@
+use IO.Std.write_line
+use Collections.LIST
+use Ghul.Pipes
+use Ghul.Displayable
+use Ghul.DISPLAY_STATE
+use Ghul.inspect
+
+class POINT is
+    x: int
+    y: int
+
+    init(x: int, y: int) is
+        self.x = x
+        self.y = y
+    si
+si
+
+struct PAIR is
+    a: string
+    b: int
+
+    init(a: string, b: int) is
+        self.a = a
+        self.b = b
+    si
+si
+
+class NAMED is
+    init() is si
+
+    to_string() -> string => "i am named"
+si
+
+union SHAPE is
+    CIRCLE(radius: int)
+    SQUARE(side: int)
+si
+
+enum COLOUR is
+    RED, GREEN
+si
+
+class SHOWN: Displayable is
+    init() is si
+
+    display(state: DISPLAY_STATE) is
+        state.append("<shown>")
+    si
+si
+
+twice[T](source: Collections.Iterable[T]) -> Collections.Iterable[T] is
+    for item in source do
+        yield item
+        yield item
+    od
+si
+
+show(label: string, value: object?) is
+    write_line("{label}: {value}")
+si
+
+entry() is
+    show("int", 42)
+    show("bool", true)
+    show("char", 'c')
+    show("string", "text")
+    show("null", null)
+    show("list", LIST([1, 2, 3]))
+    show("nested", LIST([LIST([1]), LIST([2, 3])]))
+    show("array", [1, 2])
+    show("strings", LIST(["a", "b"]))
+    show("tuple", (1, "two"))
+    show("class", POINT(1, 2))
+    show("struct", PAIR("p", 3))
+    show("named", NAMED())
+    show("variant", SHAPE.CIRCLE(5))
+    show("enum", COLOUR.GREEN)
+    show("displayable", SHOWN())
+    show("pipe", LIST([1, 2]) |> map(i => i * 10))
+    show("generator", twice(LIST([4])))
+    show("permutations", LIST([1, 2]) |> permutations())
+    show("range", 0..3)
+    show("random", System.Random())
+    show("list of points", LIST([POINT(0, 0)]))
+    show("inspect", inspect(LIST(["a", "b"])))
+    show("inspect struct", inspect(PAIR("q", 1)))
+
+    let cycle = LIST[object]()
+    cycle.add(cycle)
+    show("cycle", cycle)
+
+    let long = 0..105 |> map(i => i * 2)
+    show("long", long)
+    show("long again", long)
+si

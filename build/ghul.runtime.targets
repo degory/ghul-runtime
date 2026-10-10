@@ -3,6 +3,15 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
 
+  <!-- `$` renders a value by reading its type's members through reflection,
+       which trimming and Native AOT keep only for what they can see being
+       reflected over. Rooting the program's own assembly keeps its types'
+       members, so its values render the same way published as when run
+       under the JIT. Set GhulTrimmerRootAssembly to false to opt out. -->
+  <ItemGroup Condition="('$(PublishAot)' == 'true' or '$(PublishTrimmed)' == 'true') and '$(GhulTrimmerRootAssembly)' != 'false'">
+    <TrimmerRootAssembly Include="$(AssemblyName)" />
+  </ItemGroup>
+
   <!-- Overrides the no-op stub Microsoft.Common.CurrentVersion.targets left
        here for a language that never populated it: this project's
        CoreCompile depends on it, same as C#'s, but nothing has ever computed

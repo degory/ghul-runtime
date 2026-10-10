@@ -215,6 +215,16 @@ namespace Ghul is
                 return
             fi
 
+            // Ahead-of-time compilation keeps reflection metadata only for
+            // what it can see being reflected over, which is none of what
+            // the rest of this needs. Constant-folded wherever code can be
+            // generated at run time, so a JIT build pays nothing for it.
+            if !System.Runtime.CompilerServices.RuntimeFeature.is_dynamic_code_supported then
+                _render_compiled_ahead(value, type)
+
+                return
+            fi
+
             // A type that says what it is in its own words is taken at its
             // word, even where it is also a sequence: structural rendering
             // is for the types that say nothing useful, such as an array.
@@ -283,11 +293,22 @@ namespace Ghul is
             append(')')
         si
 
+        // Compiled ahead of time, a pair's properties can be beyond
+        // reflection, and its own text is the best there is.
         _append_pair(value: object, type: System.Type) is
+            let key = type.get_property("Key")
+            let pair_value = type.get_property("Value")
+
+            if !key? \/ !pair_value? then
+                append(value.to_string() ?? "null")
+
+                return
+            fi
+
             append('(')
-            _render_child(type.get_property("Key")?.get_value(value))
+            _render_child(key.get_value(value))
             append(", ")
-            _render_child(type.get_property("Value")?.get_value(value))
+            _render_child(pair_value.get_value(value))
             append(')')
         si
 
@@ -319,7 +340,9 @@ namespace Ghul is
         si
 
         // The runtime itself, and any assembly referencing it, which is
-        // every assembly ghūl compiles.
+        // every assembly ghūl compiles. Native AOT cannot list an
+        // assembly's references, and there the marker the compiler puts on
+        // every assembly it builds answers instead.
         _is_compiled_by_ghul(assembly: System.Reflection.Assembly) -> bool static is
             let runtime = (typeof DISPLAY_STATE).assembly
 
@@ -329,11 +352,15 @@ namespace Ghul is
 
             let runtime_name = runtime.get_name().name
 
-            for reference in assembly.get_referenced_assemblies() do
-                if reference.name =~ runtime_name then
-                    return true
-                fi
-            od
+            try
+                for reference in assembly.get_referenced_assemblies() do
+                    if reference.name =~ runtime_name then
+                        return true
+                    fi
+                od
+            catch ex: System.PlatformNotSupportedException
+                return assembly.is_defined(typeof Internal.GHUL_COMPILED_ATTRIBUTE, false)
+            yrt
 
             return false
         si
@@ -373,6 +400,17 @@ namespace Ghul is
         // its beginning, as it would have had the render read to its end.
         // An enumerator that cannot be reset is left where it stopped.
         _rewind(values: object) static is
+            if !System.Runtime.CompilerServices.RuntimeFeature.is_dynamic_code_supported then
+                if let enumerator: Collections.MoveNext = values then
+                    try
+                        enumerator.reset()
+                    catch e: System.Exception
+                    yrt
+                fi
+
+                return
+            fi
+
             let reset = values.get_type().get_method("Reset", System.Type.empty_types)
 
             if reset? then
@@ -395,6 +433,93 @@ namespace Ghul is
             let declaring = to_string.declaring_type
 
             return declaring != typeof(object) /\ declaring != typeof(System.ValueType)
+        si
+
+        // What `render` does where reflection cannot say whether a type
+        // declares its own to_string or a GetEnumerator. A sequence is read
+        // through the non-generic IEnumerable every .NET sequence
+        // implements.
+        _render_compiled_ahead(value: object, type: System.Type) is
+            if let text = _own_words(value, type) then
+                append(text)
+
+                return
+            fi
+
+            if let sequence: Collections.NonGenericIterable = value then
+                _mark(value)
+                _append_elements(value, System.Linq.Enumerable.cast[object](sequence))
+                _release(value)
+
+                return
+            fi
+
+            if !_info(type).renders_members then
+                append(value.to_string() ?? "null")
+
+                return
+            fi
+
+            _mark(value)
+            _append_members(value, type)
+            _release(value)
+        si
+
+        // The text a value gives of itself, where reflection cannot say
+        // whether its type declares a to_string: none for text that is only
+        // the type name, which is what a type without one answers, nor for
+        // a value asked from inside its own to_string, which a pipe's
+        // renders by coming back here.
+        _own_words(value: object, type: System.Type) -> string? static is
+            let asked = _OWN_WORDS_ASKED.asked.value
+
+            for entry in asked do
+                if entry == value then
+                    return null
+                fi
+            od
+
+            asked.add(value)
+
+            let text: string? mut = null
+
+            try
+                text = value.to_string()
+            finally
+                asked.remove_at(asked.count - 1)
+            yrt
+
+            if !text? \/ text =~ type.to_string() then
+                return null
+            fi
+
+            return text
+        si
+
+        _append_elements(value: object, elements: Collections.Iterable[object]) is
+            append('[')
+
+            let count mut = 0
+
+            for element in elements do
+                if count >= max_elements then
+                    append(", ...")
+
+                    _rewind(value)
+
+                    break
+                fi
+
+                if count > 0 then
+                    append(", ")
+                fi
+
+                _render_child(element)
+
+                count = count + 1
+            od
+
+            append(']')
         si
 
         // The type and its public members, as the constructor call that
@@ -542,6 +667,16 @@ namespace Ghul is
                 return
             fi
 
+            if !System.Runtime.CompilerServices.RuntimeFeature.is_dynamic_code_supported then
+                if let text = _own_words(values, values.get_type()) then
+                    append(text)
+                else
+                    render_elements(values)
+                fi
+
+                return
+            fi
+
             if _speaks_for_itself(values.get_type()) then
                 append(values.to_string() ?? "null")
 
@@ -685,6 +820,16 @@ namespace Ghul is
             append(']')
 
             return true
+        si
+    si
+
+    // The values being asked for their own text on each thread. Only a
+    // render compiled ahead of time asks, so only it ever initialises this.
+    class _OWN_WORDS_ASKED is
+        asked: System.Threading.ThreadLocal[Collections.LIST[object]] static
+
+        init() static is
+            asked = System.Threading.ThreadLocal[Collections.LIST[object]](() => Collections.LIST[object]())
         si
     si
 

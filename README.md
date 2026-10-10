@@ -50,6 +50,10 @@ checkout's sources and run under Node, each a ghul-cli project whose
 `run.expected` is what the same program prints on .NET. Run them with
 `dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" --target wasm wasm-tests`.
 
+`native-aot-tests/` renders values with `$` under the JIT and published with
+Native AOT, where rendering cannot rely on reflection, and checks that both
+print its `run.expected`. See its README for how to run it.
+
 ## Issues
 
 [View open issues](https://github.com/degory/ghul/issues?q=is%3Aopen+is%3Aissue+label%3Aghul-runtime) or [raise a new one](https://github.com/degory/ghul/issues/new?labels=ghul-runtime).
